@@ -274,27 +274,26 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
         picAttachments.forEach((file) => {
             formData.append("picAttachments", file);
         });
-        //* End
+
         try {
-            setSubmitting(true); // ← LOCK THE FORM
-            //* New
+            setSubmitting(true);
             const res = await fetch("/api/request/add", {
                 method: "POST",
                 body: formData,   
             });
             const data = await res.json();
-            //* End
             if (!res.ok) {
                 alert(data?.message || "บันทึกไม่สำเร็จ");
+                setSubmitting(false);
                 return;
             }
             alert("บันทึกสำเร็จ เลขที่ใบแจ้ง : " + (data.requestNo ?? data.id));
-            router.push('/status')
+            router.push('/status');
         } catch {
             alert("เกิดข้อผิดพลาดในการเชื่อมต่อ");
-            setSubmitting(false)
+            setSubmitting(false);
         }
-    }
+    };
 
     const inputClass = (hasError?: boolean) =>
         `input-base ${hasError ? "border-red-500 focus:ring-red-500 focus:border-red-500" : ""}`;
@@ -302,385 +301,375 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
     const Req = () => <span className="text-red-600 ml-0.5">*</span>;
 
     return (
-        <section className="max-w-4xl mx-auto">
-        <br />
-        <h1 className="text-2xl md:text-3xl font-bold text-center text-slate-800">
-            เปิดใบแจ้งซ่อม (CS)
-        </h1>
+        <div className="w-full max-w-5xl mx-auto h-[calc(100vh-140px)] flex flex-col justify-between select-none">
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex-grow flex flex-col justify-between overflow-hidden">
+                <form onSubmit={onSubmit} className="flex flex-col justify-between h-full space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 overflow-y-auto pr-1">
+                        {/* Column 1: Customer & Basic Product */}
+                        <div className="space-y-3.5">
+                            <h3 className="text-xs font-bold text-slate-800 border-b border-slate-100 pb-1 flex items-center gap-1.5 uppercase tracking-wide">
+                                <span className="w-1.5 h-3 bg-violet-600 rounded"></span>
+                                รายละเอียดลูกค้า
+                            </h3>
+                            
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label htmlFor="firstName" className="block text-[11px] font-semibold text-slate-500 mb-1">ชื่อจริง<Req /></label>
+                                    <input
+                                        id="firstName"
+                                        className={inputClass(!!errors.firstName)}
+                                        value={firstName}
+                                        onChange={e => setFirstName(e.target.value)}
+                                        placeholder="ระบุชื่อจริง"
+                                    />
+                                    {errors.firstName && <p className="text-red-600 text-[10px] mt-0.5">{errors.firstName}</p>}
+                                </div>
+                                <div>
+                                    <label htmlFor="lastName" className="block text-[11px] font-semibold text-slate-500 mb-1">นามสกุล<Req /></label>
+                                    <input
+                                        id="lastName"
+                                        className={inputClass(!!errors.lastName)}
+                                        value={lastName}
+                                        onChange={e => setLastName(e.target.value)}
+                                        placeholder="ระบุนามสกุล"
+                                    />
+                                    {errors.lastName && <p className="text-red-600 text-[10px] mt-0.5">{errors.lastName}</p>}
+                                </div>
+                            </div>
 
-        <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-6 md:p-8 shadow-sm">
-            <form onSubmit={onSubmit} className="space-y-8">
-            <fieldset className="space-y-4">
-                <legend className="text-lg font-semibold text-slate-900">รายละเอียดลูกค้า</legend>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label htmlFor="firstName" className="form-label">ชื่อ<Req /></label>
-                        <input
-                        id="firstName"
-                        className={inputClass(!!errors.firstName)}
-                        value={firstName}
-                        onChange={e => setFirstName(e.target.value)}
-                        placeholder="ชื่อ"
-                        />
-                        {errors.firstName && <p className="text-red-600 text-sm mt-1">{errors.firstName}</p>}
-                    </div>
-
-                    <div>
-                        <label htmlFor="lastName" className="form-label">นามสกุล<Req /></label>
-                        <input
-                        id="lastName"
-                        className={inputClass(!!errors.lastName)}
-                        value={lastName}
-                        onChange={e => setLastName(e.target.value)}
-                        placeholder="นามสกุล"
-                        />
-                        {errors.lastName && <p className="text-red-600 text-sm mt-1">{errors.lastName}</p>}
-                    </div>
-                </div>
-
-                <div>
-                    <label htmlFor="address" className="form-label">ที่อยู่</label>
-                    <textarea
-                        id="address"
-                        className="input-base min-h-24"
-                        value={address}
-                        onChange={e => setAddress(e.target.value)}
-                        placeholder="บ้านเลขที่ / ถนน / ตำบล / อำเภอ / จังหวัด / รหัสไปรษณีย์"
-                    />
-                </div>
-
-                <div>
-                    <label htmlFor="phone" className="form-label">โทรศัพท์<Req /></label>
-                    <input
-                        id="phone"
-                        className={inputClass(!!errors.phone)}
-                        value={phone}
-                        onChange={e => setPhone(e.target.value)}
-                        inputMode="tel"
-                        placeholder="0812345678"
-                    />
-                    {errors.phone && <p className="text-red-600 text-sm mt-1">{errors.phone}</p>}
-                </div>
-            </fieldset>
-
-            <fieldset className="space-y-4">
-                <legend className="text-lg font-semibold text-slate-900">รายละเอียดสินค้า</legend>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <label className="inline-flex items-center gap-2">
-                        <input
-                            type="checkbox"
-                            checked={skuFlg}
-                            onChange={(e) => {
-                                const checked = e.target.checked;
-                                setSkuFlg(checked);
-
-                                if (!checked) {
-                                    setSku("");
-                                    setErrors(prev => ({ ...prev, sku: undefined }));
-                                }
-                            }}
-                            />
-                        <span className="form-label mb-0">สินค้าอยู่ในระบบ</span>
-                    </label>
-                    <div />
-                    <div>
-                        <label htmlFor="sku" className="form-label">
-                            SKU<Req />
-                        </label>
-                        <input
-                            id="sku"
-                            type="number"
-                            className={`${inputClass(!!errors.sku)} w-50`}
-                            value={sku}
-                            onChange={(e) =>
-                                setSku(e.target.value === "" ? "" : Number(e.target.value))
-                            }
-                            disabled={!skuFlg} 
-                        />
-                            {errors.sku && (
-                                <p className="text-red-600 text-sm mt-1">{errors.sku}</p>
-                            )}
-                            {skuLoading && <p className="text-xs text-slate-500 mt-1">กำลังค้นหา...</p>}
-                            {skuError && <p className="text-xs text-red-600 mt-1">{skuError}</p>}
-                    </div>
-                    <div>
-                        <label htmlFor="barcode" className="form-label">Barcode<Req /></label>
-                        <input
-                            id="barcode"
-                            className={`${inputClass(!!errors.barcode)} w-60`}
-                            value={barcode}
-                            onChange={e => setBarcode(e.target.value)}
-                            disabled={skuFlg} 
-                        />
-                        {errors.barcode && <p className="text-red-600 text-sm mt-1">{errors.barcode}</p>}
-                    </div>
-                    <div>
-                        <label className="form-label">ประเภทสินค้า<Req /></label>
-                        <select
-                            className="input-base"
-                            value={productType}
-                            onChange={(e) => {
-                                const v = e.target.value;
-                                setProductType(v);
-                                setBrand("");
-                                setBrandList([]);
-                            }}
-                            disabled={skuFlg} 
-                        >
-                            <option value="">-- เลือกประเภทสินค้า --</option>
-                            {classList.map((c) => (
-                                <option key={c} value={c}>
-                                    {c}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                    <div>
-                        <label className="form-label">ยี่ห้อ</label>
-                        <select
-                            className="input-base"
-                            value={brand}
-                            onChange={(e) => setBrand(e.target.value)}
-                            disabled={skuFlg || !productType || brandList.length === 0}
-                        >
-                            <option value="">-- เลือกยี่ห้อ --</option>
-                            {brandList.map((s) => (
-                                <option key={`${productType}-${s}`} value={s}>
-                                    {s}
-                                </option>
-                            ))}
-                        </select>
-
-                        {!skuFlg && productType && !brandLoading && !brandError && brandList.length === 0 && (
-                            <p className="text-slate-500 text-sm mt-1">ไม่พบยี่ห้อในประเภทนี้</p>
-                        )}
-                        {brandError && <p className="text-red-600 text-sm mt-1">{brandError}</p>}
-                    </div>
-                    <div>
-                        <label htmlFor="model" className="form-label">รุ่น</label>
-                        <input
-                            id="model"
-                            className="input-base"
-                            value={model}
-                            onChange={e => setModel(e.target.value)}
-                            disabled={skuFlg}
-                        />
-                    </div>
-                    <div />                    
-                    <div>
-                        <label htmlFor="serial" className="form-label">เลขเครื่อง (Serial Number)</label>
-                        <input
-                            id="serial"
-                            className="input-base"
-                            value={serial}
-                            onChange={e => setSerial(e.target.value)}
-                        />
-                    </div>
-                    <div>
-                        <label className="form-label">
-                            ไฟล์รูป (Serial Number)<Req />
-                        </label>
-
-                        <input
-                            ref={serialFileInputRef}
-                            type="file"
-                            multiple
-                            accept=".jpg,.jpeg,.png,.pdf"
-                            className={`${inputClass(!!errors.serialAttachments)} w-60`}
-                            onChange={(e) => {
-                            const files = Array.from(e.target.files ?? []);
-                                setSerialAttachments(files);
-                            }}
-                        />
-
-                        {errors.serialAttachments && (
-                            <p className="text-red-600 text-sm mt-1">{errors.serialAttachments}</p>
-                        )}
-
-                        {serialAttachments.length > 0 && (
-                            <ul className="mt-2 text-sm text-slate-700 space-y-1">
-                                {serialAttachments.map((f, idx) => (
-                                    <li
-                                        key={`${f.name}-${f.size}`}
-                                        className="flex items-center justify-between bg-slate-100 px-2 py-1 rounded"
-                                    >
-                                    <span className="truncate">{f.name}</span>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setSerialAttachments((prev) => {
-                                                const next = prev.filter((_, i) => i !== idx);
-                                                if (next.length === 0 && serialFileInputRef.current) {
-                                                    serialFileInputRef.current.value = "";
+                            <div className="grid grid-cols-3 gap-3 items-end">
+                                <div className="col-span-2">
+                                    <label htmlFor="phone" className="block text-[11px] font-semibold text-slate-500 mb-1">เบอร์โทรศัพท์<Req /></label>
+                                    <input
+                                        id="phone"
+                                        className={inputClass(!!errors.phone)}
+                                        value={phone}
+                                        onChange={e => setPhone(e.target.value)}
+                                        inputMode="tel"
+                                        placeholder="0812345678"
+                                    />
+                                    {errors.phone && <p className="text-red-600 text-[10px] mt-0.5">{errors.phone}</p>}
+                                </div>
+                                <div className="flex items-center pb-2">
+                                    <label className="inline-flex items-center gap-1.5 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={skuFlg}
+                                            onChange={(e) => {
+                                                const checked = e.target.checked;
+                                                setSkuFlg(checked);
+                                                if (!checked) {
+                                                    setSku("");
+                                                    setErrors(prev => ({ ...prev, sku: undefined }));
                                                 }
-                                                return next;
-                                            });
+                                            }}
+                                            className="w-4 h-4 rounded text-violet-600 focus:ring-violet-500 border-slate-300"
+                                        />
+                                        <span className="text-[11px] font-semibold text-slate-700">สินค้าในระบบ</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label htmlFor="address" className="block text-[11px] font-semibold text-slate-500 mb-1">ที่อยู่ติดต่อ</label>
+                                <textarea
+                                    id="address"
+                                    className="input-base text-xs py-1 h-12 resize-none"
+                                    value={address}
+                                    onChange={e => setAddress(e.target.value)}
+                                    placeholder="บ้านเลขที่, ถนน, ตำบล, อำเภอ, จังหวัด"
+                                />
+                            </div>
+
+                            <h3 className="text-xs font-bold text-slate-800 border-b border-slate-100 pb-1 pt-1 flex items-center gap-1.5 uppercase tracking-wide">
+                                <span className="w-1.5 h-3 bg-violet-600 rounded"></span>
+                                รายละเอียดสินค้า
+                            </h3>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label htmlFor="sku" className="block text-[11px] font-semibold text-slate-500 mb-1">SKU<Req /></label>
+                                    <input
+                                        id="sku"
+                                        type="number"
+                                        className={inputClass(!!errors.sku)}
+                                        value={sku}
+                                        onChange={(e) =>
+                                            setSku(e.target.value === "" ? "" : Number(e.target.value))
+                                        }
+                                        disabled={!skuFlg}
+                                        placeholder="ระบุรหัส SKU"
+                                    />
+                                    {errors.sku && <p className="text-red-600 text-[10px] mt-0.5">{errors.sku}</p>}
+                                    {skuLoading && <p className="text-[10px] text-slate-400 mt-0.5">กำลังค้นหา...</p>}
+                                    {skuError && <p className="text-[10px] text-red-600 mt-0.5">{skuError}</p>}
+                                </div>
+                                <div>
+                                    <label htmlFor="barcode" className="block text-[11px] font-semibold text-slate-500 mb-1">Barcode<Req /></label>
+                                    <input
+                                        id="barcode"
+                                        className={inputClass(!!errors.barcode)}
+                                        value={barcode}
+                                        onChange={e => setBarcode(e.target.value)}
+                                        disabled={skuFlg}
+                                        placeholder="ระบุบาร์โค้ด"
+                                    />
+                                    {errors.barcode && <p className="text-red-600 text-[10px] mt-0.5">{errors.barcode}</p>}
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-[11px] font-semibold text-slate-500 mb-1">ประเภทสินค้า<Req /></label>
+                                    <select
+                                        className="input-base text-xs py-1"
+                                        value={productType}
+                                        onChange={(e) => {
+                                            const v = e.target.value;
+                                            setProductType(v);
+                                            setBrand("");
+                                            setBrandList([]);
                                         }}
-                                        className="ml-3 text-red-500 hover:text-red-700 text-sm font-bold"
+                                        disabled={skuFlg}
                                     >
-                                        ลบ
-                                    </button>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                    </div>
-                    <div>
-                        <label htmlFor="qty" className="form-label">จำนวน<Req /></label>
-                        <input
-                            id="qty"
-                            type="number"
-                            min={1}
-                            className={`${inputClass(!!errors.qty)} w-60`}
-                            value={qty}
-                            onChange={e => setQty(e.target.value === "" ? "" : Number(e.target.value))}
-                        />
-                        {errors.qty && <p className="text-red-600 text-sm mt-1">{errors.qty}</p>}
-                    </div>
-
-                    <div className="flex flex-col">
-                        <label className="form-label">
-                            วันที่รับสินค้าจากลูกค้า<Req />
-                        </label>
-
-                        <DatePicker
-                            id="receiveFromUserDt"
-                            selected={receiveFromUserDt}
-                            onChange={(date) => setReceiveFromUserDt(date)}
-                            dateFormat="dd/MM/yyyy"
-                            placeholderText="วว/ดด/ปป"
-                            className={`${inputClass(!!errors.receiveFromUserDt)} w-60`}
-                        />
-                            {errors.receiveFromUserDt && <p className="text-red-600 text-sm mt-1">{errors.receiveFromUserDt}</p>}
-                    </div>
-                </div>
-
-                <div className="space-y-2">
-                    <div>
-                        <label htmlFor="issue" className="form-label">อาการที่พบ<Req /></label>
-                        <textarea
-                            id="issue"
-                            className="input-base min-h-24"
-                            value={issue}
-                            onChange={e => setIssue(e.target.value)}
-                            />
-                            {errors.issue && <p className="text-red-600 text-sm mt-1">{errors.issue}</p>}
-                    </div>
-
-                    <span className="form-label">ปัญหาที่เกิด<Req /></span>
-                    <div className="flex flex-wrap items-center gap-6">
-                        <label className="inline-flex items-center gap-2">
-                        <input
-                            type="radio"
-                            name="warranty"
-                            value="in"
-                            checked={warranty === "in"}
-                            onChange={() => setWarranty("in")}
-                        />
-                        <span>อยู่ในประกัน</span>
-                        </label>
-
-                        <label className="inline-flex items-center gap-2">
-                        <input
-                            type="radio"
-                            name="warranty"
-                            value="out"
-                            checked={warranty === "out"}
-                            onChange={() => setWarranty("out")}
-                        />
-                        <span>ไม่อยู่ในประกัน</span>
-                        </label>
-                    </div>
-                    {errors.warranty && <p className="text-red-600 text-sm">{errors.warranty}</p>}
-
-                    {warranty === "in" && (
-                        <div className="pt-2">
-                        <label htmlFor="warrantyNo" className="form-label">เลขที่ใบประกัน<Req /></label>
-                        <input
-                            id="warrantyNo"
-                            className={`${inputClass(!!errors.warrantyNo)} w-60`}
-                            value={warrantyNo}
-                            onChange={e => setWarrantyNo(e.target.value)}
-                        />
-                        {errors.warrantyNo && <p className="text-red-600 text-sm mt-1">{errors.warrantyNo}</p>}
+                                        <option value="">-- เลือกประเภท --</option>
+                                        {classList.map((c) => (
+                                            <option key={c} value={c}>
+                                                {c}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-[11px] font-semibold text-slate-500 mb-1">ยี่ห้อ</label>
+                                    <select
+                                        className="input-base text-xs py-1"
+                                        value={brand}
+                                        onChange={(e) => setBrand(e.target.value)}
+                                        disabled={skuFlg || !productType || brandList.length === 0}
+                                    >
+                                        <option value="">-- เลือกยี่ห้อ --</option>
+                                        {brandList.map((s) => (
+                                            <option key={`${productType}-${s}`} value={s}>
+                                                {s}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
                         </div>
-                    )}
-                </div>
-                
-                <div className="pt-2">
-                    <label className="form-label">
-                        ไฟล์แนบ<Req />
-                    </label>
 
-                    <input
-                        ref={picFileInputRef}
-                        type="file"
-                        multiple
-                        accept=".jpg,.jpeg,.png,.pdf"
-                        className={`${inputClass(!!errors.picAttachments)} w-60`}
-                        onChange={(e) => {
-                        const files = Array.from(e.target.files ?? []);
-                            setPicAttachments(files);
-                        }}
-                    />
+                        {/* Column 2: Specs, warranty, symptom */}
+                        <div className="space-y-3.5">
+                            <h3 className="text-xs font-bold text-slate-800 border-b border-slate-100 pb-1 flex items-center gap-1.5 uppercase tracking-wide">
+                                <span className="w-1.5 h-3 bg-violet-600 rounded"></span>
+                                การรับประกัน & อาการเสีย
+                            </h3>
 
-                    {errors.picAttachments && (
-                        <p className="text-red-600 text-sm mt-1">{errors.picAttachments}</p>
-                    )}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label htmlFor="model" className="block text-[11px] font-semibold text-slate-500 mb-1">รุ่นสินค้า</label>
+                                    <input
+                                        id="model"
+                                        className="input-base text-xs py-1"
+                                        value={model}
+                                        onChange={e => setModel(e.target.value)}
+                                        disabled={skuFlg}
+                                        placeholder="ระบุรุ่นสินค้า"
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="serial" className="block text-[11px] font-semibold text-slate-500 mb-1">Serial Number (เลขเครื่อง)</label>
+                                    <input
+                                        id="serial"
+                                        className="input-base text-xs py-1"
+                                        value={serial}
+                                        onChange={e => setSerial(e.target.value)}
+                                        placeholder="ระบุเลข Serial"
+                                    />
+                                </div>
+                            </div>
 
-                    {picAttachments.length > 0 && (
-                            <ul className="mt-2 text-sm text-slate-700 space-y-1">
-                                {picAttachments.map((f, idx) => (
-                                    <li
-                                    key={`${f.name}-${f.size}`}
-                                    className="flex items-center justify-between bg-slate-100 px-2 py-1 rounded"
-                                    >
-                                    <span className="truncate">{f.name}</span>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label htmlFor="qty" className="block text-[11px] font-semibold text-slate-500 mb-1">จำนวน<Req /></label>
+                                    <input
+                                        id="qty"
+                                        type="number"
+                                        min={1}
+                                        className={inputClass(!!errors.qty)}
+                                        value={qty}
+                                        onChange={e => setQty(e.target.value === "" ? "" : Number(e.target.value))}
+                                    />
+                                    {errors.qty && <p className="text-red-600 text-[10px] mt-0.5">{errors.qty}</p>}
+                                </div>
+                                <div className="flex flex-col">
+                                    <label className="block text-[11px] font-semibold text-slate-500 mb-1">วันที่รับเครื่อง<Req /></label>
+                                    <DatePicker
+                                        id="receiveFromUserDt"
+                                        selected={receiveFromUserDt}
+                                        onChange={(date) => setReceiveFromUserDt(date)}
+                                        dateFormat="dd/MM/yyyy"
+                                        placeholderText="วว/ดด/ปป"
+                                        className={inputClass(!!errors.receiveFromUserDt)}
+                                    />
+                                    {errors.receiveFromUserDt && <p className="text-red-600 text-[10px] mt-0.5">{errors.receiveFromUserDt}</p>}
+                                </div>
+                            </div>
 
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setPicAttachments((prev) => {
-                                                const next = prev.filter((_, i) => i !== idx);
-                                                if (next.length === 0 && picFileInputRef.current) {
-                                                    picFileInputRef.current.value = "";
-                                                }
+                            <div>
+                                <label className="block text-[11px] font-semibold text-slate-500 mb-1">การรับประกัน<Req /></label>
+                                <div className="flex items-center gap-4 py-1 text-xs">
+                                    <label className="inline-flex items-center gap-1.5 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="warranty"
+                                            value="in"
+                                            checked={warranty === "in"}
+                                            onChange={() => setWarranty("in")}
+                                            className="w-4 h-4 text-violet-600 focus:ring-violet-500 border-slate-300"
+                                        />
+                                        <span className="font-semibold text-slate-700">อยู่ในประกัน</span>
+                                    </label>
+                                    <label className="inline-flex items-center gap-1.5 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="warranty"
+                                            value="out"
+                                            checked={warranty === "out"}
+                                            onChange={() => setWarranty("out")}
+                                            className="w-4 h-4 text-violet-600 focus:ring-violet-500 border-slate-300"
+                                        />
+                                        <span className="font-semibold text-slate-700">ไม่อยู่ในประกัน</span>
+                                    </label>
+                                </div>
+                                {errors.warranty && <p className="text-red-600 text-[10px] mt-0.5">{errors.warranty}</p>}
+                                
+                                {warranty === "in" && (
+                                    <div className="mt-2">
+                                        <label htmlFor="warrantyNo" className="block text-[11px] font-semibold text-slate-500 mb-1">เลขที่ใบประกัน<Req /></label>
+                                        <input
+                                            id="warrantyNo"
+                                            className={inputClass(!!errors.warrantyNo)}
+                                            value={warrantyNo}
+                                            onChange={e => setWarrantyNo(e.target.value)}
+                                            placeholder="ระบุเลขที่รับประกัน"
+                                        />
+                                        {errors.warrantyNo && <p className="text-red-600 text-[10px] mt-0.5">{errors.warrantyNo}</p>}
+                                    </div>
+                                )}
+                            </div>
 
-                                                return next;
-                                            });
-                                        }}
-                                        className="ml-3 text-red-500 hover:text-red-700 text-sm font-bold"
-                                    >
-                                        ลบ
-                                    </button>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                </div>
-            </fieldset>
+                            <div>
+                                <label htmlFor="issue" className="block text-[11px] font-semibold text-slate-500 mb-1">อาการเสียที่พบ<Req /></label>
+                                <textarea
+                                    id="issue"
+                                    className="input-base text-xs py-1 h-12 resize-none"
+                                    value={issue}
+                                    onChange={e => setIssue(e.target.value)}
+                                    placeholder="ระบุอาการชำรุดเสียหายของสินค้า"
+                                />
+                                {errors.issue && <p className="text-red-600 text-[10px] mt-0.5">{errors.issue}</p>}
+                            </div>
 
-            <div className="flex items-center justify-end gap-3">
-                <button
-                    type="button"
-                    className="btn-back"
-                    onClick={() => history.back()}
-                >
-                    ย้อนกลับ
-                </button>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-[11px] font-semibold text-slate-500 mb-1">รูปถ่าย Serial Number<Req /></label>
+                                    <input
+                                        ref={serialFileInputRef}
+                                        type="file"
+                                        multiple
+                                        accept=".jpg,.jpeg,.png,.pdf"
+                                        className={inputClass(!!errors.serialAttachments)}
+                                        onChange={(e) => setSerialAttachments(Array.from(e.target.files ?? []))}
+                                    />
+                                    {errors.serialAttachments && <p className="text-red-600 text-[10px] mt-0.5">{errors.serialAttachments}</p>}
+                                    
+                                    {serialAttachments.length > 0 && (
+                                        <div className="mt-1 text-[9px] text-slate-500 bg-slate-50 border border-slate-100 p-1 rounded-lg max-h-12 overflow-y-auto">
+                                            {serialAttachments.map((f, idx) => (
+                                                <div key={`${f.name}-${f.size}`} className="flex items-center justify-between gap-1 py-0.5">
+                                                    <span className="truncate flex-grow">{f.name}</span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setSerialAttachments((prev) => {
+                                                                const next = prev.filter((_, i) => i !== idx);
+                                                                if (next.length === 0 && serialFileInputRef.current) {
+                                                                    serialFileInputRef.current.value = "";
+                                                                }
+                                                                return next;
+                                                            });
+                                                        }}
+                                                        className="text-red-500 hover:text-red-700 font-bold"
+                                                    >
+                                                        ลบ
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                                <div>
+                                    <label className="block text-[11px] font-semibold text-slate-500 mb-1">รูปถ่ายตัวสินค้า<Req /></label>
+                                    <input
+                                        ref={picFileInputRef}
+                                        type="file"
+                                        multiple
+                                        accept=".jpg,.jpeg,.png,.pdf"
+                                        className={inputClass(!!errors.picAttachments)}
+                                        onChange={(e) => setPicAttachments(Array.from(e.target.files ?? []))}
+                                    />
+                                    {errors.picAttachments && <p className="text-red-600 text-[10px] mt-0.5">{errors.picAttachments}</p>}
+                                    
+                                    {picAttachments.length > 0 && (
+                                        <div className="mt-1 text-[9px] text-slate-500 bg-slate-50 border border-slate-100 p-1 rounded-lg max-h-12 overflow-y-auto">
+                                            {picAttachments.map((f, idx) => (
+                                                <div key={`${f.name}-${f.size}`} className="flex items-center justify-between gap-1 py-0.5">
+                                                    <span className="truncate flex-grow">{f.name}</span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setPicAttachments((prev) => {
+                                                                const next = prev.filter((_, i) => i !== idx);
+                                                                if (next.length === 0 && picFileInputRef.current) {
+                                                                    picFileInputRef.current.value = "";
+                                                                }
+                                                                return next;
+                                                            });
+                                                        }}
+                                                        className="text-red-500 hover:text-red-700 font-bold"
+                                                    >
+                                                        ลบ
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                <button
-                    type="submit"
-                    className="btn-submit"
-                    disabled={submitting}
-                >
-                    {submitting ? "กำลังบันทึก..." : "บันทึก"}
-                </button>
+                    {/* Actions footer */}
+                    <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100 bg-white">
+                        <button
+                            type="button"
+                            className="px-5 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
+                            onClick={() => history.back()}
+                        >
+                            ย้อนกลับ
+                        </button>
+                        <button
+                            type="submit"
+                            className="px-5 py-1.5 rounded-lg text-xs font-bold bg-violet-600 hover:bg-violet-500 text-white shadow transition"
+                            disabled={submitting}
+                        >
+                            {submitting ? "กำลังบันทึก..." : "บันทึกข้อมูล"}
+                        </button>
+                    </div>
+                </form>
             </div>
-            </form>
         </div>
-        </section>
     );
 }
