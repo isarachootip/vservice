@@ -20,6 +20,7 @@ export type DashboardSummary = {
         userCancelled: number;
         twCancelled: number;
     };
+    statusCounts: Array<{ statusId: number; count: number }>;
 };
 
 export class DashboardService {
@@ -68,6 +69,10 @@ export class DashboardService {
                 userCancelled: sumStatuses([234, 34]),
                 twCancelled: sumStatuses([0]),
             },
+            statusCounts: grouped.map(row => ({
+                statusId: row.status ?? 0,
+                count: row._count.status
+            }))
         };
     }
 }

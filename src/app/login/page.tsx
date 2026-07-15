@@ -32,7 +32,7 @@ export default function LoginPage() {
       }
       
       localStorage.setItem("userInfo", JSON.stringify(data.user));
-      router.push("/menu");
+      router.push("/dashboard");
     } catch (err) {
       console.error("Login connection error", err);
       setError("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
