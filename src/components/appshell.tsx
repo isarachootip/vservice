@@ -102,13 +102,13 @@ export default function AppShell({ children }: { children: ReactNode }) {
       <aside className="w-64 bg-[#121224] text-slate-300 flex flex-col justify-between shrink-0 sticky top-0 h-screen z-20">
         <div className="flex flex-col">
           {/* Sidebar Top Header Logo */}
-          <div className="flex items-center gap-3 px-6 py-5 bg-[#0e0e1c] border-b border-slate-800/40">
-            <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-violet-600 text-white font-extrabold text-lg shadow">
-              H
-            </span>
+          <div className="flex items-center gap-3 px-5 py-4 bg-[#0e0e1c] border-b border-slate-800/40">
+            <div className="w-10 h-10 rounded-lg bg-white p-1 flex items-center justify-center overflow-hidden shrink-0 shadow-sm border border-slate-700/30">
+              <img src="/images/logo_vrepair.png" alt="VService Logo" className="w-full h-full object-contain" />
+            </div>
             <div className="flex flex-col">
-              <span className="text-white font-extrabold text-sm tracking-wide">IT Helpdesk</span>
-              <span className="text-[10px] text-slate-500 font-semibold tracking-wider">SUPPORT SYSTEM</span>
+              <span className="text-white font-extrabold text-sm tracking-wide">VService</span>
+              <span className="text-[9px] text-slate-500 font-semibold tracking-wider">ระบบใบแจ้งซ่อมสินค้า</span>
             </div>
           </div>
 
@@ -210,7 +210,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
         <header className="sticky top-0 bg-white border-b border-slate-200/80 px-6 py-4 flex items-center justify-between z-10 shadow-sm">
           <div className="flex items-center gap-3">
             <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
-              <span className="text-violet-600 font-extrabold">IT Helpdesk</span>
+              <span className="text-violet-600 font-extrabold">VService</span>
               <span className="text-slate-300 font-normal">|</span>
               <span className="text-slate-500 font-semibold text-xs">ระบบรับแจ้งซ่อมและบริการลูกค้า</span>
             </h2>
