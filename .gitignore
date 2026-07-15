@@ -1,0 +1,68 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+/src/generated/prisma
+
+# claudecode
+.claude/
+/openspec
+
+# Temporary helper scripts
+/check_params.py
+/check_schemas.js
+/find_actions_def.py
+/find_all_rid.py
+/find_filtered_rows.py
+/find_function.py
+/find_models.py
+/find_option_route.py
+/find_paginated_rows.py
+/find_user_models.py
+/list_tables.js
+/list_tickets.js
+/list_users.js
+/print_build_steps.py
+/search_links.py
+/search_links_detail.py
+/search_r_jsx.py
+/search_status_fetch.py
+/search_view_links.py

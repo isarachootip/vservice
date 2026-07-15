@@ -1,0 +1,351 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["windows", "native"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model permission {
+  permission_id             Int                         @id @default(autoincrement())
+  permission_name           String?                     @db.VarChar(45)
+  permission_desc           String?                     @db.VarChar(200)
+  created_date              DateTime?                   @default(now()) @db.Timestamp(6)
+  created_user              String?                     @db.VarChar(10)
+  updated_date              DateTime?                   @default(now()) @db.Timestamp(6)
+  updated_user              String?                     @db.VarChar(10)
+  user_roles_has_permission user_roles_has_permission[]
+}
+
+model repair_item {
+  id             Int            @id @default(autoincrement())
+  request_id     Int
+  product_type   String         @db.VarChar(100)
+  brand          String         @db.VarChar(100)
+  model          String         @db.VarChar(200)
+  serial_no      String         @db.VarChar(100)
+  qty            Int
+  bar_code       String?        @db.VarChar(50)
+  sku_flg        String?        @db.VarChar(5)
+  sku_code       BigInt?
+  issue          String?        @db.VarChar(200)
+  in_warranty    String         @db.VarChar(5)
+  warranty_no    String?        @db.VarChar(100)
+  created_date   DateTime?      @default(now()) @db.Timestamp(6)
+  created_user   String?        @db.VarChar(50)
+  updated_date   DateTime?      @default(now()) @db.Timestamp(6)
+  updated_user   String?        @db.VarChar(50)
+  repair_request repair_request @relation(fields: [request_id], references: [id], onDelete: Cascade, map: "fk_repair_item_request")
+}
+
+model repair_request {
+  id                              Int                   @id @default(autoincrement())
+  request_no                      String?               @unique @db.VarChar(50)
+  customer_name                   String                @db.VarChar(100)
+  address                         String                @db.VarChar(200)
+  phone                           String                @db.VarChar(30)
+  store_code                      String?               @db.VarChar(10)
+  receive_from_user_date          DateTime?             @db.Date
+  vendor_name                     String?               @db.VarChar(100)
+  send_to_vendor_by               String?               @db.VarChar(100)
+  send_to_vendor_date             DateTime?             @db.Date
+  dc_receive_date                 DateTime?             @db.Date
+  dc_receiver_name                String?               @db.VarChar(100)
+  arrive_to_dc_date               DateTime?             @db.Date
+  approvelog_id                   String?               @db.VarChar(30)
+  vendor_notified_by              String?               @db.VarChar(100)
+  vendor_notified_date            DateTime?             @db.Date
+  vendor_return_receive_by        String?               @db.VarChar(100)
+  vendor_return_sent_by           String?               @db.VarChar(100)
+  vendor_return_date              DateTime?             @db.Date
+  customer_receive_by             String?               @db.VarChar(100)
+  customer_receive_sent_by        String?               @db.VarChar(100)
+  customer_receive_date           DateTime?             @db.Date
+  status                          Int?
+  created_date                    DateTime?             @default(now()) @db.Timestamp(6)
+  created_user                    String?               @db.VarChar(50)
+  updated_date                    DateTime?             @default(now()) @db.Timestamp(6)
+  updated_user                    String?               @db.VarChar(50)
+  request_return_no               String?               @db.VarChar(50)
+  vendor_return_sender_tel        String?               @db.VarChar(30)
+  send_to_vendor_tel              String?               @db.VarChar(30)
+  dc_receiver_tel                 String?               @db.VarChar(30)
+  vendor_send_to_dc_by            String?               @db.VarChar(100)
+  vendor_to_dc_tel                String?               @db.VarChar(30)
+  vendor_send_to_dc_date          DateTime?             @db.Date
+  vendor_to_dc_receive_by         String?               @db.VarChar(100)
+  dc_return_send_by               String?               @db.VarChar(100)
+  dc_return_date                  DateTime?             @db.Date
+  dc_return_tel                   String?               @db.VarChar(30)
+  dc_return_receive_by            String?               @db.VarChar(100)
+  internal_flg                    String?               @db.VarChar(5)
+  rollback_reason                 String?               @db.VarChar(200)
+  rollback_by                     String?               @db.VarChar(100)
+  rollback_date                   DateTime?             @db.Timestamp(6)
+  dc_rej_return_send_by           String?               @db.VarChar(100)
+  dc_rej_return_date              DateTime?             @db.Date
+  dc_rej_return_tel               String?               @db.VarChar(30)
+  dc_rej_return_receive_by        String?               @db.VarChar(100)
+  reject_flg                      String?               @db.VarChar(5)
+  reject_from_status              String?               @db.VarChar(5)
+  cs_send_to_gr_by                String?               @db.VarChar(100)
+  cs_send_to_gr_date              DateTime?             @db.Date
+  cs_to_gr_tel                    String?               @db.VarChar(30)
+  cs_to_gr_receive_by             String?               @db.VarChar(100)
+  gr_open_dc_log_by               String?               @db.VarChar(100)
+  gr_open_dc_log_date             DateTime?             @db.Date
+  gr_send_return_to_cs_by         String?               @db.VarChar(100)
+  gr_send_return_to_cs_date       DateTime?             @db.Date
+  gr_send_return_to_cs_tel        String?               @db.VarChar(30)
+  gr_send_return_to_cs_receive_by String?               @db.VarChar(100)
+  location                        String?               @db.VarChar(100)
+  status_updated_date             DateTime?             @db.Timestamp(6)
+  quotation                       quotation[]
+  repair_attachment               repair_attachment[]
+  repair_bundle_items             repair_bundle_items[]
+  repair_item                     repair_item[]
+  transaction_log                 transaction_log[]
+}
+
+model store {
+  store_id              Int    @id(map: "pk_store")
+  store_code            String @unique(map: "uq_store_code") @db.VarChar(10)
+  store_code_oracle     String @db.VarChar(10)
+  store_name_th         String @db.VarChar(30)
+  store_name_en         String @db.VarChar(40)
+  store_nick3           String @db.VarChar(3)
+  store_nick2           String @db.VarChar(2)
+  store_nick_opn        String @db.VarChar(3)
+  store_nick_acc        String @db.VarChar(3)
+  store_nick_mms        String @db.VarChar(5)
+  formal_name_th        String @db.VarChar(150)
+  formal_address_th     String @db.VarChar(200)
+  store_email           String @db.VarChar(100)
+  store_phone           String @default("1308") @db.VarChar(35)
+  mgr_user              String @db.VarChar(20)
+  mgr_email             String @db.VarChar(100)
+  gr_email              String @db.VarChar(100)
+  esc_store_email       String @db.VarChar(100)
+  admin_email           String @db.VarChar(100)
+  cs_email              String @db.VarChar(100)
+  div_sale_12_email     String @db.VarChar(100)
+  ds_email              String @db.VarChar(100)
+  finance_email         String @db.VarChar(100)
+  store_location        String @db.VarChar(3)
+  store_region          String @db.VarChar(3)
+  license_zone          String @db.VarChar(3)
+  store_size_sqm        Float
+  in_host_store         String @db.VarChar(10)
+  in_bu                 String @db.VarChar(5)
+  is_dc                 Int    @default(0) @db.SmallInt
+  active                Int    @db.SmallInt
+  active_doc            Int    @db.SmallInt
+  district_code         String @db.VarChar(10)
+  district_lp_code      String @db.VarChar(10)
+  district_esc_code     String @db.VarChar(10)
+  esc_user              String @db.VarChar(20)
+  lpinv_zone            String @db.VarChar(10)
+  cct_zone              String @db.VarChar(10)
+  claim_zone            String @db.VarChar(10)
+  eq_area               String @db.VarChar(10)
+  fc_area_online        String @db.VarChar(20)
+  fc_area_offline       String @db.VarChar(20)
+  lp_claim_by           String @db.VarChar(10)
+  lpc_invest_by         String @db.VarChar(20)
+  is_store_active       Int    @db.SmallInt
+  is_for_refund         Int    @db.SmallInt
+  current_guard_company String @db.VarChar(250)
+}
+
+model user_roles {
+  roles_id                  Int                         @id
+  roles_name                String?                     @db.VarChar(45)
+  created_date              DateTime?                   @default(now()) @db.Timestamp(6)
+  created_user              String?                     @db.VarChar(10)
+  updated_date              DateTime?                   @default(now()) @db.Timestamp(6)
+  updated_user              String?                     @db.VarChar(10)
+  user_roles_has_permission user_roles_has_permission[]
+  users                     users[]
+}
+
+model user_roles_has_permission {
+  user_roles_has_permission_id Int        @id @default(autoincrement())
+  user_roles_roles_id          Int
+  permission_id                Int
+  status                       Int?
+  created_date                 DateTime?  @default(now()) @db.Timestamp(6)
+  created_user                 String?    @db.VarChar(10)
+  updated_date                 DateTime?  @default(now()) @db.Timestamp(6)
+  updated_user                 String?    @db.VarChar(10)
+  permission                   permission @relation(fields: [permission_id], references: [permission_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_roles_has_permission_permission")
+  user_roles                   user_roles @relation(fields: [user_roles_roles_id], references: [roles_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_roles_has_permission_roles")
+}
+
+model users {
+  user_id        Int        @id @default(autoincrement())
+  user_name      String     @unique @db.VarChar(45)
+  user_full_name String?    @db.VarChar(100)
+  user_email     String
+  user_password  String?    @db.VarChar(100)
+  roles_id       Int
+  is_active      Int?
+  created_date   DateTime?  @default(now()) @db.Timestamp(6)
+  created_user   String?    @db.VarChar(10)
+  updated_date   DateTime?  @default(now()) @db.Timestamp(6)
+  updated_user   String?    @db.VarChar(10)
+  store_code     String?    @db.VarChar(10)
+  user_roles     user_roles @relation(fields: [roles_id], references: [roles_id], onDelete: NoAction, map: "fk_users_roles")
+}
+
+model quotation {
+  id                   Int            @id @default(autoincrement())
+  request_id           Int
+  review_price_date    DateTime?      @db.Date
+  repair_order         String         @db.VarChar(100)
+  part_cost            Decimal        @db.Decimal(10, 2)
+  part_warranty_flg    String         @db.VarChar(5)
+  labor_cost           Decimal        @db.Decimal(10, 2)
+  labor_warranty_flg   String         @db.VarChar(5)
+  total_part_cost      Decimal        @db.Decimal(10, 2)
+  total_labor_cost     Decimal        @db.Decimal(10, 2)
+  total_cost           Decimal        @db.Decimal(10, 2)
+  user_approve_flg     String         @db.VarChar(5)
+  user_approve_date    DateTime?      @db.Date
+  user_repair_flg      String?        @db.VarChar(5)
+  user_repair_reason   String?        @db.VarChar(200)
+  num_of_repair_day    String?        @db.VarChar(5)
+  num_of_guarantee_day String?        @db.VarChar(5)
+  created_date         DateTime?      @default(now()) @db.Timestamp(6)
+  created_user         String?        @db.VarChar(50)
+  updated_date         DateTime?      @default(now()) @db.Timestamp(6)
+  updated_user         String?        @db.VarChar(50)
+  ticket_no            String?        @db.VarChar(100)
+  quotation_no         String?        @db.VarChar(50)
+  repair_request       repair_request @relation(fields: [request_id], references: [id], onDelete: Cascade, map: "fk_repair_item_request")
+}
+
+model running_doc {
+  id         Int     @id @default(autoincrement())
+  prefix     String  @db.VarChar(10)
+  yy         Int?
+  mm         Int?
+  dd         Int?
+  running_no BigInt?
+
+  @@unique([prefix, yy, mm, dd], name: "unique_running_doc_by_day", map: "unique_running_doc_by_day")
+  @@unique([prefix, yy, mm, dd])
+}
+
+model repair_attachment {
+  id             Int            @id @default(autoincrement())
+  request_id     Int
+  file_path      String
+  file_name      String
+  mime_type      String?
+  file_size      Int?
+  create_dt      DateTime       @default(now()) @db.Timestamptz(6)
+  updated_user   String?        @db.VarChar(50)
+  updated_date   DateTime?      @default(now()) @db.Timestamptz(6)
+  step_no        String?        @db.VarChar(30)
+  repair_request repair_request @relation(fields: [request_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_repair_attachment_request")
+
+  @@unique([request_id, file_name], map: "uq_repair_attachment_request_file")
+  @@index([request_id], map: "idx_repair_attachment_request_id")
+}
+
+model commodity {
+  sku                BigInt  @unique(map: "commodity_uk_sku")
+  ibc                BigInt? @unique(map: "commodity_uk_ibc")
+  sbc                BigInt?
+  barcode2           BigInt?
+  barcode3           BigInt?
+  barcode4           BigInt?
+  barcode5           BigInt?
+  sku_name           String  @db.VarChar(100)
+  sku_condition      Int     @db.SmallInt
+  sku_condition_name String? @db.VarChar(30)
+  brand_id           String? @db.VarChar(30)
+  brand              String  @db.VarChar(20)
+  model              String? @db.VarChar(50)
+  vendor_no          Int
+  vendor_name        String  @db.VarChar(60)
+  dept_no            Int     @db.SmallInt
+  dept_name          String  @db.VarChar(50)
+  sdept_no           Int     @db.SmallInt
+  sdept_name         String  @db.VarChar(50)
+  class_no           Int     @db.SmallInt
+  class_name         String  @db.VarChar(50)
+  sclass_no          Int     @db.SmallInt
+  sclass_name        String  @db.VarChar(50)
+  unit_code          String  @db.VarChar(5)
+  unit_name          String? @db.VarChar(15)
+  sku_status_code    String? @db.VarChar(2)
+  sku_status_name    String? @db.VarChar(15)
+  sku_price          Float
+  sku_cost           Float
+  distrmcode         BigInt?
+
+  @@index([sbc], map: "commodity_idx_sbc")
+  @@index([sbc], map: "commodity_idx_sbc_t")
+}
+
+model transaction_log {
+  act_log_id     BigInt          @id @default(autoincrement())
+  act_date_time  DateTime?       @default(now()) @db.Timestamptz(6)
+  act_user_name  String?         @db.VarChar(50)
+  act_ip_address String?         @db.VarChar(50)
+  act_trans_log  String?
+  step_no        String?         @db.VarChar(30)
+  request_id     Int?
+  repair_request repair_request? @relation(fields: [request_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model repair_bundle_items {
+  id                   Int                  @id @default(autoincrement())
+  bundle_master_id     Int
+  request_id           Int
+  request_no           String               @db.VarChar(50)
+  created_user         String?              @db.VarChar(50)
+  created_date         DateTime             @default(now()) @db.Timestamp(6)
+  repair_bundle_master repair_bundle_master @relation(fields: [bundle_master_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_repair_bundle_items_master")
+  repair_request       repair_request       @relation(fields: [request_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_repair_bundle_items_request")
+
+  @@unique([bundle_master_id, request_id], map: "uq_repair_bundle_item")
+  @@index([bundle_master_id], map: "idx_repair_bundle_items_bundle_master_id")
+  @@index([request_id], map: "idx_repair_bundle_items_request_id")
+}
+
+model repair_bundle_master {
+  id                  Int                   @id @default(autoincrement())
+  step_no             String?               @db.VarChar(30)
+  action              String?               @db.VarChar(50)
+  created_user        String?               @db.VarChar(50)
+  created_date        DateTime              @default(now()) @db.Timestamp(6)
+  repair_bundle_items repair_bundle_items[]
+
+  @@index([step_no], map: "idx_repair_bundle_master_step_no")
+}
+
+model status_info {
+  status_id    Int       @id
+  status_name  String?   @db.VarChar(300)
+  path_type    String?   @db.VarChar(10)
+  sla_hours    Int       @default(0)
+  created_user String?   @db.VarChar(10)
+  created_date DateTime? @default(now()) @db.Timestamp(6)
+  updated_user String?   @db.VarChar(10)
+  updated_date DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model vendor_info {
+  id           Int       @id @default(autoincrement())
+  vendor_no    Int       @unique
+  vendor_name  String?   @db.VarChar(300)
+  vendor_email String?   @db.VarChar(300)
+  created_user String?   @db.VarChar(10)
+  created_date DateTime? @default(now()) @db.Timestamp(6)
+  updated_user String?   @db.VarChar(10)
+  updated_date DateTime? @default(now()) @db.Timestamp(6)
+}
