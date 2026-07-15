@@ -39,11 +39,14 @@ export default function AppShell({ children }: { children: ReactNode }) {
           ...parsed,
           permissions: Array.isArray(parsed.permissions) ? parsed.permissions : [],
         });
+      } else {
+        router.replace("/login");
       }
     } catch (e) {
       console.error("Failed to parse userInfo:", e);
+      router.replace("/login");
     }
-  }, [pathname, isAuthPage]);
+  }, [pathname, isAuthPage, router]);
 
   // Fetch updated profile
   useEffect(() => {
