@@ -9,7 +9,7 @@ import {
   ClipboardList,
   Settings,
   LogOut,
-  ChevronDown
+  Bell
 } from "lucide-react";
 
 type UserData = {
@@ -78,109 +78,110 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const canAddRequest = perms.includes("add_request");
   const isAdmin = user?.role === "ADMIN" || user?.role === "ADMIN_GR";
 
+  const userInitials = useMemo(() => {
+    const name = user?.user_full_name || user?.user_name || "US";
+    return name.substring(0, 2).toUpperCase();
+  }, [user]);
+
+  const roleNameTH = useMemo(() => {
+    const role = user?.role;
+    if (role === "ADMIN" || role === "ADMIN_GR") return "Administrator";
+    if (role === "CS") return "Customer Service";
+    if (role === "GR") return "Goods Receive";
+    if (role === "DC") return "Distribution Center";
+    return "User";
+  }, [user]);
+
   if (isAuthPage) {
     return <>{children}</>;
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
-      {/* Dark left sidebar */}
-      <aside className="w-64 bg-[#0a0e17] text-slate-300 flex flex-col justify-between border-r border-slate-800 shrink-0 sticky top-0 h-screen z-20">
-        <div className="flex flex-col p-5 space-y-6">
-          {/* Header logo / title */}
-          <div className="flex items-center justify-between">
-            <Link href="/dashboard" className="flex items-center gap-2">
-              <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-red-600 text-white font-extrabold text-lg">
-                V
-              </span>
-              <div className="flex flex-col">
-                <span className="text-white font-extrabold text-sm tracking-wide leading-tight">Vibe Post</span>
-                <span className="text-[10px] text-slate-500 font-semibold tracking-wider">MANAGEMENT HUB</span>
-              </div>
-            </Link>
-            
-            {/* Status indicator */}
-            <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-950/40 text-emerald-400 border border-emerald-500/20">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              Ready
+    <div className="flex min-h-screen bg-[#f8fafc]">
+      {/* Dark indigo sidebar */}
+      <aside className="w-64 bg-[#121224] text-slate-300 flex flex-col justify-between shrink-0 sticky top-0 h-screen z-20">
+        <div className="flex flex-col">
+          {/* Sidebar Top Header Logo */}
+          <div className="flex items-center gap-3 px-6 py-5 bg-[#0e0e1c] border-b border-slate-800/40">
+            <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-violet-600 text-white font-extrabold text-lg shadow">
+              H
             </span>
-          </div>
-
-          {/* Workspace Switcher */}
-          <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl p-3 flex items-center justify-between cursor-pointer hover:bg-slate-900 transition">
-            <div className="flex items-center gap-2">
-              <span className="flex w-5 h-5 rounded bg-purple-600/30 text-purple-400 items-center justify-center font-bold text-xs">
-                M
-              </span>
-              <span className="text-xs font-semibold text-slate-200">Main Workspace</span>
+            <div className="flex flex-col">
+              <span className="text-white font-extrabold text-sm tracking-wide">IT Helpdesk</span>
+              <span className="text-[10px] text-slate-500 font-semibold tracking-wider">SUPPORT SYSTEM</span>
             </div>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
           </div>
 
-          {/* Navigation Links */}
-          <nav className="flex flex-col gap-1 pt-2">
-            <Link
-              href="/dashboard"
-              className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
-                pathname === "/dashboard"
-                  ? "bg-red-600 text-white shadow-md shadow-red-600/10"
-                  : "text-slate-400 hover:text-white hover:bg-slate-900"
-              }`}
-            >
-              <LayoutDashboard className="w-4 h-4" />
-              ภาพรวมระบบ
-            </Link>
-
-            {canAddRequest && (
+          <div className="p-4">
+            <span className="text-[10px] font-bold text-slate-500 tracking-wider px-3 uppercase block mb-3">
+              Main Menu
+            </span>
+            
+            {/* Navigation Links */}
+            <nav className="flex flex-col gap-0.5">
               <Link
-                href="/request/add"
-                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
-                  pathname === "/request/add"
-                    ? "bg-red-600 text-white shadow-md shadow-red-600/10"
-                    : "text-slate-400 hover:text-white hover:bg-slate-900"
+                href="/dashboard"
+                className={`flex items-center gap-3 px-3 py-2.5 text-sm font-semibold transition-all duration-150 border-l-4 ${
+                  pathname === "/dashboard"
+                    ? "bg-[#252542] text-white border-violet-500"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-[#1a1a33]/50 border-transparent"
                 }`}
               >
-                <Wrench className="w-4 h-4" />
-                เปิดใบแจ้งซ่อม
+                <LayoutDashboard className="w-4 h-4 text-violet-400" />
+                Dashboard
               </Link>
-            )}
 
-            <Link
-              href="/status"
-              className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
-                pathname === "/status"
-                  ? "bg-red-600 text-white shadow-md shadow-red-600/10"
-                  : "text-slate-400 hover:text-white hover:bg-slate-900"
-              }`}
-            >
-              <ClipboardList className="w-4 h-4" />
-              ติดตามงานซ่อม
-            </Link>
+              {canAddRequest && (
+                <Link
+                  href="/request/add"
+                  className={`flex items-center gap-3 px-3 py-2.5 text-sm font-semibold transition-all duration-150 border-l-4 ${
+                    pathname === "/request/add"
+                      ? "bg-[#252542] text-white border-violet-500"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-[#1a1a33]/50 border-transparent"
+                  }`}
+                >
+                  <Wrench className="w-4 h-4 text-violet-400" />
+                  แจ้งปัญหาใหม่
+                </Link>
+              )}
 
-            {isAdmin && (
               <Link
-                href="/maintain"
-                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
-                  pathname === "/maintain"
-                    ? "bg-red-600 text-white shadow-md shadow-red-600/10"
-                    : "text-slate-400 hover:text-white hover:bg-slate-900"
+                href="/status"
+                className={`flex items-center gap-3 px-3 py-2.5 text-sm font-semibold transition-all duration-150 border-l-4 ${
+                  pathname === "/status"
+                    ? "bg-[#252542] text-white border-violet-500"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-[#1a1a33]/50 border-transparent"
                 }`}
               >
-                <Settings className="w-4 h-4" />
-                จัดการระบบ
+                <ClipboardList className="w-4 h-4 text-violet-400" />
+                ติดตามงานซ่อม
               </Link>
-            )}
-          </nav>
+
+              {isAdmin && (
+                <Link
+                  href="/maintain"
+                  className={`flex items-center gap-3 px-3 py-2.5 text-sm font-semibold transition-all duration-150 border-l-4 ${
+                    pathname === "/maintain"
+                      ? "bg-[#252542] text-white border-violet-500"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-[#1a1a33]/50 border-transparent"
+                  }`}
+                >
+                  <Settings className="w-4 h-4 text-violet-400" />
+                  จัดการระบบ
+                </Link>
+              )}
+            </nav>
+          </div>
         </div>
 
         {/* Footer profile info & Logout */}
-        <div className="p-4 border-t border-slate-900 bg-slate-950/40 flex flex-col gap-3">
+        <div className="p-4 border-t border-slate-800/40 bg-[#0e0e1c] flex flex-col gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-slate-800 text-white font-extrabold text-sm flex items-center justify-center border border-slate-700">
-              {(user?.user_full_name || user?.user_name || "U").substring(0, 1).toUpperCase()}
+            <div className="w-9 h-9 rounded-full bg-violet-600 text-white font-extrabold text-sm flex items-center justify-center shadow">
+              {userInitials}
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="text-xs font-bold text-slate-100 truncate">
+              <span className="text-xs font-bold text-slate-200 truncate">
                 {user?.user_full_name || user?.user_name}
               </span>
               <span className="text-[10px] text-slate-500 truncate">
@@ -190,12 +191,12 @@ export default function AppShell({ children }: { children: ReactNode }) {
           </div>
           
           <div className="flex items-center justify-between pt-1">
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-400 uppercase">
-              {user?.role || "USER"} {user?.store_code ? `(${user.store_code})` : ""}
+            <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-[#1e1e38] border border-slate-800 text-slate-400 uppercase">
+              {roleNameTH} {user?.store_code ? `(${user.store_code})` : ""}
             </span>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-1 text-[11px] font-semibold text-red-400 hover:text-red-300 transition"
+              className="flex items-center gap-1 text-[11px] font-semibold text-rose-400 hover:text-rose-300 transition"
             >
               <LogOut className="w-3.5 h-3.5" />
               ออกระบบ
@@ -206,25 +207,43 @@ export default function AppShell({ children }: { children: ReactNode }) {
 
       {/* Right Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="sticky top-0 bg-white/80 backdrop-blur-md border-b border-slate-200/80 px-6 py-4 flex items-center justify-between z-10">
+        <header className="sticky top-0 bg-white border-b border-slate-200/80 px-6 py-4 flex items-center justify-between z-10 shadow-sm">
           <div className="flex items-center gap-3">
-            <h2 className="text-lg font-bold text-slate-800 tracking-tight">
-              {pathname === "/dashboard" && "Dashboard / ภาพรวมระบบ"}
-              {pathname === "/request/add" && "เปิดใบแจ้งซ่อมใหม่ (New Repair Ticket)"}
-              {pathname === "/status" && "ติดตามและตรวจดูสถานะใบแจ้งซ่อม"}
-              {pathname === "/maintain" && "จัดการตั้งค่าระบบ (Configuration Panel)"}
-              {!["/dashboard", "/request/add", "/status", "/maintain"].includes(pathname) && "ระบบแจ้งซ่อมสินค้า"}
+            <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
+              <span className="text-violet-600 font-extrabold">IT Helpdesk</span>
+              <span className="text-slate-300 font-normal">|</span>
+              <span className="text-slate-500 font-semibold text-xs">ระบบรับแจ้งซ่อมและบริการลูกค้า</span>
             </h2>
           </div>
           
-          <div className="flex items-center gap-3">
-            {user?.store_code && (
-              <span className="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg border border-slate-200">
-                สาขา: {user.store_code}
-              </span>
-            )}
+          <div className="flex items-center gap-4">
+            {/* Notification bell */}
+            <button className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-50 transition relative">
+              <Bell className="w-5 h-5" />
+              <span className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-violet-600 border-2 border-white"></span>
+            </button>
+
+            {/* Profile badge info */}
+            <div className="flex items-center gap-3 border-l border-slate-200 pl-4">
+              <div className="flex flex-col text-right">
+                <span className="text-xs font-bold text-slate-800">{user?.user_full_name || user?.user_name}</span>
+                <span className="text-[10px] text-slate-400 font-semibold">{roleNameTH}</span>
+              </div>
+              <div className="w-8 h-8 rounded-full bg-violet-100 text-violet-700 font-extrabold text-xs flex items-center justify-center shadow-sm">
+                {userInitials}
+              </div>
+            </div>
           </div>
         </header>
+
+        {/* Temporary banner alert */}
+        <div className="bg-[#aa7d39] text-white px-6 py-2.5 flex items-center justify-between text-xs font-semibold">
+          <div className="flex items-center gap-6">
+            <span>⚠️ ประกาศด่วน</span>
+            <span>📢 ทดสอบระบบแจ้งซ่อมสินค้าและบริการลูกค้า UAT</span>
+          </div>
+          <button className="hover:opacity-85 text-white/80">×</button>
+        </div>
 
         <main className="flex-grow p-6">
           {children}

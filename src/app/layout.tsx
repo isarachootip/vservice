@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ระบบใบแจ้งซ่อม",
+  title: "V-Repair Service - ระบบใบแจ้งซ่อม",
   description: "Internal repair request system",
 };
 
