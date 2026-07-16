@@ -9,6 +9,7 @@ export async function GET() {
     const list = await prisma.users.findMany({
       include: {
         user_roles: true,
+        location: true,
       },
       orderBy: { user_id: "asc" },
     });
@@ -32,6 +33,8 @@ export async function GET() {
       roles_id: u.roles_id,
       role_name: u.user_roles?.roles_name || "-",
       is_active: u.is_active,
+      location_id: u.location_id,
+      location_name: u.location?.name || "-",
     }));
 
     return NextResponse.json({ ok: true, users });
@@ -47,7 +50,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { username, fullName, email, password, rolesId, storeCode, updatedUser } = body;
+    const { username, fullName, email, password, rolesId, storeCode, locationId, updatedUser } = body;
 
     if (!username || !email || !password || !rolesId) {
       return NextResponse.json(
@@ -77,6 +80,7 @@ export async function POST(req: Request) {
         user_password: hashedPassword,
         roles_id: Number(rolesId),
         store_code: storeCode?.trim() || null,
+        location_id: locationId?.trim() || null,
         is_active: 1,
         created_user: updatedUser || "admin",
         updated_user: updatedUser || "admin",

@@ -196,7 +196,9 @@ model users {
   updated_date   DateTime?  @default(now()) @db.Timestamp(6)
   updated_user   String?    @db.VarChar(10)
   store_code     String?    @db.VarChar(10)
+  location_id    String?    @db.VarChar(50)
   user_roles     user_roles @relation(fields: [roles_id], references: [roles_id], onDelete: NoAction, map: "fk_users_roles")
+  location       location?  @relation(fields: [location_id], references: [id], onDelete: SetNull)
 }
 
 model quotation {
@@ -348,4 +350,15 @@ model vendor_info {
   created_date DateTime? @default(now()) @db.Timestamp(6)
   updated_user String?   @db.VarChar(10)
   updated_date DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model location {
+  id          String   @id @db.VarChar(50)
+  name        String   @db.VarChar(100)
+  short_name  String?  @db.VarChar(50)
+  code        String?  @db.VarChar(50)
+  status      String?  @db.VarChar(20)
+  created_at  DateTime @default(now()) @db.Timestamp(6)
+  updated_at  DateTime @default(now()) @db.Timestamp(6)
+  users       users[]
 }

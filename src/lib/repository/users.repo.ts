@@ -10,13 +10,14 @@ export type UserRow = {
   permission_name: string;
   store_nick2: string;
   in_bu: string;
+  location_id: string | null;
 };
 
 export class UsersRepository {
 
   static async findUserRowsByUsername(username: string): Promise<UserRow[]> {
     return await prisma.$queryRaw<UserRow[]>`
-      SELECT  u.user_id, u.user_name, u.user_full_name, u.user_email, u.store_code,
+      SELECT  u.user_id, u.user_name, u.user_full_name, u.user_email, u.store_code, u.location_id,
               ur.roles_name, p.permission_name, s.store_nick2, s.in_bu
       FROM users u
       JOIN user_roles ur ON ur.roles_id = u.roles_id

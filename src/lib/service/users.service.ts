@@ -11,6 +11,7 @@ export type UserRowWithPermissionsList = {
   permissions: string[];
   store_nick: string;
   in_bu: string;
+  location_id?: string | null;
 };
 
 export class UserService {
@@ -39,7 +40,8 @@ export class UserService {
       role: first.roles_name,
       permissions,
       store_nick: first.store_nick2,
-      in_bu: first.in_bu
+      in_bu: first.in_bu,
+      location_id: first.location_id
     };
   }
 }

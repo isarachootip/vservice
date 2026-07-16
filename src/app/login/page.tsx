@@ -3,11 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -84,14 +86,27 @@ export default function LoginPage() {
             <label className="block mb-1.5 text-xs font-bold text-slate-600 uppercase tracking-wide">
               Password
             </label>
-            <input
-              type="password"
-              name="password"
-              className="input-base focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-sm"
-              required
-              disabled={loading}
-              placeholder="กรอกรหัสผ่าน"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                className="input-base pr-10 focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-sm"
+                required
+                disabled={loading}
+                placeholder="กรอกรหัสผ่าน"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none flex items-center justify-center"
+              >
+                {showPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
+              </button>
+            </div>
           </div>
 
           {error && (

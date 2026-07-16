@@ -79,6 +79,8 @@ export default function StatusPage() {
   //* filter
   const [statusFilter, setStatusFilter] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("");
+  const [locationFilter, setLocationFilter] = useState("");
+  const [locationsList, setLocationsList] = useState<any[]>([]);
 
   //* คล้ายๆ onInit
   useEffect(() => {
@@ -96,6 +98,19 @@ export default function StatusPage() {
       });
     } catch {}
 
+    const fetchLocations = async () => {
+      try {
+        const res = await fetch("/api/maintain/locations", { cache: "no-store" });
+        const data = await res.json();
+        if (data.ok) {
+          setLocationsList(data.locations || []);
+        }
+      } catch (e) {
+        console.error("Failed to load locations:", e);
+      }
+    };
+    fetchLocations();
+
     onSearch();
   }, []);
 
@@ -110,7 +125,7 @@ export default function StatusPage() {
   const canActAsDC = () =>
     role === "DC" || role === "ADMIN" || role === "ADMIN_DC";
 
-  const onSearch = async (searchQuery = q, statusF = statusFilter) => {
+  const onSearch = async (searchQuery = q, statusF = statusFilter, locationF = locationFilter) => {
     setErr(null);
     setLoading(true);
 
@@ -118,6 +133,7 @@ export default function StatusPage() {
       const params = new URLSearchParams();
       if (searchQuery.trim()) params.set("q", searchQuery.trim());
       if (statusF) params.set("status", statusF);
+      if (locationF) params.set("locationId", locationF);
 
       const res = await fetch(`/api/status/search?${params.toString()}`, {
         cache: "no-store",
@@ -476,6 +492,28 @@ export default function StatusPage() {
                 <option value="LOW">LOW</option>
               </select>
             </div>
+
+            {/* Location Filter */}
+            {(role === "ADMIN" || role === "ADMIN_GR" || role === "ADMIN_DC" || role === "DC") && (
+              <div className="flex flex-col gap-1 w-full sm:w-44">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">พื้นที่ดูแล / สาขาหลัก</label>
+                <select
+                  value={locationFilter}
+                  onChange={(e) => {
+                    setLocationFilter(e.target.value);
+                    onSearch(q, statusFilter, e.target.value);
+                  }}
+                  className="select-custom bg-white border border-slate-200 text-slate-700 rounded-lg px-3 py-1.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="">ทั้งหมด</option>
+                  {locationsList.map((loc) => (
+                    <option key={loc.id} value={loc.id}>
+                      {loc.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
           {/* Search Box */}

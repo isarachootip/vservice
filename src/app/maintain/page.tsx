@@ -25,7 +25,41 @@ type VendorInfo = {
 };
 
 export default function MainTainPage() {
-    const [tab, setTab] = useState<"status" | "vendor" | "user">("status");
+    const [tab, setTab] = useState<"status" | "vendor" | "user" | "location">("status");
+
+    //* Location Info state
+    const [locationLoading, setLocationLoading] = useState(false);
+    const [locationError, setLocationError] = useState<string | null>(null);
+    const [locationSearchQ, setLocationSearchQ] = useState("");
+    const [locationFileInputRef, setLocationFileInputRef] = useState<HTMLInputElement | null>(null);
+    const [locationsList, setLocationsList] = useState<any[]>([]);
+
+    const fetchLocations = useCallback(async () => {
+        let alive = true;
+        try {
+            setLocationLoading(true);
+            setLocationError(null);
+            const res = await fetch("/api/maintain/locations", { cache: "no-store" });
+            const data = await res.json();
+            if (!data.ok) throw new Error(data?.message || "โหลดข้อมูลสาขาไม่สำเร็จ");
+            if (alive) {
+                setLocationsList(data.locations || []);
+            }
+        } catch (e) {
+            if (alive) {
+                setLocationError((e as Error).message);
+            }
+        } finally {
+            if (alive) {
+                setLocationLoading(false);
+            }
+        }
+        return () => { alive = false; };
+    }, []);
+
+    useEffect(() => {
+        fetchLocations();
+    }, [fetchLocations]);
 
     //* Status Info state
     const [loading, setLoading] = useState(true);
@@ -70,6 +104,7 @@ export default function MainTainPage() {
         password: "",
         rolesId: "1",
         storeCode: "",
+        locationId: "",
     });
     const [userFormError, setUserFormError] = useState<string | null>(null);
     const [isSavingUser, setIsSavingUser] = useState(false);
@@ -262,6 +297,83 @@ export default function MainTainPage() {
         }
     };
 
+    //* Import location data from Excel or JSON
+    const handleLocationImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        try {
+            const isJson = file.name.endsWith(".json");
+            let locationData: any[] = [];
+
+            if (isJson) {
+                const text = await file.text();
+                const parsed = JSON.parse(text);
+                const list = Array.isArray(parsed) ? parsed : (parsed.locations || []);
+                locationData = list.map((loc: any, idx: number) => {
+                    const id = String(loc.id || loc.code || "").trim();
+                    const name = String(loc.name || "").trim();
+                    const shortName = String(loc.shortName || loc.short_name || "").trim();
+                    const code = String(loc.code || "").trim();
+                    const status = String(loc.status || "active").trim();
+
+                    if (!id || !name) {
+                        throw new Error(`รายการที่ ${idx + 1}: ข้อมูลไม่ครบ (ต้องมี id หรือ code และ name)`);
+                    }
+                    return { id, name, shortName, code, status };
+                });
+            } else {
+                const data = await file.arrayBuffer();
+                const workbook = XLSX.read(data);
+                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet) as Array<{
+                    id?: any;
+                    code?: any;
+                    name?: any;
+                    shortName?: any;
+                    short_name?: any;
+                    status?: any;
+                }>;
+
+                if (jsonData.length === 0) {
+                    alert("ไฟล์ Excel ว่าง");
+                    return;
+                }
+
+                locationData = jsonData.map((row, idx) => {
+                    const id = String(row.id || row.code || "").trim();
+                    const name = String(row.name || "").trim();
+                    const shortName = String(row.shortName || row.short_name || "").trim();
+                    const code = String(row.code || "").trim();
+                    const status = String(row.status || "active").trim();
+
+                    if (!id || !name) {
+                        throw new Error(`แถวที่ ${idx + 2}: ข้อมูลไม่ครบ (ต้องมีคอลัมน์ id หรือ code และ name)`);
+                    }
+                    return { id, name, shortName, code, status };
+                });
+            }
+
+            setLocationLoading(true);
+            const res = await fetch("/api/maintain/locations", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ locations: locationData }),
+            });
+
+            const result = await res.json();
+            if (!result.ok) throw new Error(result?.message || "นำเข้าไม่สำเร็จ");
+
+            alert(result.message || "นำเข้าข้อมูลสาขาสำเร็จ");
+            await fetchLocations();
+        } catch (err) {
+            alert(`Error: ${(err as Error).message}`);
+        } finally {
+            setLocationLoading(false);
+            if (e.target) e.target.value = "";
+        }
+    };
+
     //* Export vendor data to Excel
     const handleVendorExport = () => {
         if (vendorRows.length === 0) {
@@ -401,6 +513,7 @@ export default function MainTainPage() {
             password: "",
             rolesId: "1",
             storeCode: "",
+            locationId: "",
         });
         setUserFormError(null);
         setShowUserModal(true);
@@ -415,6 +528,7 @@ export default function MainTainPage() {
             password: "",
             rolesId: String(usr.roles_id),
             storeCode: usr.store_code || "",
+            locationId: usr.location_id || "",
         });
         setUserFormError(null);
         setShowUserModal(true);
@@ -423,7 +537,7 @@ export default function MainTainPage() {
     const handleSaveUser = async () => {
         setUserFormError(null);
 
-        const { username, fullName, email, password, rolesId, storeCode } = userFormData;
+        const { username, fullName, email, password, rolesId, storeCode, locationId } = userFormData;
 
         if (!username.trim() || !email.trim() || (!editingUserId && !password.trim())) {
             setUserFormError("กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน");
@@ -446,6 +560,7 @@ export default function MainTainPage() {
                     password: password.trim() ? password : undefined,
                     rolesId: Number(rolesId),
                     storeCode,
+                    locationId,
                     updatedUser,
                 }),
             });
@@ -544,6 +659,16 @@ export default function MainTainPage() {
                         }`}
                     >
                         User & Access Info
+                    </button>
+                    <button
+                        onClick={() => setTab("location")}
+                        className={`pb-3 px-2 font-medium transition ${
+                            tab === "location"
+                                ? "text-blue-600 border-b-2 border-blue-600"
+                                : "text-slate-600 hover:text-slate-900"
+                        }`}
+                    >
+                        Location Info
                     </button>
                 </div>
 
@@ -784,7 +909,8 @@ export default function MainTainPage() {
                                                 <th className="text-left px-6 py-3 font-semibold text-slate-900">Username</th>
                                                 <th className="text-left px-6 py-3 font-semibold text-slate-900">ชื่อ-นามสกุล</th>
                                                 <th className="text-left px-6 py-3 font-semibold text-slate-900">อีเมล</th>
-                                                <th className="text-center px-6 py-3 font-semibold text-slate-900 w-24">สาขา</th>
+                                                <th className="text-center px-6 py-3 font-semibold text-slate-900 w-24">Store</th>
+                                                <th className="text-center px-6 py-3 font-semibold text-slate-900 w-24">Location</th>
                                                 <th className="text-center px-6 py-3 font-semibold text-slate-900 w-24">บทบาท</th>
                                                 <th className="text-center px-6 py-3 font-semibold text-slate-900 w-24">การจัดการ</th>
                                             </tr>
@@ -792,13 +918,13 @@ export default function MainTainPage() {
                                         <tbody>
                                             {usersLoading ? (
                                                 <tr>
-                                                    <td colSpan={7} className="px-6 py-6 text-center text-slate-500">
+                                                    <td colSpan={8} className="px-6 py-6 text-center text-slate-500">
                                                         กำลังโหลดข้อมูล...
                                                     </td>
                                                 </tr>
                                             ) : usersRows.length === 0 ? (
                                                 <tr>
-                                                    <td colSpan={7} className="px-6 py-6 text-center text-slate-500">
+                                                    <td colSpan={8} className="px-6 py-6 text-center text-slate-500">
                                                         ไม่พบข้อมูลผู้ใช้งาน
                                                     </td>
                                                 </tr>
@@ -817,6 +943,11 @@ export default function MainTainPage() {
                                                             <td className="px-6 py-4 text-slate-700 text-center">
                                                                 <span className="px-2 py-1 bg-slate-100 text-slate-800 rounded font-mono text-xs">
                                                                     {row.store_nick}
+                                                                </span>
+                                                            </td>
+                                                            <td className="px-6 py-4 text-slate-700 text-center">
+                                                                <span className="px-2 py-1 bg-violet-100 text-violet-800 rounded font-semibold text-xs">
+                                                                    {row.location_name || "-"}
                                                                 </span>
                                                             </td>
                                                             <td className="px-6 py-4 text-slate-700 text-center">
@@ -906,6 +1037,98 @@ export default function MainTainPage() {
                                                     </td>
                                                 </tr>
                                             ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {tab === "location" && (
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-xl font-semibold text-slate-900">จัดการข้อมูลสาขา (Location Management)</h2>
+                            <div className="flex gap-3">
+                                <input
+                                    type="file"
+                                    accept=".xlsx,.xls,.json"
+                                    onChange={handleLocationImport}
+                                    ref={(el) => setLocationFileInputRef(el)}
+                                    className="hidden"
+                                />
+                                <button
+                                    onClick={() => locationFileInputRef?.click()}
+                                    disabled={locationLoading}
+                                    className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg shadow transition text-sm disabled:opacity-50"
+                                >
+                                    {locationLoading ? "กำลังนำเข้า..." : "นำเข้าข้อมูลสาขา (Excel / JSON)"}
+                                </button>
+                            </div>
+                        </div>
+
+                        {locationError && (
+                            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+                                {locationError}
+                            </div>
+                        )}
+
+                        <div className="mb-6">
+                            <input
+                                type="text"
+                                placeholder="ค้นหาจากรหัส หรือชื่อสาขา..."
+                                value={locationSearchQ}
+                                onChange={(e) => setLocationSearchQ(e.target.value)}
+                                className="w-full max-w-md px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                            />
+                        </div>
+
+                        <div className="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm">
+                                    <thead className="bg-slate-50 border-b border-slate-200">
+                                        <tr>
+                                            <th className="text-center px-6 py-3 font-semibold text-slate-900 w-16">ลำดับ</th>
+                                            <th className="text-left px-6 py-3 font-semibold text-slate-900">ID / Code</th>
+                                            <th className="text-left px-6 py-3 font-semibold text-slate-900">ชื่อสาขา</th>
+                                            <th className="text-left px-6 py-3 font-semibold text-slate-900">ชื่อย่อ (Short Name)</th>
+                                            <th className="text-center px-6 py-3 font-semibold text-slate-900 w-24">สถานะ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {locationLoading ? (
+                                            <tr>
+                                                <td colSpan={5} className="px-6 py-6 text-center text-slate-500">
+                                                    กำลังโหลดข้อมูล...
+                                                </td>
+                                            </tr>
+                                        ) : locationsList.length === 0 ? (
+                                            <tr>
+                                                <td colSpan={5} className="px-6 py-6 text-center text-slate-500">
+                                                    ไม่พบข้อมูลสาขา (กรุณานำเข้าไฟล์ Excel/JSON เพื่อเริ่มต้น)
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            locationsList
+                                                .filter(loc => 
+                                                    loc.id.toLowerCase().includes(locationSearchQ.toLowerCase()) || 
+                                                    loc.name.toLowerCase().includes(locationSearchQ.toLowerCase())
+                                                )
+                                                .map((row, idx) => (
+                                                    <tr key={row.id} className="border-t border-slate-100 hover:bg-slate-50">
+                                                        <td className="px-6 py-4 text-slate-900 text-center">{idx + 1}</td>
+                                                        <td className="px-6 py-4 text-slate-900 font-mono font-semibold">{row.id}</td>
+                                                        <td className="px-6 py-4 text-slate-900 font-semibold">{row.name}</td>
+                                                        <td className="px-6 py-4 text-slate-700">{row.short_name || "-"}</td>
+                                                        <td className="px-6 py-4 text-slate-700 text-center">
+                                                            <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                                                                row.status === "active" ? "bg-green-100 text-green-800" : "bg-slate-100 text-slate-800"
+                                                            }`}>
+                                                                {row.status || "active"}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                ))
                                         )}
                                     </tbody>
                                 </table>
@@ -1081,6 +1304,22 @@ export default function MainTainPage() {
                                         className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
                                     />
                                 </div>
+                            </div>
+                            
+                            <div className="mt-4">
+                                <label className="block text-sm font-semibold text-slate-700 mb-1">พื้นที่ดูแล / สาขาหลัก (User Location)</label>
+                                <select
+                                    value={userFormData.locationId}
+                                    onChange={(e) => setUserFormData({ ...userFormData, locationId: e.target.value })}
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white"
+                                >
+                                    <option value="">-- ไม่ระบุ --</option>
+                                    {locationsList.map((loc) => (
+                                        <option key={loc.id} value={loc.id}>
+                                            {loc.name} ({loc.id})
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
 

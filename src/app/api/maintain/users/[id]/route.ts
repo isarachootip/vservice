@@ -20,7 +20,7 @@ export async function PUT(
     }
 
     const body = await req.json();
-    const { fullName, email, password, rolesId, storeCode, isActive, updatedUser } = body;
+    const { fullName, email, password, rolesId, storeCode, locationId, isActive, updatedUser } = body;
 
     const existing = await prisma.users.findUnique({
       where: { user_id: userId },
@@ -38,6 +38,7 @@ export async function PUT(
       user_email: email?.trim() || existing.user_email,
       roles_id: rolesId ? Number(rolesId) : existing.roles_id,
       store_code: storeCode?.trim() || null,
+      location_id: locationId?.trim() || null,
       is_active: isActive !== undefined ? Number(isActive) : existing.is_active,
       updated_user: updatedUser || "admin",
     };
