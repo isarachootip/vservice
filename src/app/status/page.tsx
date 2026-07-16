@@ -565,19 +565,14 @@ export default function StatusPage() {
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                   <th className="px-4 py-3 text-center w-28">JOB NO.</th>
-                  <th className="px-4 py-3">SUBJECT</th>
-                  <th className="px-3 py-3 text-center">BU</th>
-                  <th className="px-4 py-3">SYSTEM</th>
-                  <th className="px-3 py-3 text-center">ASSET</th>
-                  <th className="px-3 py-3 text-center">ประเภท</th>
-                  <th className="px-3 py-3 text-center">PRIORITY</th>
-                  <th className="px-3 py-3 text-center">STATUS</th>
-                  <th className="px-4 py-3">ผู้แจ้ง</th>
-                  <th className="px-3 py-3 text-center">TIER 1</th>
-                  <th className="px-3 py-3 text-center">TIER 2</th>
-                  <th className="px-3 py-3 text-center">TIER 3</th>
-                  <th className="px-4 py-3 text-center">วันที่สร้าง</th>
-                  <th className="px-3 py-3 text-center">SLA</th>
+                  <th className="px-4 py-3">ลูกค้า</th>
+                  <th className="px-4 py-3">สินค้า</th>
+                  <th className="px-4 py-3">รุ่นสินค้า (Model)</th>
+                  <th className="px-4 py-3">เลขเครื่อง (S/N)</th>
+                  <th className="px-3 py-3 text-center">สาขา</th>
+                  <th className="px-3 py-3 text-center">สถานะ</th>
+                  <th className="px-4 py-3">ผู้บันทึก</th>
+                  <th className="px-4 py-3 text-center">วันที่แจ้งซ่อม</th>
                   <th className="px-4 py-3 text-center w-16">ดูข้อมูล</th>
                 </tr>
               </thead>
@@ -590,17 +585,6 @@ export default function StatusPage() {
                     reject_from_status: r.reject_from_status,
                   };
 
-                  const priority = getPriority(r);
-                  const type = getTicketType(r);
-                  const tiers = getTiers(r);
-                  
-                  // Calculate SLA alert
-                  const now = new Date();
-                  const passedHours = r.status_updated_date || r.created_date ? 
-                    (now.getTime() - new Date(r.status_updated_date || r.created_date || "").getTime()) / (1000 * 60 * 60) : 0;
-                  const slaHours = (r.sla ?? 0) * 24;
-                  const percent = r.reject_flg === "Y" || slaHours === 0 ? 0 : Math.min(100, Math.round((passedHours / slaHours) * 100));
-
                   return (
                     <tr key={r.id} className="hover:bg-slate-50/50 transition-colors">
                       {/* Job No. */}
@@ -608,61 +592,29 @@ export default function StatusPage() {
                         {r.request_no ?? "-"}
                       </td>
                       
-                      {/* Subject */}
+                      {/* Customer Name */}
+                      <td className="px-4 py-3.5 font-bold text-slate-800">
+                        {r.customer_name || "-"}
+                      </td>
+                      
+                      {/* Product (Type & Brand) */}
                       <td className="px-4 py-3.5 font-medium text-slate-700">
                         {r.product_type} ({r.brand})
                       </td>
                       
-                      {/* BU */}
-                      <td className="px-3 py-3.5 text-center font-bold text-slate-500">
-                        {r.store_nick}
-                      </td>
-                      
-                      {/* System */}
-                      <td className="px-4 py-3.5 text-slate-500">
+                      {/* Model */}
+                      <td className="px-4 py-3.5 text-slate-700 font-medium">
                         {r.model || "-"}
                       </td>
                       
-                      {/* Asset */}
-                      <td className="px-3 py-3.5 text-center text-slate-400">
-                        -
+                      {/* Serial No. */}
+                      <td className="px-4 py-3.5 text-slate-700 font-semibold font-mono text-[11px]">
+                        {r.serial_no || "-"}
                       </td>
-                      
-                      {/* Type Badge */}
-                      <td className="px-3 py-3.5 text-center">
-                        {type === "SW" ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-indigo-50 border border-indigo-200 text-indigo-600 font-bold text-[10px]">
-                            &lt;/&gt; SW
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-50 border border-amber-200 text-amber-700 font-bold text-[10px]">
-                            ⚙️ HW
-                          </span>
-                        )}
-                      </td>
-                      
-                      {/* Priority Badge */}
-                      <td className="px-3 py-3.5 text-center">
-                        {priority === "CRITICAL" && (
-                          <span className="inline-block px-2.5 py-0.5 rounded bg-rose-100 text-rose-700 font-extrabold text-[10px]">
-                            CRITICAL
-                          </span>
-                        )}
-                        {priority === "HIGH" && (
-                          <span className="inline-block px-2.5 py-0.5 rounded bg-amber-100 text-amber-800 font-bold text-[10px]">
-                            HIGH
-                          </span>
-                        )}
-                        {priority === "MEDIUM" && (
-                          <span className="inline-block px-2.5 py-0.5 rounded bg-blue-100 text-blue-700 font-semibold text-[10px]">
-                            MEDIUM
-                          </span>
-                        )}
-                        {priority === "LOW" && (
-                          <span className="inline-block px-2.5 py-0.5 rounded bg-slate-100 text-slate-500 font-medium text-[10px]">
-                            LOW
-                          </span>
-                        )}
+
+                      {/* Store Nick (Branch) */}
+                      <td className="px-3 py-3.5 text-center font-bold text-slate-500">
+                        {r.store_nick || "-"}
                       </td>
                       
                       {/* Status Badge */}
@@ -690,49 +642,14 @@ export default function StatusPage() {
                         )}
                       </td>
                       
-                      {/* Requester */}
-                      <td className="px-4 py-3.5 leading-tight">
-                        <div className="font-bold text-slate-700">{r.customer_name}</div>
-                        <div className="text-[10px] text-slate-400 font-medium">{r.created_user || `${r.customer_name}@company.com`}</div>
-                      </td>
-                      
-                      {/* T1 */}
-                      <td className="px-3 py-3.5 text-center text-slate-500 font-medium">
-                        {tiers.t1}
-                      </td>
-                      
-                      {/* T2 */}
-                      <td className="px-3 py-3.5 text-center text-slate-500 font-medium">
-                        {tiers.t2}
-                      </td>
-                      
-                      {/* T3 */}
-                      <td className="px-3 py-3.5 text-center text-slate-500 font-medium">
-                        {tiers.t3}
+                      {/* Creator */}
+                      <td className="px-4 py-3.5 text-slate-500 font-medium">
+                        {r.created_user || "-"}
                       </td>
                       
                       {/* Date Created */}
                       <td className="px-4 py-3.5 text-center text-slate-500 font-medium whitespace-nowrap">
                         {formatDateWithTime(r.created_date)}
-                      </td>
-                      
-                      {/* SLA */}
-                      <td className="px-3 py-3.5 text-center font-bold">
-                        {r.status === 0 || r.status === 237 || r.status === 37 ? (
-                          <span className="inline-flex items-center gap-1 text-emerald-600 text-[10px]">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                            Resolved
-                          </span>
-                        ) : percent >= 100 ? (
-                          <span className="inline-flex items-center gap-1 text-rose-600 text-[10px] animate-pulse">
-                            ⚠️ Overdue
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-blue-600 text-[10px]">
-                            <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                            On Track
-                          </span>
-                        )}
                       </td>
                       
                       {/* View Action */}
