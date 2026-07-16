@@ -89,7 +89,7 @@ export async function POST(req: Request) {
     const pad2 = (n: number) => String(n).padStart(2, "0");
     const pad4 = (n: bigint) => n.toString().padStart(4, "0");
 
-    const request_no = `${prefix}${pad2(yy)}${pad2(mm)}${pad2(dd)}${pad4(row.running_no ?? BigInt(1))}`;
+    const request_no = `${prefix}${pad2(dd)}${pad2(mm)}${pad2(yy)}${pad4(row.running_no ?? BigInt(1))}`;
     const fullCustomerName = `${firstName} ${lastName}`.trim();
     const inWarrantyFlag = status === "in" ? "Y" : "N"
     const serial_num = (serial ?? "").trim();
