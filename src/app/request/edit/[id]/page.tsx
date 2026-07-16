@@ -1369,56 +1369,80 @@ export default function RequestEditPage({ params }: { params: Promise<{ id: stri
                             className={`${inputClass(!!errors.barcode)} w-60`}
                             value={barcode}
                             onChange={e => setBarcode(e.target.value)}
+                            disabled={skuFlg}
                         />
                         {errors.barcode && <p className="text-red-600 text-sm mt-1">{errors.barcode}</p>}
                     </div>
 
                     <div>
                         <label className="form-label">ประเภทสินค้า<Req /></label>
-                        <select
-                            className="input-base"
-                            value={productType}
-                            onChange={(e) => {
-                                const v = e.target.value;
-                                setProductType(v);
-                                setBrand("");
-                                setBrandList([]);
-                            }}
-                            disabled={skuFlg} 
-                        >
-                            <option value="">-- เลือกประเภทสินค้า --</option>
-                            {classList.map((c) => (
-                                <option key={c} value={c}>
-                                    {c}
-                                </option>
-                            ))}
-                        </select>
+                        {skuFlg ? (
+                            <select
+                                className="input-base"
+                                value={productType}
+                                onChange={(e) => {
+                                    const v = e.target.value;
+                                    setProductType(v);
+                                    setBrand("");
+                                    setBrandList([]);
+                                }}
+                                disabled={true}
+                            >
+                                <option value="">-- เลือกประเภทสินค้า --</option>
+                                {classList.map((c) => (
+                                    <option key={c} value={c}>
+                                        {c}
+                                    </option>
+                                ))}
+                            </select>
+                        ) : (
+                            <input
+                                type="text"
+                                className={inputClass(!!errors.productType)}
+                                value={productType}
+                                onChange={(e) => setProductType(e.target.value)}
+                                placeholder="ระบุประเภทสินค้า"
+                            />
+                        )}
+                        {errors.productType && <p className="text-red-600 text-sm mt-1">{errors.productType}</p>}
                     </div>
                     <div>
-                        <label className="form-label">ยี่ห้อ</label>
-                        <select
-                            className="input-base"
-                            value={brand}
-                            onChange={(e) => setBrand(e.target.value)}
-                            disabled={skuFlg || !productType || brandList.length === 0}
-                        >
-                            <option value="">-- เลือกยี่ห้อ --</option>
-                            {brandList.map((s) => (
-                                <option key={`${productType}-${s}`} value={s}>
-                                    {s}
-                                </option>
-                            ))}
-                        </select>
-
-                        {!skuFlg && productType && !brandLoading && !brandError && brandList.length === 0 && (
-                            <p className="text-slate-500 text-sm mt-1">ไม่พบยี่ห้อในประเภทนี้</p>
+                        <label className="form-label">ยี่ห้อ<Req /></label>
+                        {skuFlg ? (
+                            <select
+                                className="input-base"
+                                value={brand}
+                                onChange={(e) => setBrand(e.target.value)}
+                                disabled={true}
+                            >
+                                <option value="">-- เลือกยี่ห้อ --</option>
+                                {brandList.map((s) => (
+                                    <option key={`${productType}-${s}`} value={s}>
+                                        {s}
+                                    </option>
+                                ))}
+                            </select>
+                        ) : (
+                            <input
+                                type="text"
+                                className={inputClass(!!errors.brand)}
+                                value={brand}
+                                onChange={(e) => setBrand(e.target.value)}
+                                placeholder="ระบุยี่ห้อ"
+                            />
                         )}
-                        {brandError && <p className="text-red-600 text-sm mt-1">{brandError}</p>}
+                        {errors.brand && <p className="text-red-600 text-sm mt-1">{errors.brand}</p>}
                     </div>
 
                     <div className="sm:col-span-2" >
                         <label className="form-label">รุ่น</label>
-                        <input className="input-base w-100" value={model} onChange={e=>setModel(e.target.value)} />
+                        <input 
+                            className="input-base" 
+                            value={model} 
+                            onChange={e=>setModel(e.target.value)} 
+                            disabled={skuFlg}
+                            placeholder="ระบุรุ่นสินค้า"
+                        />
                     </div>
 
                     <div className="sm:col-span-2">

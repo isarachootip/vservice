@@ -308,7 +308,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                 return;
             }
             alert("บันทึกสำเร็จ เลขที่ใบแจ้ง : " + (data.requestNo ?? data.id));
-            router.push('/status');
+            router.push(`/print/${data.id}`);
         } catch {
             alert("เกิดข้อผิดพลาดในการเชื่อมต่อ");
             setSubmitting(false);
@@ -441,40 +441,62 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
                                     <label className="block text-[11px] font-semibold text-slate-500 mb-1">ประเภทสินค้า<Req /></label>
-                                    <select
-                                        className="input-base text-xs py-1"
-                                        value={productType}
-                                        onChange={(e) => {
-                                            const v = e.target.value;
-                                            setProductType(v);
-                                            setBrand("");
-                                            setBrandList([]);
-                                        }}
-                                        disabled={skuFlg}
-                                    >
-                                        <option value="">-- เลือกประเภท --</option>
-                                        {classList.map((c) => (
-                                            <option key={c} value={c}>
-                                                {c}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    {skuFlg ? (
+                                        <select
+                                            className="input-base text-xs py-1"
+                                            value={productType}
+                                            onChange={(e) => {
+                                                const v = e.target.value;
+                                                setProductType(v);
+                                                setBrand("");
+                                                setBrandList([]);
+                                            }}
+                                            disabled={true}
+                                        >
+                                            <option value="">-- เลือกประเภท --</option>
+                                            {classList.map((c) => (
+                                                <option key={c} value={c}>
+                                                    {c}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    ) : (
+                                        <input
+                                            type="text"
+                                            className={inputClass(!!errors.productType)}
+                                            value={productType}
+                                            onChange={(e) => setProductType(e.target.value)}
+                                            placeholder="ระบุประเภทสินค้า"
+                                        />
+                                    )}
+                                    {errors.productType && <p className="text-red-600 text-[10px] mt-0.5">{errors.productType}</p>}
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] font-semibold text-slate-500 mb-1">ยี่ห้อ</label>
-                                    <select
-                                        className="input-base text-xs py-1"
-                                        value={brand}
-                                        onChange={(e) => setBrand(e.target.value)}
-                                        disabled={skuFlg || !productType || brandList.length === 0}
-                                    >
-                                        <option value="">-- เลือกยี่ห้อ --</option>
-                                        {brandList.map((s) => (
-                                            <option key={`${productType}-${s}`} value={s}>
-                                                {s}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <label className="block text-[11px] font-semibold text-slate-500 mb-1">ยี่ห้อ<Req /></label>
+                                    {skuFlg ? (
+                                        <select
+                                            className="input-base text-xs py-1"
+                                            value={brand}
+                                            onChange={(e) => setBrand(e.target.value)}
+                                            disabled={true}
+                                        >
+                                            <option value="">-- เลือกยี่ห้อ --</option>
+                                            {brandList.map((s) => (
+                                                <option key={`${productType}-${s}`} value={s}>
+                                                    {s}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    ) : (
+                                        <input
+                                            type="text"
+                                            className={inputClass(!!errors.brand)}
+                                            value={brand}
+                                            onChange={(e) => setBrand(e.target.value)}
+                                            placeholder="ระบุยี่ห้อ"
+                                        />
+                                    )}
+                                    {errors.brand && <p className="text-red-600 text-[10px] mt-0.5">{errors.brand}</p>}
                                 </div>
                             </div>
                         </div>

@@ -931,6 +931,15 @@ export default function PrintPage({ params }: { params: Promise<{ id: string }> 
         return () => { alive = false; };
     }, [id]);
 
+    useEffect(() => {
+        if (doc) {
+            const timer = setTimeout(() => {
+                window.print();
+            }, 500);
+            return () => clearTimeout(timer);
+        }
+    }, [doc]);
+
     return (
         <div className="min-h-screen bg-slate-200">
             {/* Toolbar */}

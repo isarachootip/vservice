@@ -163,7 +163,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
                   }`}
                 >
                   <Wrench className="w-4 h-4 text-violet-400" />
-                  แจ้งปัญหาใหม่
+                  แจ้งซ่อมใหม่
                 </Link>
               )}
 
