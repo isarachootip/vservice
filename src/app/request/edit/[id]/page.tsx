@@ -764,11 +764,16 @@ export default function RequestEditPage({ params }: { params: Promise<{ id: stri
             if (!firstName.trim())   next.firstName   = "กรุณากรอกชื่อ";
             if (!lastName.trim())    next.lastName    = "กรุณากรอกนามสกุล";
             if (!phone.trim())       next.phone       = "กรุณากรอกโทรศัพท์";
-            if (!productType.trim()) next.productType = "กรุณากรอกประเภทสินค้า";
-            if (!brand.trim())       next.brand       = "กรุณากรอกยี่ห้อ";
             if (!qty || Number(qty) <= 0) next.qty    = "กรุณาระบุจำนวน (มากกว่า 0)";
             if (!warranty)           next.warranty    = "กรุณาเลือกสถานะรับประกัน";
             if (warranty === "in" && !warrantyNo.trim()) next.warrantyNo = "กรุณากรอกเลขที่ใบประกัน";
+            
+            if (skuFlg) {
+                if (!sku || Number(sku) <= 0) next.sku = "กรุณากรอก SKU";
+            } else {
+                if (!productType.trim()) next.productType = "กรุณากรอกประเภทสินค้า";
+                if (!brand.trim())       next.brand       = "กรุณากรอกยี่ห้อ";
+            }
             
             if (!selectedSymptom) {
                 next.issue = "กรุณาเลือกอาการเสีย";
@@ -932,7 +937,8 @@ export default function RequestEditPage({ params }: { params: Promise<{ id: stri
                 model,
                 serial,
                 qty: qty || 0,
-                sku,
+                sku: skuFlg ? Number(sku) : 999999999999,
+                skuFlg: skuFlg ? "Y" : "N",
                 barcode,
                 issue: selectedSymptom === "other" ? issue : (selectedSymptom + (issue.trim() ? ` (${issue.trim()})` : ""))
             };
@@ -1318,8 +1324,23 @@ export default function RequestEditPage({ params }: { params: Promise<{ id: stri
             <fieldset disabled={!isSectionEditable("product-details")} className="space-y-4">
                 <legend className="text-lg font-semibold text-slate-900">รายละเอียดสินค้า</legend>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <label className="inline-flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            checked={skuFlg}
+                            onChange={(e) => {
+                                const checked = e.target.checked;
+                                setSkuFlg(checked);
 
-
+                                if (!checked) {
+                                    setSku("");
+                                    setErrors(prev => ({ ...prev, sku: undefined }));
+                                }
+                            }}
+                        />
+                        <span className="form-label mb-0">สินค้าอยู่ในระบบ</span>
+                    </label>
+                    <div />
 
                     <div>
                         <label htmlFor="sku" className="form-label">

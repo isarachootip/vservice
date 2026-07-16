@@ -46,6 +46,7 @@ type Body = {
     qty?: number;
     barcode?: string;
     sku?: number;
+    skuFlg?: string;
   };
   warranty?: {
     status?: "in" | "out";
@@ -215,6 +216,7 @@ export async function POST(req: Request) {
               serial_no: body.product.serial ?? item.serial_no,
               qty: body.product.qty ?? item.qty,
               sku_code: body.product.sku ?? item.sku_code,
+              sku_flg: body.product.skuFlg ?? item.sku_flg,
               bar_code: body.product.barcode ?? item.bar_code,
               issue: body.product.issue ?? item.issue,
               updated_user: updatedUser,

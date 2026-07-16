@@ -216,10 +216,13 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
         if (!firstName.trim())   nextErrors.firstName   = "กรุณากรอกชื่อ";
         if (!lastName.trim())    nextErrors.lastName    = "กรุณากรอกนามสกุล";
         if (!phone.trim())       nextErrors.phone       = "กรุณากรอกโทรศัพท์";
-        if (!productType.trim()) nextErrors.productType = "กรุณากรอกประเภทสินค้า";
-        if (!brand.trim())       nextErrors.brand       = "กรุณากรอกยี่ห้อ";
         if (!qty || Number(qty) <= 0) nextErrors.qty    = "กรุณาระบุจำนวน";
-        if (skuFlg && (!sku || Number(sku) <= 0)) nextErrors.sku    = "กรุณากรอก SKU";
+        if (skuFlg) {
+            if (!sku || Number(sku) <= 0) nextErrors.sku = "กรุณากรอก SKU";
+        } else {
+            if (!productType.trim()) nextErrors.productType = "กรุณากรอกประเภทสินค้า";
+            if (!brand.trim())       nextErrors.brand       = "กรุณากรอกยี่ห้อ";
+        }
         if (!barcode.trim())     nextErrors.barcode     = "กรุณากรอก Barcode";
 
         if (!receiveFromUserDt)     nextErrors.receiveFromUserDt    = "กรุณากรอกวันที่รับสินค้าจากลูกค้า";
@@ -249,7 +252,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
         let skuToSend: number;
         let skuFlgToSend: string;
         if (!skuFlg) {
-            skuToSend = 0;
+            skuToSend = 999999999999;
             skuFlgToSend = "N"
         } else {
             skuToSend = Number(sku);
@@ -354,8 +357,8 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 gap-3">
-                                <div>
+                            <div className="grid grid-cols-3 gap-3 items-end">
+                                <div className="col-span-2">
                                     <label htmlFor="phone" className="block text-[11px] font-semibold text-slate-500 mb-1">เบอร์โทรศัพท์<Req /></label>
                                     <input
                                         id="phone"
@@ -366,6 +369,24 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                         placeholder="0812345678"
                                     />
                                     {errors.phone && <p className="text-red-600 text-[10px] mt-0.5">{errors.phone}</p>}
+                                </div>
+                                <div className="flex items-center pb-2">
+                                    <label className="inline-flex items-center gap-1.5 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={skuFlg}
+                                            onChange={(e) => {
+                                                const checked = e.target.checked;
+                                                setSkuFlg(checked);
+                                                if (!checked) {
+                                                    setSku("");
+                                                    setErrors(prev => ({ ...prev, sku: undefined }));
+                                                }
+                                            }}
+                                            className="w-4 h-4 rounded text-violet-600 focus:ring-violet-500 border-slate-300"
+                                        />
+                                        <span className="text-[11px] font-semibold text-slate-700">สินค้าในระบบ</span>
+                                    </label>
                                 </div>
                             </div>
 
