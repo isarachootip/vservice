@@ -9,7 +9,8 @@ import {
   ClipboardList,
   Settings,
   LogOut,
-  Bell
+  Bell,
+  HelpCircle
 } from "lucide-react";
 
 type UserData = {
@@ -173,6 +174,18 @@ export default function AppShell({ children }: { children: ReactNode }) {
                   จัดการระบบ
                 </Link>
               )}
+
+              <Link
+                href="/faq"
+                className={`flex items-center gap-3 px-3 py-2.5 text-sm font-semibold transition-all duration-150 border-l-4 ${
+                  pathname === "/faq"
+                    ? "bg-[#252542] text-white border-violet-500"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-[#1a1a33]/50 border-transparent"
+                }`}
+              >
+                <HelpCircle className="w-4 h-4 text-violet-400" />
+                คู่มือการใช้งาน & FAQ
+              </Link>
             </nav>
           </div>
         </div>
