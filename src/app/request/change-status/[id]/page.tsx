@@ -305,19 +305,6 @@ export default function RequestChangeStatusPage({ params }: { params: Promise<{ 
                 )}
                 <div className="flex justify-center items-center gap-4 mt-6">
                     <button 
-                        type="button"
-                        className="btn-dc"
-                        onClick={() => {
-                            if (!alrtFlg) {
-                                setShowDcConfirm(true);
-                                return;
-                            }
-                            onUpdateStatus(20);
-                        }}
-                    >
-                        จัดส่งให้ DC
-                    </button>
-                    <button 
                         type="button" 
                         className="btn-vendor" 
                         onClick={() => onUpdateStatus(30)}>

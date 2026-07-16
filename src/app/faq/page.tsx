@@ -113,7 +113,7 @@ export default function FAQPage() {
             </h3>
             
             {/* Visual Workflow Steps */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-3 pt-2">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 pt-2">
               <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-2 relative">
                 <div className="w-6 h-6 rounded-full bg-violet-600 text-white text-xs font-bold flex items-center justify-center">1</div>
                 <h4 className="text-xs font-bold text-slate-800">CS: เปิดใบแจ้งซ่อม</h4>
@@ -126,7 +126,7 @@ export default function FAQPage() {
               <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-2 relative">
                 <div className="w-6 h-6 rounded-full bg-violet-600 text-white text-xs font-bold flex items-center justify-center">2</div>
                 <h4 className="text-xs font-bold text-slate-800">GR: รับ/จัดส่งเครื่อง</h4>
-                <p className="text-[10px] text-slate-500">รับสินค้าซ่อมจากพนักงาน CS ตรวจตรวจเช็คข้อมูล แล้วลงส่งต่อไปยัง DC หรือ Vendor</p>
+                <p className="text-[10px] text-slate-500">รับสินค้าซ่อมจากพนักงาน CS ตรวจเช็คข้อมูล แล้วส่งมอบตรงไปยัง Vendor</p>
                 <div className="hidden md:block absolute top-1/2 -right-2 transform -translate-y-1/2 z-10 bg-white rounded-full p-0.5 shadow border border-slate-100">
                   <ChevronRight className="w-3 h-3 text-slate-400" />
                 </div>
@@ -134,15 +134,6 @@ export default function FAQPage() {
 
               <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-2 relative">
                 <div className="w-6 h-6 rounded-full bg-violet-600 text-white text-xs font-bold flex items-center justify-center">3</div>
-                <h4 className="text-xs font-bold text-slate-800">DC: ตรวจสอบ/แยกงาน</h4>
-                <p className="text-[10px] text-slate-500">รับจากสาขาหลัก ทำการคัดกรอง เช็คประกัน ตรวจงาน และสร้างเอกสารส่งมอบงานให้ Vendor</p>
-                <div className="hidden md:block absolute top-1/2 -right-2 transform -translate-y-1/2 z-10 bg-white rounded-full p-0.5 shadow border border-slate-100">
-                  <ChevronRight className="w-3 h-3 text-slate-400" />
-                </div>
-              </div>
-
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-2 relative">
-                <div className="w-6 h-6 rounded-full bg-violet-600 text-white text-xs font-bold flex items-center justify-center">4</div>
                 <h4 className="text-xs font-bold text-slate-800">Vendor: เสนอราคา</h4>
                 <p className="text-[10px] text-slate-500">ช่างของ Vendor ตรวจเช็คเครื่อง ประเมินค่าบริการ อัปโหลดใบเสนอราคาเข้าระบบ</p>
                 <div className="hidden md:block absolute top-1/2 -right-2 transform -translate-y-1/2 z-10 bg-white rounded-full p-0.5 shadow border border-slate-100">
@@ -151,7 +142,7 @@ export default function FAQPage() {
               </div>
 
               <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-2">
-                <div className="w-6 h-6 rounded-full bg-violet-600 text-white text-xs font-bold flex items-center justify-center">5</div>
+                <div className="w-6 h-6 rounded-full bg-violet-600 text-white text-xs font-bold flex items-center justify-center">4</div>
                 <h4 className="text-xs font-bold text-slate-800">CS: อนุมัติการซ่อม</h4>
                 <p className="text-[10px] text-slate-500">ประสานงานกับลูกค้า หากลูกค้าตอบรับ CS ทำการกดยืนยันใบเสนอราคาเพื่อให้ Vendor ลงมือซ่อม</p>
               </div>
