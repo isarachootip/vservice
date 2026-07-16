@@ -375,3 +375,13 @@ model symptom {
   updated_user String?   @db.VarChar(50)
   updated_date DateTime? @default(now()) @db.Timestamp(6)
 }
+
+model system_announcement {
+  id           Int       @id @default(autoincrement())
+  message      String    @db.VarChar(500)
+  severity     String    @default("warning") @db.VarChar(50)
+  start_date   DateTime? @db.Timestamp(6)
+  end_date     DateTime? @db.Timestamp(6)
+  created_user String?   @db.VarChar(50)
+  created_date DateTime? @default(now()) @db.Timestamp(6)
+}

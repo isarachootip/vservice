@@ -26,6 +26,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState<UserData | null>(null);
+  const [activeAnnouncements, setActiveAnnouncements] = useState<any[]>([]);
+  const [closedAnnouncements, setClosedAnnouncements] = useState<Record<number, boolean>>({});
 
   // Exclude login and base customer-facing views from the staff sidebar layout
   const isAuthPage = pathname === "/login" || pathname === "/";
@@ -67,6 +69,22 @@ export default function AppShell({ children }: { children: ReactNode }) {
     };
     fetchUser();
     return () => { active = false; };
+  }, [isAuthPage]);
+
+  useEffect(() => {
+    if (isAuthPage) return;
+    const fetchActiveAnnouncements = async () => {
+      try {
+        const res = await fetch("/api/maintain/announcements?active=true", { cache: "no-store" });
+        const data = await res.json();
+        if (data.ok) {
+          setActiveAnnouncements(data.announcements || []);
+        }
+      } catch (e) {
+        console.error("fetch active announcements error", e);
+      }
+    };
+    fetchActiveAnnouncements();
   }, [isAuthPage]);
 
   const handleLogout = async () => {
@@ -252,14 +270,32 @@ export default function AppShell({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        {/* Temporary banner alert */}
-        <div className="bg-[#aa7d39] text-white px-6 py-2.5 flex items-center justify-between text-xs font-semibold">
-          <div className="flex items-center gap-6">
-            <span>⚠️ ประกาศด่วน</span>
-            <span>📢 ทดสอบระบบแจ้งซ่อมสินค้าและบริการลูกค้า UAT</span>
-          </div>
-          <button className="hover:opacity-85 text-white/80">×</button>
-        </div>
+        {/* Dynamic banner alerts */}
+        {activeAnnouncements
+          .filter(ann => !closedAnnouncements[ann.id])
+          .map(ann => {
+            let bannerBg = "bg-[#aa7d39]"; // warning brown
+            if (ann.severity === "danger") {
+              bannerBg = "bg-red-700";
+            } else if (ann.severity === "info") {
+              bannerBg = "bg-indigo-600";
+            }
+
+            return (
+              <div key={ann.id} className={`${bannerBg} text-white px-6 py-2.5 flex items-center justify-between text-xs font-semibold border-b border-white/10`}>
+                <div className="flex items-center gap-6">
+                  <span>⚠️ ประกาศด่วน</span>
+                  <span>📢 {ann.message}</span>
+                </div>
+                <button 
+                  onClick={() => setClosedAnnouncements(prev => ({ ...prev, [ann.id]: true }))}
+                  className="hover:opacity-85 text-white/80"
+                >
+                  ×
+                </button>
+              </div>
+            );
+          })}
 
         <main className="flex-grow p-6">
           {children}

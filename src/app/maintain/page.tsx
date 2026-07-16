@@ -25,7 +25,7 @@ type VendorInfo = {
 };
 
 export default function MainTainPage() {
-    const [tab, setTab] = useState<"status" | "vendor" | "user" | "location" | "product" | "symptom">("status");
+    const [tab, setTab] = useState<"status" | "vendor" | "user" | "location" | "product" | "symptom" | "announcement">("status");
 
     //* Product Info state
     const [productsList, setProductsList] = useState<any[]>([]);
@@ -186,6 +186,119 @@ export default function MainTainPage() {
             fetchSymptoms();
         }
     }, [tab, fetchSymptoms]);
+
+    const [announcementsList, setAnnouncementsList] = useState<any[]>([]);
+    const [announcementsLoading, setAnnouncementsLoading] = useState(false);
+    const [announcementsError, setAnnouncementsError] = useState<string | null>(null);
+    const [isSavingAnnouncement, setIsSavingAnnouncement] = useState(false);
+
+    const [newAnnMsg, setNewAnnMsg] = useState("");
+    const [newAnnSeverity, setNewAnnSeverity] = useState("warning");
+    const [newAnnStartDate, setNewAnnStartDate] = useState("");
+    const [newAnnEndDate, setNewAnnEndDate] = useState("");
+
+    const formatAnnDate = (dStr: string | null) => {
+        if (!dStr) return "ไม่มีกำหนด";
+        const d = new Date(dStr);
+        if (isNaN(d.getTime())) return "-";
+        const day = String(d.getDate()).padStart(2, "0");
+        const thMonths = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+        const month = thMonths[d.getMonth()];
+        const year = String(d.getFullYear() + 543).slice(-2);
+        const hours = String(d.getHours()).padStart(2, "0");
+        const minutes = String(d.getMinutes()).padStart(2, "0");
+        return `${day} ${month} ${year} ${hours}:${minutes}`;
+    };
+
+    const getAnnStatus = (start: string | null, end: string | null) => {
+        const now = new Date();
+        const startTime = start ? new Date(start).getTime() : 0;
+        const endTime = end ? new Date(end).getTime() : Infinity;
+        const nowTime = now.getTime();
+        if (nowTime > endTime) return { label: "หมดอายุ", class: "bg-slate-100 text-slate-500 border-slate-200" };
+        if (nowTime < startTime) return { label: "ยังไม่เริ่ม", class: "bg-blue-50 text-blue-600 border-blue-100" };
+        return { label: "กำลังประกาศ", class: "bg-green-50 text-green-700 border-green-100" };
+    };
+
+    const fetchAnnouncements = useCallback(async () => {
+        let alive = true;
+        try {
+            setAnnouncementsLoading(true);
+            setAnnouncementsError(null);
+            const res = await fetch("/api/maintain/announcements", { cache: "no-store" });
+            const data = await res.json();
+            if (!data.ok) throw new Error(data?.message || "โหลดข้อมูลประกาศไม่สำเร็จ");
+            if (alive) setAnnouncementsList(data.announcements || []);
+        } catch (e) {
+            if (alive) setAnnouncementsError((e as Error).message);
+        } finally {
+            if (alive) setAnnouncementsLoading(false);
+        }
+        return () => { alive = false; };
+    }, []);
+
+    const handleSaveAnnouncement = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newAnnMsg.trim()) {
+            alert("กรุณากรอกข้อความประกาศ");
+            return;
+        }
+
+        try {
+            setIsSavingAnnouncement(true);
+            const userStr = localStorage.getItem("userInfo");
+            const createdUser = userStr ? JSON.parse(userStr).user_name : "admin";
+
+            const res = await fetch("/api/maintain/announcements", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    message: newAnnMsg,
+                    severity: newAnnSeverity,
+                    startDate: newAnnStartDate || null,
+                    endDate: newAnnEndDate || null,
+                    createdUser
+                }),
+            });
+            const data = await res.json();
+            if (!data.ok) throw new Error(data.message || "บันทึกประกาศไม่สำเร็จ");
+
+            setNewAnnMsg("");
+            setNewAnnSeverity("warning");
+            setNewAnnStartDate("");
+            setNewAnnEndDate("");
+            
+            await fetchAnnouncements();
+            alert("บันทึกประกาศสำเร็จ");
+        } catch (e) {
+            alert((e as Error).message);
+        } finally {
+            setIsSavingAnnouncement(false);
+        }
+    };
+
+    const handleDeleteAnnouncement = async (id: number) => {
+        if (!confirm("คุณต้องการลบประกาศนี้ใช่หรือไม่?")) return;
+
+        try {
+            const res = await fetch(`/api/maintain/announcements?id=${id}`, {
+                method: "DELETE",
+            });
+            const data = await res.json();
+            if (!data.ok) throw new Error(data.message || "ลบประกาศไม่สำเร็จ");
+            
+            await fetchAnnouncements();
+            alert("ลบประกาศสำเร็จ");
+        } catch (e) {
+            alert((e as Error).message);
+        }
+    };
+
+    useEffect(() => {
+        if (tab === "announcement") {
+            fetchAnnouncements();
+        }
+    }, [tab, fetchAnnouncements]);
 
     const openAddSymptomModal = () => {
         setEditingSymptomId(null);
@@ -886,6 +999,16 @@ export default function MainTainPage() {
                     >
                         Symptom Info (อาการเสีย)
                     </button>
+                    <button
+                        onClick={() => setTab("announcement")}
+                        className={`pb-3 px-2 font-medium transition ${
+                            tab === "announcement"
+                                ? "text-blue-600 border-b-2 border-blue-600"
+                                : "text-slate-600 hover:text-slate-900"
+                        }`}
+                    >
+                        ตั้งค่าประกาศ (Announcements)
+                    </button>
                 </div>
 
                 {tab === "status" && (
@@ -1542,6 +1665,186 @@ export default function MainTainPage() {
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
+                    </div>
+                )}
+
+                {tab === "announcement" && (
+                    <div className="space-y-6 animate-fadeIn">
+                        {/* Title Section */}
+                        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-2">
+                            <h2 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
+                                ⚙️ System Settings
+                            </h2>
+                            <p className="text-xs text-slate-500 font-medium">
+                                ตั้งค่าระบบ การเชื่อมต่อ และประกาศแจ้งเตือน (สำหรับ Admin)
+                            </p>
+                        </div>
+
+                        {/* List Section */}
+                        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+                            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                                <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
+                                    📢 ประกาศแจ้งเตือนระบบ (System Announcements)
+                                </h3>
+                                <span className="text-xs font-semibold text-slate-400">
+                                    {announcementsList.length} ประกาศ
+                                </span>
+                            </div>
+
+                            <p className="text-xs text-slate-500 leading-relaxed">
+                                ประกาศจะแสดงเป็น Banner วิ่งด้านบนทุกหน้า รองรับการตั้งเวลาเริ่มต้นและหมดอายุอัตโนมัติ
+                            </p>
+
+                            {announcementsLoading && (
+                                <div className="text-center py-8 text-slate-400 text-sm">
+                                    กำลังโหลดข้อมูลประกาศ...
+                                </div>
+                            )}
+
+                            {announcementsError && (
+                                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">
+                                    {announcementsError}
+                                </div>
+                            )}
+
+                            {!announcementsLoading && announcementsList.length === 0 && (
+                                <div className="text-center py-8 text-slate-400 text-xs font-semibold">
+                                    ไม่มีประกาศในระบบขณะนี้
+                                </div>
+                            )}
+
+                            <div className="space-y-4">
+                                {announcementsList.map((ann) => {
+                                    const status = getAnnStatus(ann.start_date, ann.end_date);
+                                    let severityColor = "bg-amber-500";
+                                    let severityLabel = "warning";
+                                    let headerBg = "bg-[#8c4f2b]";
+
+                                    if (ann.severity === "danger") {
+                                        severityColor = "bg-red-500";
+                                        severityLabel = "danger";
+                                        headerBg = "bg-red-800";
+                                    } else if (ann.severity === "info") {
+                                        severityColor = "bg-blue-500";
+                                        severityLabel = "info";
+                                        headerBg = "bg-indigo-800";
+                                    }
+
+                                    return (
+                                        <div key={ann.id} className="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                                            {/* Colored Header bar */}
+                                            <div className={`${headerBg} px-4 py-2 text-xs font-bold text-white flex items-center gap-1.5`}>
+                                                <span>⚠️</span>
+                                                <span>{ann.severity === "danger" ? "ระบบขัดข้องรุนแรง" : ann.severity === "info" ? "แจ้งเพื่อทราบ" : "ทดสอบระบบ/คำเตือน"}</span>
+                                            </div>
+
+                                            {/* Content Area */}
+                                            <div className="p-4 bg-white flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                                <div className="space-y-3 flex-grow">
+                                                    <p className="text-sm font-bold text-slate-800 leading-relaxed">
+                                                        {ann.message}
+                                                    </p>
+                                                    <div className="flex flex-wrap items-center gap-2">
+                                                        {/* Status Badge */}
+                                                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${status.class}`}>
+                                                            {status.label}
+                                                        </span>
+                                                        {/* Severity Badge */}
+                                                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold text-white ${severityColor}`}>
+                                                            {severityLabel}
+                                                        </span>
+                                                        {/* Dates */}
+                                                        <span className="text-[11px] text-slate-500 font-semibold flex items-center gap-2 ml-2">
+                                                            <span className="text-green-600">▶</span> {formatAnnDate(ann.start_date)}
+                                                            <span className="text-red-500">◼</span> {formatAnnDate(ann.end_date)}
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                <button
+                                                    onClick={() => handleDeleteAnnouncement(ann.id)}
+                                                    className="flex items-center gap-1 px-3 py-1.5 border border-red-200 text-red-600 hover:bg-red-50 rounded-lg text-xs font-bold transition self-start md:self-center"
+                                                >
+                                                    🗑️ ลบ
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Creation Form */}
+                        <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+                            <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2 border-b border-slate-200 pb-2">
+                                ➕ เพิ่มประกาศใหม่
+                            </h3>
+
+                            <form onSubmit={handleSaveAnnouncement} className="space-y-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-600 mb-1.5">
+                                        ข้อความประกาศ <span className="text-red-500">*</span>
+                                    </label>
+                                    <textarea
+                                        value={newAnnMsg}
+                                        onChange={(e) => setNewAnnMsg(e.target.value)}
+                                        placeholder="เช่น ขณะนี้ระบบ SAP ล่ม หรือการปรับปรุงระบบ UAT..."
+                                        rows={3}
+                                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white text-xs font-medium"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-600 mb-1.5">
+                                            ระดับความรุนแรง (Severity)
+                                        </label>
+                                        <select
+                                            value={newAnnSeverity}
+                                            onChange={(e) => setNewAnnSeverity(e.target.value)}
+                                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white text-xs font-medium"
+                                        >
+                                            <option value="info">Info (แจ้งเพื่อทราบ - น้ำเงิน)</option>
+                                            <option value="warning">Warning (คำเตือน/ทดสอบ - น้ำตาล)</option>
+                                            <option value="danger">Danger (แจ้งเตือนรุนแรง - แดง)</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-600 mb-1.5">
+                                            วันที่เริ่มประกาศ (Start Date)
+                                        </label>
+                                        <input
+                                            type="datetime-local"
+                                            value={newAnnStartDate}
+                                            onChange={(e) => setNewAnnStartDate(e.target.value)}
+                                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white text-xs font-medium"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-600 mb-1.5">
+                                            วันที่สิ้นสุดประกาศ (End Date)
+                                        </label>
+                                        <input
+                                            type="datetime-local"
+                                            value={newAnnEndDate}
+                                            onChange={(e) => setNewAnnEndDate(e.target.value)}
+                                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white text-xs font-medium"
+                                        />
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    disabled={isSavingAnnouncement}
+                                    className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition shadow disabled:opacity-50"
+                                >
+                                    {isSavingAnnouncement ? "กำลังบันทึก..." : "บันทึก / เพิ่มประกาศ"}
+                                </button>
+                            </form>
                         </div>
                     </div>
                 )}
