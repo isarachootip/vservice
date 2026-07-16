@@ -59,9 +59,8 @@ export async function GET(req: Request) {
       if (username) {
         const profile = await UserService.getUserProfile(username);
         if (profile) {
-          const isAdmin = profile.role === "ADMIN" || profile.role === "ADMIN_GR";
-          const isDC = profile.role === "DC";
-          if (!isAdmin && !isDC) {
+          const isAdmin = profile.role === "ADMIN";
+          if (!isAdmin) {
             userLocationId = profile.location_id || null;
             isStaffFiltered = true;
           }
@@ -72,45 +71,19 @@ export async function GET(req: Request) {
     console.error("Auth check failed in search API:", err);
   }
 
-  // Find stores for filters
-  let allowedStoreCodes: string[] = [];
   if (isStaffFiltered) {
-    if (userLocationId) {
-      const storesInLocation = await prisma.store.findMany({
-        where: { store_location: userLocationId },
-        select: { store_code: true },
-      });
-      allowedStoreCodes = storesInLocation.map((s) => s.store_code);
-    } else {
-      allowedStoreCodes = ["__NONE__"];
-    }
-  }
-
-  let selectedStoreCodes: string[] = [];
-  if (filterLocationId) {
-    const storesInLocation = await prisma.store.findMany({
-      where: { store_location: filterLocationId },
-      select: { store_code: true },
-    });
-    selectedStoreCodes = storesInLocation.map((s) => s.store_code);
-  }
-
-  let targetStoreCodes: string[] | null = null;
-  if (isStaffFiltered) {
-    if (filterLocationId && filterLocationId !== userLocationId) {
-      targetStoreCodes = ["__NONE__"];
-    } else {
-      targetStoreCodes = allowedStoreCodes;
-    }
-  } else if (filterLocationId) {
-    targetStoreCodes = selectedStoreCodes.length > 0 ? selectedStoreCodes : ["__NONE__"];
-  }
-
-  if (targetStoreCodes !== null) {
     andConditions.push({
       repair_request: {
         is: {
-          store_code: { in: targetStoreCodes },
+          location_id: userLocationId || "__NONE__",
+        },
+      },
+    });
+  } else if (filterLocationId) {
+    andConditions.push({
+      repair_request: {
+        is: {
+          location_id: filterLocationId,
         },
       },
     });
@@ -213,9 +186,11 @@ export async function GET(req: Request) {
       LEFT JOIN status_info si
         ON si.status_id = rr.status
       WHERE 1=1
-        ${targetStoreCodes !== null
-          ? Prisma.sql`AND rr.store_code IN (${Prisma.join(targetStoreCodes)})`
-          : Prisma.empty}
+        ${isStaffFiltered
+          ? Prisma.sql`AND rr.location_id = ${userLocationId || '__NONE__'}`
+          : filterLocationId
+            ? Prisma.sql`AND rr.location_id = ${filterLocationId}`
+            : Prisma.empty}
         ${q
           ? Prisma.sql`
             AND (

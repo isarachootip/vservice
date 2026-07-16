@@ -494,7 +494,7 @@ export default function StatusPage() {
             </div>
 
             {/* Location Filter */}
-            {(role === "ADMIN" || role === "ADMIN_GR" || role === "ADMIN_DC" || role === "DC") && (
+            {role === "ADMIN" && (
               <div className="flex flex-col gap-1 w-full sm:w-44">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">พื้นที่ดูแล / สาขาหลัก</label>
                 <select

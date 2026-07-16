@@ -101,6 +101,8 @@ model repair_request {
   gr_send_return_to_cs_tel        String?               @db.VarChar(30)
   gr_send_return_to_cs_receive_by String?               @db.VarChar(100)
   location                        String?               @db.VarChar(100)
+  location_id                     String?               @db.VarChar(50)
+  location_rel                    location?             @relation(fields: [location_id], references: [id], onDelete: SetNull)
   status_updated_date             DateTime?             @db.Timestamp(6)
   quotation                       quotation[]
   repair_attachment               repair_attachment[]
@@ -353,12 +355,23 @@ model vendor_info {
 }
 
 model location {
-  id          String   @id @db.VarChar(50)
-  name        String   @db.VarChar(100)
-  short_name  String?  @db.VarChar(50)
-  code        String?  @db.VarChar(50)
-  status      String?  @db.VarChar(20)
-  created_at  DateTime @default(now()) @db.Timestamp(6)
-  updated_at  DateTime @default(now()) @db.Timestamp(6)
-  users       users[]
+  id              String           @id @db.VarChar(50)
+  name            String           @db.VarChar(100)
+  short_name      String?          @db.VarChar(50)
+  code            String?          @db.VarChar(50)
+  status          String?          @db.VarChar(20)
+  created_at      DateTime         @default(now()) @db.Timestamp(6)
+  updated_at      DateTime         @default(now()) @db.Timestamp(6)
+  users           users[]
+  repair_requests repair_request[]
+}
+
+model symptom {
+  id           Int       @id @default(autoincrement())
+  name         String    @db.VarChar(100)
+  description  String?   @db.VarChar(200)
+  created_user String?   @db.VarChar(50)
+  created_date DateTime? @default(now()) @db.Timestamp(6)
+  updated_user String?   @db.VarChar(50)
+  updated_date DateTime? @default(now()) @db.Timestamp(6)
 }

@@ -38,10 +38,12 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
     const [model, setModel]             = useState("");
     const [serial, setSerial]           = useState("");
     const [issue, setIssue]             = useState("");
+    const [symptoms, setSymptoms]       = useState<any[]>([]);
+    const [selectedSymptom, setSelectedSymptom] = useState("");
     const [receiveFromUserDt, setReceiveFromUserDt] = useState<Date | null>(null);
     const [qty, setQty]                 = useState<number | "">("");
     const [sku, setSku]                 = useState<number | "">("");
-    const [skuFlg, setSkuFlg]           = useState(false);
+    const [skuFlg, setSkuFlg]           = useState(true);
     const [skuLoading, setSkuLoading] = useState(false);
     const [skuError, setSkuError] = useState<string | null>(null);
     const [barcode, setBarcode]         = useState("");
@@ -50,8 +52,16 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
     const serialFileInputRef = useRef<HTMLInputElement | null>(null);
     const picFileInputRef = useRef<HTMLInputElement | null>(null);
 
-    // const [attachments, setAttachments] = useState<File[]>([]);
-    // const fileInputRef = useRef<HTMLInputElement | null>(null);
+    useEffect(() => {
+        fetch("/api/maintain/symptoms")
+            .then(res => res.json())
+            .then(data => {
+                if (data.ok) {
+                    setSymptoms(data.symptoms || []);
+                }
+            })
+            .catch(console.error);
+    }, []);
 
     //? ข้อมูลประกัน
     const [warranty, setWarranty]       = useState<Warranty>(null);
@@ -212,11 +222,18 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
         if (skuFlg && (!sku || Number(sku) <= 0)) nextErrors.sku    = "กรุณากรอก SKU";
         if (!barcode.trim())     nextErrors.barcode     = "กรุณากรอก Barcode";
 
-        if (!issue.trim()) nextErrors.issue = "กรุณาระบุอาการที่พบ";
         if (!receiveFromUserDt)     nextErrors.receiveFromUserDt    = "กรุณากรอกวันที่รับสินค้าจากลูกค้า";
         if (!warranty)     nextErrors.warranty    = "กรุณาเลือกสถานะการรับประกัน";
-        if (warranty === "in" && !warrantyNo.trim()) nextErrors.warrantyNo = "กรุณากรอกเลขที่ใบประกัน";
+        if (warranty === "in" && !warrantyNo.trim()) {
+            nextErrors.warrantyNo = "กรุณากรอกเลขที่รับประกัน";
+        }
 
+        if (!selectedSymptom) {
+            nextErrors.issue = "กรุณาเลือกอาการเสีย";
+        } else if (selectedSymptom === "other" && !issue.trim()) {
+            nextErrors.issue = "กรุณากรอกรายละเอียดอาการเสีย";
+        }
+        
         if (!serialAttachments || serialAttachments.length === 0) nextErrors.serialAttachments = "กรุณาแนบไฟล์รูป Serial Number";
         if (!picAttachments || picAttachments.length === 0) nextErrors.picAttachments = "กรุณาแนบไฟล์";
 
@@ -260,7 +277,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
             skuFlg: skuFlgToSend,
             sku: skuToSend,
             barcode,
-            issue,
+            issue: selectedSymptom === "other" ? issue : (selectedSymptom + (issue.trim() ? ` (${issue.trim()})` : "")),
         }));
         formData.append("warranty", JSON.stringify({
             status: warranty,
@@ -337,8 +354,8 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-3 gap-3 items-end">
-                                <div className="col-span-2">
+                            <div className="grid grid-cols-1 gap-3">
+                                <div>
                                     <label htmlFor="phone" className="block text-[11px] font-semibold text-slate-500 mb-1">เบอร์โทรศัพท์<Req /></label>
                                     <input
                                         id="phone"
@@ -349,24 +366,6 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                         placeholder="0812345678"
                                     />
                                     {errors.phone && <p className="text-red-600 text-[10px] mt-0.5">{errors.phone}</p>}
-                                </div>
-                                <div className="flex items-center pb-2">
-                                    <label className="inline-flex items-center gap-1.5 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            checked={skuFlg}
-                                            onChange={(e) => {
-                                                const checked = e.target.checked;
-                                                setSkuFlg(checked);
-                                                if (!checked) {
-                                                    setSku("");
-                                                    setErrors(prev => ({ ...prev, sku: undefined }));
-                                                }
-                                            }}
-                                            className="w-4 h-4 rounded text-violet-600 focus:ring-violet-500 border-slate-300"
-                                        />
-                                        <span className="text-[11px] font-semibold text-slate-700">สินค้าในระบบ</span>
-                                    </label>
                                 </div>
                             </div>
 
@@ -560,16 +559,36 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                 )}
                             </div>
 
-                            <div>
-                                <label htmlFor="issue" className="block text-[11px] font-semibold text-slate-500 mb-1">อาการเสียที่พบ<Req /></label>
-                                <textarea
-                                    id="issue"
-                                    className="input-base text-xs py-1 h-12 resize-none"
-                                    value={issue}
-                                    onChange={e => setIssue(e.target.value)}
-                                    placeholder="ระบุอาการชำรุดเสียหายของสินค้า"
-                                />
-                                {errors.issue && <p className="text-red-600 text-[10px] mt-0.5">{errors.issue}</p>}
+                            <div className="space-y-2">
+                                <div>
+                                    <label htmlFor="issueSymptom" className="block text-[11px] font-semibold text-slate-500 mb-1">อาการเสียที่พบ (จากระบบ)<Req /></label>
+                                    <select
+                                        id="issueSymptom"
+                                        className="input-base text-xs py-1.5 bg-white border border-slate-300 rounded-lg w-full"
+                                        value={selectedSymptom}
+                                        onChange={e => setSelectedSymptom(e.target.value)}
+                                    >
+                                        <option value="">-- เลือกอาการเสีย --</option>
+                                        {symptoms.map(s => (
+                                            <option key={s.id} value={s.name}>{s.name}</option>
+                                        ))}
+                                        <option value="other">อื่นๆ (ระบุเอง)</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label htmlFor="issue" className="block text-[11px] font-semibold text-slate-500 mb-1">
+                                        {selectedSymptom === "other" ? "รายละเอียดอาการเสีย *" : "รายละเอียดอาการเสียเพิ่มเติม (ถ้ามี)"}
+                                    </label>
+                                    <textarea
+                                        id="issue"
+                                        className="input-base text-xs py-1 h-12 resize-none w-full"
+                                        value={issue}
+                                        onChange={e => setIssue(e.target.value)}
+                                        placeholder="ระบุรายละเอียดอาการชำรุดเสียหายเพิ่มเติม"
+                                    />
+                                    {errors.issue && <p className="text-red-600 text-[10px] mt-0.5">{errors.issue}</p>}
+                                </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-3">

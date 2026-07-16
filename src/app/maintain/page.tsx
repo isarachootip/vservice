@@ -25,7 +25,26 @@ type VendorInfo = {
 };
 
 export default function MainTainPage() {
-    const [tab, setTab] = useState<"status" | "vendor" | "user" | "location">("status");
+    const [tab, setTab] = useState<"status" | "vendor" | "user" | "location" | "product" | "symptom">("status");
+
+    //* Product Info state
+    const [productsList, setProductsList] = useState<any[]>([]);
+    const [productLoading, setProductLoading] = useState(false);
+    const [productError, setProductError] = useState<string | null>(null);
+    const [productSearchQ, setProductSearchQ] = useState("");
+    const [productPage, setProductPage] = useState(1);
+    const [productTotalPages, setProductTotalPages] = useState(1);
+    const [productFileInputRef, setProductFileInputRef] = useState<HTMLInputElement | null>(null);
+
+    //* Symptom Info state
+    const [symptomsList, setSymptomsList] = useState<any[]>([]);
+    const [symptomLoading, setSymptomLoading] = useState(false);
+    const [symptomError, setSymptomError] = useState<string | null>(null);
+    const [showSymptomModal, setShowSymptomModal] = useState(false);
+    const [editingSymptomId, setEditingSymptomId] = useState<number | null>(null);
+    const [symptomFormData, setSymptomFormData] = useState({ name: "", description: "" });
+    const [symptomFormError, setSymptomFormError] = useState<string | null>(null);
+    const [isSavingSymptom, setIsSavingSymptom] = useState(false);
 
     //* Location Info state
     const [locationLoading, setLocationLoading] = useState(false);
@@ -60,6 +79,181 @@ export default function MainTainPage() {
     useEffect(() => {
         fetchLocations();
     }, [fetchLocations]);
+
+    const fetchProducts = useCallback(async (query = productSearchQ, page = productPage) => {
+        let alive = true;
+        try {
+            setProductLoading(true);
+            setProductError(null);
+            const res = await fetch(`/api/maintain/products?q=${encodeURIComponent(query)}&page=${page}&limit=20`, { cache: "no-store" });
+            const data = await res.json();
+            if (!data.ok) throw new Error(data?.message || "โหลดข้อมูลสินค้าไม่สำเร็จ");
+            if (alive) {
+                setProductsList(data.products || []);
+                setProductTotalPages(data.pagination?.totalPages || 1);
+                setProductPage(data.pagination?.page || 1);
+            }
+        } catch (e) {
+            if (alive) {
+                setProductError((e as Error).message);
+            }
+        } finally {
+            if (alive) {
+                setProductLoading(false);
+            }
+        }
+        return () => { alive = false; };
+    }, [productSearchQ, productPage]);
+
+    useEffect(() => {
+        if (tab === "product") {
+            fetchProducts();
+        }
+    }, [tab, fetchProducts]);
+
+    const handleProductImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async (evt) => {
+            try {
+                setProductLoading(true);
+                setProductError(null);
+
+                const data = evt.target?.result;
+                const workbook = XLSX.read(data, { type: "binary" });
+                const sheetName = workbook.SheetNames[0];
+                const sheet = workbook.Sheets[sheetName];
+                const rows = XLSX.utils.sheet_to_json<any>(sheet);
+
+                const products = rows.map((r: any) => ({
+                    sku: r.sku || r.SKU || r["รหัสสินค้า"],
+                    sku_name: r.sku_name || r.name || r.Name || r.SKU_Name || r["ชื่อสินค้า"],
+                    brand: r.brand || r.Brand || r["ยี่ห้อ"],
+                    class_name: r.class_name || r.category || r.Category || r.Class_Name || r["หมวดหมู่"],
+                    sku_cost: Number(r.sku_cost || r.cost || r.Cost || r.Sku_Cost || r["ทุน"] || r["ต้นทุน"] || 0),
+                    sku_price: Number(r.sku_price || r.price || r.Price || r.Sku_Price || r["ราคา"] || r["ราคาขาย"] || 0),
+                    vendor_no: Number(r.vendor_no || r.Vendor_No || r["รหัสผู้รับเหมา"] || 0),
+                    vendor_name: r.vendor_name || r.vendor || r.Vendor || r.Vendor_Name || r["ชื่อผู้รับเหมา"] || "",
+                }));
+
+                const res = await fetch("/api/maintain/products", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ products }),
+                });
+                const resData = await res.json();
+                if (!res.ok) throw new Error(resData.message || "เกิดข้อผิดพลาดในการนำเข้าสินค้า");
+
+                alert(resData.message || "นำเข้าข้อมูลสินค้าสำเร็จ");
+                fetchProducts("", 1);
+            } catch (err: any) {
+                setProductError(err.message);
+            } finally {
+                setProductLoading(false);
+                if (productFileInputRef) productFileInputRef.value = "";
+            }
+        };
+        reader.readAsBinaryString(file);
+    };
+
+    const fetchSymptoms = useCallback(async () => {
+        let alive = true;
+        try {
+            setSymptomLoading(true);
+            setSymptomError(null);
+            const res = await fetch("/api/maintain/symptoms", { cache: "no-store" });
+            const data = await res.json();
+            if (!data.ok) throw new Error(data?.message || "โหลดข้อมูลอาการเสียไม่สำเร็จ");
+            if (alive) {
+                setSymptomsList(data.symptoms || []);
+            }
+        } catch (e) {
+            if (alive) {
+                setSymptomError((e as Error).message);
+            }
+        } finally {
+            if (alive) {
+                setSymptomLoading(false);
+            }
+        }
+        return () => { alive = false; };
+    }, []);
+
+    useEffect(() => {
+        if (tab === "symptom") {
+            fetchSymptoms();
+        }
+    }, [tab, fetchSymptoms]);
+
+    const openAddSymptomModal = () => {
+        setEditingSymptomId(null);
+        setSymptomFormData({ name: "", description: "" });
+        setSymptomFormError(null);
+        setShowSymptomModal(true);
+    };
+
+    const openEditSymptomModal = (sym: any) => {
+        setEditingSymptomId(sym.id);
+        setSymptomFormData({ name: sym.name, description: sym.description || "" });
+        setSymptomFormError(null);
+        setShowSymptomModal(true);
+    };
+
+    const handleSaveSymptom = async () => {
+        if (!symptomFormData.name.trim()) {
+            setSymptomFormError("กรุณาระบุชื่ออาการเสีย");
+            return;
+        }
+
+        try {
+            setIsSavingSymptom(true);
+            setSymptomFormError(null);
+
+            const method = editingSymptomId ? "PUT" : "POST";
+            const body = {
+                id: editingSymptomId,
+                name: symptomFormData.name,
+                description: symptomFormData.description,
+                updatedUser,
+            };
+
+            const res = await fetch("/api/maintain/symptoms", {
+                method,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || "บันทึกไม่สำเร็จ");
+
+            setShowSymptomModal(false);
+            fetchSymptoms();
+        } catch (err: any) {
+            setSymptomFormError(err.message);
+        } finally {
+            setIsSavingSymptom(false);
+        }
+    };
+
+    const handleDeleteSymptom = async (id: number) => {
+        if (!confirm("คุณต้องการลบข้อมูลอาการเสียนี้ใช่หรือไม่?")) return;
+
+        try {
+            setSymptomLoading(true);
+            const res = await fetch(`/api/maintain/symptoms?id=${id}`, {
+                method: "DELETE",
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || "ลบไม่สำเร็จ");
+
+            fetchSymptoms();
+        } catch (err: any) {
+            alert(err.message);
+        } finally {
+            setSymptomLoading(false);
+        }
+    };
 
     //* Status Info state
     const [loading, setLoading] = useState(true);
@@ -670,6 +864,26 @@ export default function MainTainPage() {
                     >
                         Location Info
                     </button>
+                    <button
+                        onClick={() => setTab("product")}
+                        className={`pb-3 px-2 font-medium transition ${
+                            tab === "product"
+                                ? "text-blue-600 border-b-2 border-blue-600"
+                                : "text-slate-600 hover:text-slate-900"
+                        }`}
+                    >
+                        Product Info (สินค้า & ทุน)
+                    </button>
+                    <button
+                        onClick={() => setTab("symptom")}
+                        className={`pb-3 px-2 font-medium transition ${
+                            tab === "symptom"
+                                ? "text-blue-600 border-b-2 border-blue-600"
+                                : "text-slate-600 hover:text-slate-900"
+                        }`}
+                    >
+                        Symptom Info (อาการเสีย)
+                    </button>
                 </div>
 
                 {tab === "status" && (
@@ -1136,7 +1350,256 @@ export default function MainTainPage() {
                         </div>
                     </div>
                 )}
+
+                {tab === "product" && (
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-xl font-semibold text-slate-900">จัดการข้อมูลสินค้าและต้นทุน (Product & Cost Management)</h2>
+                            <div className="flex gap-3">
+                                <input
+                                    type="file"
+                                    accept=".xlsx,.xls,.json"
+                                    onChange={handleProductImport}
+                                    ref={(el) => setProductFileInputRef(el)}
+                                    className="hidden"
+                                />
+                                <button
+                                    onClick={() => productFileInputRef?.click()}
+                                    disabled={productLoading}
+                                    className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg shadow transition text-sm disabled:opacity-50"
+                                >
+                                    {productLoading ? "กำลังนำเข้า..." : "นำเข้าข้อมูลสินค้า (Excel)"}
+                                </button>
+                            </div>
+                        </div>
+
+                        {productError && (
+                            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                                {productError}
+                            </div>
+                        )}
+
+                        <div className="flex items-center gap-2 mb-4">
+                            <input
+                                type="text"
+                                placeholder="ค้นหาตาม SKU, ชื่อสินค้า, หมวดหมู่, ยี่ห้อ..."
+                                value={productSearchQ}
+                                onChange={(e) => setProductSearchQ(e.target.value)}
+                                className="flex-1 max-w-sm px-3 py-1.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 text-sm"
+                            />
+                            <button
+                                onClick={() => fetchProducts(productSearchQ, 1)}
+                                className="px-4 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg text-sm transition"
+                            >
+                                ค้นหา
+                            </button>
+                        </div>
+
+                        <div className="bg-white rounded-xl shadow-sm border border-slate-200/80 overflow-hidden">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm">
+                                    <thead className="bg-slate-50 border-b border-slate-200">
+                                        <tr>
+                                            <th className="text-center px-6 py-3 font-semibold text-slate-900 w-16">ลำดับ</th>
+                                            <th className="text-left px-6 py-3 font-semibold text-slate-900 w-32">SKU</th>
+                                            <th className="text-left px-6 py-3 font-semibold text-slate-900 w-32">Barcode</th>
+                                            <th className="text-left px-6 py-3 font-semibold text-slate-900">ชื่อสินค้า</th>
+                                            <th className="text-left px-6 py-3 font-semibold text-slate-900 w-40">หมวดหมู่</th>
+                                            <th className="text-left px-6 py-3 font-semibold text-slate-900 w-32">ยี่ห้อ</th>
+                                            <th className="text-right px-6 py-3 font-semibold text-slate-900 w-28">ทุน (Cost)</th>
+                                            <th className="text-right px-6 py-3 font-semibold text-slate-900 w-28">ราคา (Price)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {productLoading ? (
+                                            <tr>
+                                                <td colSpan={8} className="px-6 py-6 text-center text-slate-500">
+                                                    กำลังโหลดข้อมูล...
+                                                </td>
+                                            </tr>
+                                        ) : productsList.length === 0 ? (
+                                            <tr>
+                                                <td colSpan={8} className="px-6 py-6 text-center text-slate-500">
+                                                    ไม่พบข้อมูลสินค้า
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            productsList.map((row, idx) => (
+                                                <tr key={row.sku} className="border-t border-slate-100 hover:bg-slate-50">
+                                                    <td className="px-6 py-4 text-slate-900 text-center">{(productPage - 1) * 20 + idx + 1}</td>
+                                                    <td className="px-6 py-4 text-slate-900 font-mono font-semibold">{row.sku}</td>
+                                                    <td className="px-6 py-4 text-slate-700 font-mono">{row.sbc || "-"}</td>
+                                                    <td className="px-6 py-4 text-slate-900 font-semibold">{row.sku_name}</td>
+                                                    <td className="px-6 py-4 text-slate-700">{row.class_name || "-"}</td>
+                                                    <td className="px-6 py-4 text-slate-700">{row.brand || "-"}</td>
+                                                    <td className="px-6 py-4 text-slate-900 text-right font-mono font-semibold">
+                                                        {row.sku_cost?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-slate-900 text-right font-mono font-semibold">
+                                                        {row.sku_price?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {productTotalPages > 1 && (
+                            <div className="flex justify-center gap-2 mt-4">
+                                <button
+                                    onClick={() => fetchProducts(productSearchQ, productPage - 1)}
+                                    disabled={productPage === 1}
+                                    className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold disabled:opacity-50"
+                                >
+                                    ก่อนหน้า
+                                </button>
+                                <span className="px-3 py-1.5 text-xs text-slate-600">
+                                    หน้า {productPage} จาก {productTotalPages}
+                                </span>
+                                <button
+                                    onClick={() => fetchProducts(productSearchQ, productPage + 1)}
+                                    disabled={productPage === productTotalPages}
+                                    className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold disabled:opacity-50"
+                                >
+                                    ถัดไป
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {tab === "symptom" && (
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-xl font-semibold text-slate-900">จัดการประเภทอาการเสีย (Symptom/Issue Type Management)</h2>
+                            <button
+                                onClick={openAddSymptomModal}
+                                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg shadow transition text-sm"
+                            >
+                                เพิ่มประเภทอาการเสีย
+                            </button>
+                        </div>
+
+                        {symptomError && (
+                            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                                {symptomError}
+                            </div>
+                        )}
+
+                        <div className="bg-white rounded-xl shadow-sm border border-slate-200/80 overflow-hidden">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm">
+                                    <thead className="bg-slate-50 border-b border-slate-200">
+                                        <tr>
+                                            <th className="text-center px-6 py-3 font-semibold text-slate-900 w-16">ลำดับ</th>
+                                            <th className="text-left px-6 py-3 font-semibold text-slate-900">ชื่ออาการเสีย</th>
+                                            <th className="text-left px-6 py-3 font-semibold text-slate-900">รายละเอียด/คำอธิบาย</th>
+                                            <th className="text-center px-6 py-3 font-semibold text-slate-900 w-32">การจัดการ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {symptomLoading ? (
+                                            <tr>
+                                                <td colSpan={4} className="px-6 py-6 text-center text-slate-500">
+                                                    กำลังโหลดข้อมูล...
+                                                </td>
+                                            </tr>
+                                        ) : symptomsList.length === 0 ? (
+                                            <tr>
+                                                <td colSpan={4} className="px-6 py-6 text-center text-slate-500">
+                                                    ไม่พบข้อมูลอาการเสีย
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            symptomsList.map((row, idx) => (
+                                                <tr key={row.id} className="border-t border-slate-100 hover:bg-slate-50">
+                                                    <td className="px-6 py-4 text-slate-900 text-center">{idx + 1}</td>
+                                                    <td className="px-6 py-4 text-slate-900 font-semibold">{row.name}</td>
+                                                    <td className="px-6 py-4 text-slate-700">{row.description || "-"}</td>
+                                                    <td className="px-6 py-4 text-center">
+                                                        <div className="flex items-center justify-center gap-2">
+                                                            <button
+                                                                onClick={() => openEditSymptomModal(row)}
+                                                                className="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-md text-xs font-semibold"
+                                                            >
+                                                                แก้ไข
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeleteSymptom(row.id)}
+                                                                className="px-2.5 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-md text-xs font-semibold"
+                                                            >
+                                                                ลบ
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
+
+            {showSymptomModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-lg max-w-md w-full p-6 shadow-lg">
+                        <h2 className="text-xl font-bold text-slate-900 mb-4">
+                            {editingSymptomId ? "แก้ไขประเภทอาการเสีย" : "เพิ่มประเภทอาการเสีย"}
+                        </h2>
+
+                        {symptomFormError && (
+                            <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded mb-4 text-sm">
+                                {symptomFormError}
+                            </div>
+                        )}
+
+                        <div className="space-y-4 mb-6">
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1">ชื่ออาการเสีย <span className="text-red-500">*</span></label>
+                                <input
+                                    type="text"
+                                    value={symptomFormData.name}
+                                    onChange={(e) => setSymptomFormData({ ...symptomFormData, name: e.target.value })}
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
+                                    placeholder="เช่น หน้าจอแตก, เปิดไม่ติด, ฯลฯ"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1">คำอธิบายเพิ่มเติม</label>
+                                <textarea
+                                    value={symptomFormData.description}
+                                    onChange={(e) => setSymptomFormData({ ...symptomFormData, description: e.target.value })}
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 h-24 resize-none"
+                                    placeholder="รายละเอียดเพิ่มเติมของอาการเสีย"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3 justify-end">
+                            <button
+                                onClick={() => setShowSymptomModal(false)}
+                                disabled={isSavingSymptom}
+                                className="px-4 py-2 text-slate-700 bg-slate-200 hover:bg-slate-300 rounded-lg font-medium disabled:opacity-50 transition"
+                            >
+                                ยกเลิก
+                            </button>
+                            <button
+                                onClick={handleSaveSymptom}
+                                disabled={isSavingSymptom}
+                                className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-medium disabled:opacity-50 transition shadow"
+                            >
+                                {isSavingSymptom ? "กำลังบันทึก..." : "บันทึก"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {showModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">

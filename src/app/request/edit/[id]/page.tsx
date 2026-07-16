@@ -137,9 +137,11 @@ export default function RequestEditPage({ params }: { params: Promise<{ id: stri
     const [model,       setModel]       = useState("");
     const [serial,      setSerial]      = useState("");
     const [issue,       setIssue]       = useState("");
+    const [symptoms,    setSymptoms]    = useState<any[]>([]);
+    const [selectedSymptom, setSelectedSymptom] = useState("");
     const [receiveFromUserDt, setReceiveFromUserDt] = useState<Date | null>(null);
     const [qty,         setQty]         = useState<number | "">("");
-    const [skuFlg,      setSkuFlg]      = useState(false);
+    const [skuFlg,      setSkuFlg]      = useState(true);
     const [sku,         setSku]         = useState<number | "">("");
     const [skuLoading, setSkuLoading] = useState(false);
     const [skuError, setSkuError] = useState<string | null>(null);
@@ -407,7 +409,6 @@ export default function RequestEditPage({ params }: { params: Promise<{ id: stri
             } finally {
                 setSkuLoading(false);
             }
-            return () => controller.abort();
         }, 300);
 
         return () => clearTimeout(t);
@@ -416,32 +417,65 @@ export default function RequestEditPage({ params }: { params: Promise<{ id: stri
     useEffect(() => {
         let alive = true;
         (async () => {
-        try {
-            setLoading(true);
-            const res = await fetch(`/api/request/find?id=${encodeURIComponent(id!)}`, { cache: "no-store" });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data?.message || "โหลดข้อมูลไม่สำเร็จ");
-            
-            const r = data.request;
-            console.log("check obj : ",r)
-            const [fn = "", ln = ""] = String(r.customer_name || "").split(" ", 2);
-            if (!alive) return;
+            try {
+                setLoading(true);
 
-            setRequestId(r.id);
-            setFirstName(fn);
-            setLastName(ln);
-            setAddress(r.address ?? "");
-            setPhone(r.phone ?? "");
-            setReceiveFromUserDt(parseDate(r.receive_from_user_date));
+                const symsRes = await fetch("/api/maintain/symptoms", { cache: "no-store" });
+                const symsData = await symsRes.json();
+                let symsList: any[] = [];
+                if (symsData.ok) {
+                    symsList = symsData.symptoms || [];
+                    if (alive) setSymptoms(symsList);
+                }
 
-            const it = r.item || {};
-            setItemId(it.id);
-            setProductType(it.product_type ?? "");
-            setBrand(it.brand ?? "");
-            setModel(it.model ?? "");
-            setSerial(it.serial_no ?? "");
-            setIssue(it.issue ?? "");
-            setQty(typeof it.qty === "number" ? it.qty : "");
+                const res = await fetch(`/api/request/find?id=${encodeURIComponent(id!)}`, { cache: "no-store" });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data?.message || "โหลดข้อมูลไม่สำเร็จ");
+                
+                const r = data.request;
+                const [fn = "", ln = ""] = String(r.customer_name || "").split(" ", 2);
+                if (!alive) return;
+
+                setRequestId(r.id);
+                setFirstName(fn);
+                setLastName(ln);
+                setAddress(r.address ?? "");
+                setPhone(r.phone ?? "");
+                setReceiveFromUserDt(parseDate(r.receive_from_user_date));
+
+                const it = r.item || {};
+                setItemId(it.id);
+                setProductType(it.product_type ?? "");
+                setBrand(it.brand ?? "");
+                setModel(it.model ?? "");
+                setSerial(it.serial_no ?? "");
+
+                const dbIssue = it.issue ?? "";
+                let matchedSym = "";
+                let remainingIssue = dbIssue;
+                if (symsList.length > 0) {
+                    const found = symsList.find(s => dbIssue.startsWith(s.name));
+                    if (found) {
+                        matchedSym = found.name;
+                        const regex = new RegExp(`^${found.name}\\s*\\((.*)\\)$`);
+                        const match = dbIssue.match(regex);
+                        if (match) {
+                            remainingIssue = match[1];
+                        } else {
+                            remainingIssue = dbIssue.substring(found.name.length).trim();
+                        }
+                    } else if (dbIssue) {
+                        matchedSym = "other";
+                        remainingIssue = dbIssue;
+                    }
+                } else if (dbIssue) {
+                    matchedSym = "other";
+                    remainingIssue = dbIssue;
+                }
+
+                setIssue(remainingIssue);
+                setSelectedSymptom(matchedSym);
+                setQty(typeof it.qty === "number" ? it.qty : "");
             setSku(typeof it.sku_code === "number" ? it.sku_code : "");
             setBarcode(it.bar_code ?? "");
             setWarranty(it.in_warranty === "Y" ? "in" : it.in_warranty === "N" ? "out" : null);
@@ -735,6 +769,12 @@ export default function RequestEditPage({ params }: { params: Promise<{ id: stri
             if (!qty || Number(qty) <= 0) next.qty    = "กรุณาระบุจำนวน (มากกว่า 0)";
             if (!warranty)           next.warranty    = "กรุณาเลือกสถานะรับประกัน";
             if (warranty === "in" && !warrantyNo.trim()) next.warrantyNo = "กรุณากรอกเลขที่ใบประกัน";
+            
+            if (!selectedSymptom) {
+                next.issue = "กรุณาเลือกอาการเสีย";
+            } else if (selectedSymptom === "other" && !issue.trim()) {
+                next.issue = "กรุณากรอกรายละเอียดอาการเสีย";
+            }
         } else if (currentStep === "11") {
             if (!senderName.trim())        next.senderName   = "กรุณากรอกชื่อผู้ส่ง";
             if (!grReceiverName.trim())    next.receiverName = "กรุณากรอกชื่อผู้รับ";
@@ -886,7 +926,16 @@ export default function RequestEditPage({ params }: { params: Promise<{ id: stri
 
         if (currentStep === "10") {
             bodyData.customer = { firstName, lastName, address, phone, receiveFromUserDt: receiveFromUserDateStr };
-            bodyData.product = { productType, brand, model, serial, qty: qty || 0, sku, barcode, issue };
+            bodyData.product = {
+                productType,
+                brand,
+                model,
+                serial,
+                qty: qty || 0,
+                sku,
+                barcode,
+                issue: selectedSymptom === "other" ? issue : (selectedSymptom + (issue.trim() ? ` (${issue.trim()})` : ""))
+            };
             bodyData.warranty = { status: warranty, warrantyNo: warranty === "in" ? warrantyNo: undefined };
         } else if (currentStep === "11") {
             bodyData.senderName = senderName;
@@ -1270,23 +1319,7 @@ export default function RequestEditPage({ params }: { params: Promise<{ id: stri
                 <legend className="text-lg font-semibold text-slate-900">รายละเอียดสินค้า</legend>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-                    <label className="inline-flex items-center gap-2">
-                        <input
-                            type="checkbox"
-                            checked={skuFlg}
-                            onChange={(e) => {
-                                const checked = e.target.checked;
-                                setSkuFlg(checked);
 
-                                if (!checked) {
-                                    setSku("");
-                                    setErrors(prev => ({ ...prev, sku: undefined }));
-                                }
-                            }}
-                            />
-                        <span className="form-label mb-0">สินค้าอยู่ในระบบ</span>
-                    </label>
-                    <div />
 
                     <div>
                         <label htmlFor="sku" className="form-label">
@@ -1456,14 +1489,33 @@ export default function RequestEditPage({ params }: { params: Promise<{ id: stri
 
                 <div className="space-y-2">
                     <div>
-                        <label htmlFor="issue" className="form-label">อาการที่พบ</label>
+                        <label htmlFor="issueSymptom" className="form-label">อาการเสียที่พบ (จากระบบ)</label>
+                        <select
+                            id="issueSymptom"
+                            className="input-base bg-white border border-slate-300 rounded-lg w-full py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
+                            value={selectedSymptom}
+                            onChange={e => setSelectedSymptom(e.target.value)}
+                        >
+                            <option value="">-- เลือกอาการเสีย --</option>
+                            {symptoms.map(s => (
+                                <option key={s.id} value={s.name}>{s.name}</option>
+                            ))}
+                            <option value="other">อื่นๆ (ระบุเอง)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label htmlFor="issue" className="form-label">
+                            {selectedSymptom === "other" ? "รายละเอียดอาการเสีย *" : "รายละเอียดอาการเสียเพิ่มเติม (ถ้ามี)"}
+                        </label>
                         <textarea
                             id="issue"
-                            className="input-base min-h-24"
+                            className="input-base min-h-24 w-full"
                             value={issue}
                             onChange={e => setIssue(e.target.value)}
-                            />
-                            {errors.issue && <p className="text-red-600 text-sm mt-1">{errors.issue}</p>}
+                            placeholder="ระบุรายละเอียดอาการชำรุดเสียหายเพิ่มเติม"
+                        />
+                        {errors.issue && <p className="text-red-600 text-sm mt-1">{errors.issue}</p>}
                     </div>
 
                     <span className="form-label">ปัญหาที่เกิด<Req/></span>

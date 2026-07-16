@@ -107,6 +107,7 @@ export async function POST(req: Request) {
         address,
         phone,
         store_code: storeCode,
+        location_id: profile?.location_id || null,
         receive_from_user_date: newReceiveFromUserDt,
         status : 10 ,
         internal_flg: internalFlg,
