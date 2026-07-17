@@ -30,7 +30,7 @@ export class UsersRepository {
   static async findUserForAuth(username: string) {
     return await prisma.users.findFirst({
       where: { user_name: username },                      
-      select: { user_id: true, user_name: true, user_password: true, store_code: true },
+      select: { user_id: true, user_name: true, user_password: true, store_code: true, roles_id: true },
     });
   }
 

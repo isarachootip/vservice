@@ -8,6 +8,10 @@ import { DatePicker } from "react-datepicker";
 type Row = {
     id: number;
     desc: string;          
+    costParts: number;
+    costLabor: number;
+    costLogistics: number;
+    marginPercent: number;
     parts: number;         
     labor: number;        
     warrantyParts: boolean; 
@@ -33,14 +37,33 @@ export default function QuotationAddPage({ params }: { params: Promise<{ id: str
     const [avgRepairDay, setAvgRepairDay] = useState("");
     const [guaranteeDay, setGuaranteeDay] = useState("");
     const [errors, setErrors] = useState<Errors>({});
+    
+    // Cost-Plus config states
+    const [marginConfigs, setMarginConfigs] = useState<any[]>([]);
+    const [defaultMargin, setDefaultMargin] = useState(30);
+    const [defaultFloor, setDefaultFloor] = useState(15);
+    const [ticketDiagnosticFee, setTicketDiagnosticFee] = useState(0);
+
+    const [discountAmt, setDiscountAmt] = useState("0");
+    const [discountReason, setDiscountReason] = useState("");
+
+    // Admin bypass states for margin floor
+    const [bypassAdmin, setBypassAdmin] = useState(false);
+    const [adminUser, setAdminUser] = useState("");
+    const [adminPass, setAdminPass] = useState("");
+
     const [rows, setRows] = useState<Row[]>([
         {
-        id: 1,
-        desc: "",
-        parts: 0,
-        labor: 0,
-        warrantyParts: false,
-        warrantyLabor: false,
+            id: 1,
+            desc: "",
+            costParts: 0,
+            costLabor: 0,
+            costLogistics: 0,
+            marginPercent: 30,
+            parts: 0,
+            labor: 0,
+            warrantyParts: false,
+            warrantyLabor: false,
         },
     ]);
 
@@ -79,6 +102,10 @@ export default function QuotationAddPage({ params }: { params: Promise<{ id: str
         {
             id: prev.length + 1,
             desc: "",
+            costParts: 0,
+            costLabor: 0,
+            costLogistics: 0,
+            marginPercent: defaultMargin,
             parts: 0,
             labor: 0,
             warrantyParts: false,
@@ -96,7 +123,14 @@ export default function QuotationAddPage({ params }: { params: Promise<{ id: str
 
     const updateRow = (rowId: number, patch: Partial<Row>) =>
         setRows(prev =>
-        prev.map(r => (r.id === rowId ? { ...r, ...patch } : r)),
+        prev.map(r => {
+            if (r.id !== rowId) return r;
+            const updated = { ...r, ...patch };
+            const m = typeof updated.marginPercent === 'number' ? updated.marginPercent : parseFloat(String(updated.marginPercent || "0")) || 0;
+            updated.parts = (updated.costParts || 0) * (1 + m / 100);
+            updated.labor = ((updated.costLabor || 0) + (updated.costLogistics || 0)) * (1 + m / 100);
+            return updated;
+        }),
     );
 
   const baseInput =
@@ -118,6 +152,32 @@ export default function QuotationAddPage({ params }: { params: Promise<{ id: str
                 const r = data.request;
                 setVendorName(r.vendor_name || "");
                 setStatus(r.status || "");
+                setTicketDiagnosticFee(r.diagnostic_fee ? parseFloat(r.diagnostic_fee) : 0);
+
+                // Fetch margin config
+                const marginRes = await fetch("/api/maintain/config?type=margin", { cache: "no-store" });
+                const marginData = await marginRes.json();
+                let marginPct = 30;
+                let marginFl = 15;
+                if (marginRes.ok && marginData.data) {
+                    setMarginConfigs(marginData.data);
+                    const matched = marginData.data.find((m: any) => 
+                        r.item?.product_type?.toLowerCase().includes(m.product_type.toLowerCase()) ||
+                        m.product_type.toLowerCase().includes(r.item?.product_type?.toLowerCase())
+                    );
+                    if (matched) {
+                        marginPct = parseFloat(matched.margin_percent);
+                        marginFl = parseFloat(matched.margin_floor);
+                    } else {
+                        const gen = marginData.data.find((m: any) => m.product_type.includes("General"));
+                        if (gen) {
+                            marginPct = parseFloat(gen.margin_percent);
+                            marginFl = parseFloat(gen.margin_floor);
+                        }
+                    }
+                }
+                setDefaultMargin(marginPct);
+                setDefaultFloor(marginFl);
 
                 // If request has a repair item with sku_code, fetch its commodity details
                 if (r.item && r.item.sku_code) {
@@ -127,12 +187,16 @@ export default function QuotationAddPage({ params }: { params: Promise<{ id: str
                         const commodity = comData.data;
                         if (alive) {
                             setCommodityInfo(commodity);
-                            // Pre-populate the first row with SKU details and cost price (ราคาทุน)
+                            const partsSell = (commodity.sku_cost || 0) * (1 + marginPct / 100);
                             setRows([
                                 {
                                     id: 1,
                                     desc: commodity.sku_name || `${r.item.brand} ${r.item.model}`,
-                                    parts: commodity.sku_cost || 0, // ราคาทุน
+                                    costParts: commodity.sku_cost || 0,
+                                    costLabor: 0,
+                                    costLogistics: 0,
+                                    marginPercent: marginPct,
+                                    parts: partsSell,
                                     labor: 0,
                                     warrantyParts: false,
                                     warrantyLabor: false,
@@ -144,6 +208,10 @@ export default function QuotationAddPage({ params }: { params: Promise<{ id: str
                             {
                                 id: 1,
                                 desc: `${r.item.brand || ""} ${r.item.model || ""} (${r.item.product_type || ""})`,
+                                costParts: 0,
+                                costLabor: 0,
+                                costLogistics: 0,
+                                marginPercent: marginPct,
                                 parts: 0,
                                 labor: 0,
                                 warrantyParts: false,
@@ -156,6 +224,10 @@ export default function QuotationAddPage({ params }: { params: Promise<{ id: str
                         {
                             id: 1,
                             desc: `${r.item.brand || ""} ${r.item.model || ""} (${r.item.product_type || ""})`,
+                            costParts: 0,
+                            costLabor: 0,
+                            costLogistics: 0,
+                            marginPercent: marginPct,
                             parts: 0,
                             labor: 0,
                             warrantyParts: false,
@@ -207,6 +279,14 @@ export default function QuotationAddPage({ params }: { params: Promise<{ id: str
                 setSaving(false);
                 return;
             }
+
+            // Verify margin floor constraint
+            const hasLowMargin = rows.some(r => r.desc.trim() !== "" && r.marginPercent < defaultFloor);
+            if (hasLowMargin && !bypassAdmin) {
+                alert(`ไม่สามารถส่งเสนอราคาได้เนื่องจากบางรายการมี Margin ต่ำกว่าขีดจำกัดขั้นต่ำ (${defaultFloor}%)\nกรุณากรอกรหัสผ่านผู้อนุมัติ (Admin Bypass) เพื่อดำเนินการต่อ`);
+                setSaving(false);
+                return;
+            }
             
             //* check id
             const requestId = Number(id);
@@ -222,6 +302,8 @@ export default function QuotationAddPage({ params }: { params: Promise<{ id: str
                 const u = JSON.parse(raw);
                 updatedUser = u.user_name || "";
             }    
+
+            const globalDiscount = parseFloat(discountAmt) || 0;
             
             const items = rows
                 .filter(r => r.desc.trim() !== "")
@@ -229,28 +311,41 @@ export default function QuotationAddPage({ params }: { params: Promise<{ id: str
                 const partWarrantyFlg = r.warrantyParts ? "Y" : "N";
                 const laborWarrantyFlg = r.warrantyLabor ? "Y" : "N";
 
-                const rawPartCost = Number((r.parts || 0).toFixed(2));
-                const rawLaborCost = Number((r.labor || 0).toFixed(2));
+                const partCostVal = r.warrantyParts ? 0 : r.parts;
+                const laborCostVal = r.warrantyLabor ? 0 : r.labor;
+                const itemSellPrice = partCostVal + laborCostVal;
 
-                const partCost = r.warrantyParts ? 0 : rawPartCost;
-                const laborCost = r.warrantyLabor ? 0 : rawLaborCost;
-                const lineTotalCost = Number((partCost + laborCost).toFixed(2));
+                // Allocate global discount proportionally
+                const ratio = grandTotal > 0 ? (itemSellPrice / grandTotal) : (1 / rows.length);
+                const itemDiscount = Number((globalDiscount * ratio).toFixed(2));
+                const itemTaxable = Math.max(0, itemSellPrice - itemDiscount);
+                const itemVat = Number((itemTaxable * 0.07).toFixed(2));
+                const itemNetPrice = Number((itemTaxable + itemVat).toFixed(2));
 
                 return {
                     request_id: requestId,
                     review_price_date: reviewPriceDateStr,
                     repair_order: r.desc || "",
-                    part_cost: rawPartCost,
+                    part_cost: r.parts,
                     part_warranty_flg: partWarrantyFlg,
-                    labor_cost: rawLaborCost,
+                    labor_cost: r.labor,
                     labor_warranty_flg: laborWarrantyFlg,
-                    total_part_cost: partCost,   
-                    total_labor_cost: laborCost,  
-                    total_cost: lineTotalCost,
+                    total_part_cost: partCostVal,   
+                    total_labor_cost: laborCostVal,  
+                    total_cost: itemSellPrice,
                     user_approve_flg: "N",
                     num_of_repair_day: avgRepairDay,
                     num_of_guarantee_day: guaranteeDay,
-                    quotation_no: quotationNo
+                    quotation_no: quotationNo,
+
+                    cost_parts: r.costParts,
+                    cost_labor: r.costLabor,
+                    cost_logistics: r.costLogistics,
+                    margin_percent: r.marginPercent,
+                    sell_price: r.parts + r.labor,
+                    discount: itemDiscount,
+                    vat: itemVat,
+                    net_price: itemNetPrice
                 };
             });
 
@@ -260,7 +355,14 @@ export default function QuotationAddPage({ params }: { params: Promise<{ id: str
             const res = await fetch("/api/quotation/add", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ items, updatedUser, mode }),
+                body: JSON.stringify({ 
+                    items, 
+                    updatedUser, 
+                    mode,
+                    adminUser: hasLowMargin ? adminUser : null,
+                    adminPass: hasLowMargin ? adminPass : null,
+                    discountReason
+                }),
             });
 
             const data = await res.json()
@@ -403,120 +505,128 @@ export default function QuotationAddPage({ params }: { params: Promise<{ id: str
 
             {/* ตารางรายการซ่อม */}
             <div className="overflow-x-auto">
-                <table className="w-full text-sm border-separate border-spacing-y-3 border-spacing-x-3">
+                <table className="w-full text-sm border-separate border-spacing-y-2 border-spacing-x-2">
                 <thead>
-                    <tr className="text-xs font-semibold text-slate-700">
-                    <th className="w-10 text-right pr-1">#</th>
-                    <th className="text-left">รายการซ่อม</th>
-                    <th className="w-28 text-right">ค่าอะไหล่</th>
-                    <th className="w-24 text-center">ในประกัน</th>
-                    <th className="w-4"></th>
-                    <th className="w-28 text-right">ค่าแรง</th>
-                    <th className="w-24 text-center">ในประกัน</th>
-                    <th className="w-28 text-right">รวม</th>
-                    <th className="w-10"></th>
-                    <th className="w-10"></th>
+                    <tr className="text-xs font-bold text-slate-500 uppercase tracking-wider text-left border-b border-slate-100">
+                        <th className="w-8 text-right pr-1">#</th>
+                        <th>รายการซ่อม</th>
+                        <th className="w-24 text-right">ต้นทุนอะไหล่</th>
+                        <th className="w-24 text-right">ต้นทุนค่าแรง</th>
+                        <th className="w-24 text-right">ต้นทุนเดินทาง</th>
+                        <th className="w-28 text-center">Margin (%)</th>
+                        <th className="w-32 text-center">ในประกัน</th>
+                        <th className="w-28 text-right">ราคาขายสุทธิ</th>
+                        <th className="w-10"></th>
+                        <th className="w-10"></th>
                     </tr>
                 </thead>
                 <tbody>
                     {rows.map(r => (
                     <tr key={r.id} className="align-middle">
-                        <td className="text-right pr-1 text-slate-500 whitespace-nowrap">
-                        {r.id})
+                        <td className="text-right pr-1 text-slate-450 font-bold whitespace-nowrap">
+                            {r.id})
                         </td>
 
                         {/* รายการซ่อม */}
                         <td>
-                        <input
-                            value={r.desc}
-                            onChange={e =>
-                            updateRow(r.id, { desc: e.target.value })
-                            }
-                            // placeholder="รายละเอียดงานซ่อม"
-                            className={baseInput}
-                        />
-                        </td>
-
-                        {/* ค่าอะไหล่ */}
-                        <td>
-                        <input
-                            type="number"
-                            step="0.01"
-                            className={`${baseInput} text-right`}
-                            value={r.parts || ""}
-                            onChange={e =>
-                            updateRow(r.id, { parts: parseNum(e.target.value) })
-                            }
-                            placeholder="0.00"
-                        />
-                        </td>
-
-                        {/* อยู่ในประกัน (อะไหล่) */}
-                        <td>
-                        <div className="flex justify-center">
                             <input
-                            type="checkbox"
-                            checked={r.warrantyParts}
-                            onChange={e =>
-                                updateRow(r.id, {
-                                warrantyParts: e.target.checked,
-                                })
-                            }
-                            className="h-5 w-5 accent-[#c8102e]"
+                                value={r.desc}
+                                onChange={e => updateRow(r.id, { desc: e.target.value })}
+                                placeholder="เช่น เปลี่ยนแบตเตอรี่ / เปลี่ยนบอร์ดควบคุม"
+                                className={baseInput}
                             />
-                        </div>
                         </td>
 
-                        {/* + */}
-                        <td className="text-center text-slate-500 align-middle">
-                        +
-                        </td>
-
-                        {/* ค่าแรง */}
+                        {/* ต้นทุนอะไหล่ */}
                         <td>
-                        <input
-                            type="number"
-                            step="0.01"
-                            className={`${baseInput} text-right`}
-                            value={r.labor || ""}
-                            onChange={e =>
-                            updateRow(r.id, { labor: parseNum(e.target.value) })
-                            }
-                            placeholder="0.00"
-                        />
-                        </td>
-
-                        {/* อยู่ในประกัน (ค่าแรง) */}
-                        <td>
-                        <div className="flex justify-center">
                             <input
-                            type="checkbox"
-                            checked={r.warrantyLabor}
-                            onChange={e =>
-                                updateRow(r.id, {
-                                warrantyLabor: e.target.checked,
-                                })
-                            }
-                            className="h-5 w-5 accent-[#c8102e]"
+                                type="number"
+                                step="0.01"
+                                className={`${baseInput} text-right font-semibold text-slate-800`}
+                                value={r.costParts || ""}
+                                onChange={e => updateRow(r.id, { costParts: parseNum(e.target.value) })}
+                                placeholder="0.00"
                             />
-                        </div>
                         </td>
 
-                        {/* รวมต่อแถว */}
-                        <td className="text-right font-semibold text-slate-800 tabular-nums pr-2">
-                        {money(lineTotal(r))}
+                        {/* ต้นทุนค่าแรง */}
+                        <td>
+                            <input
+                                type="number"
+                                step="0.01"
+                                className={`${baseInput} text-right font-semibold text-slate-800`}
+                                value={r.costLabor || ""}
+                                onChange={e => updateRow(r.id, { costLabor: parseNum(e.target.value) })}
+                                placeholder="0.00"
+                            />
+                        </td>
+
+                        {/* ต้นทุนค่าขนส่ง */}
+                        <td>
+                            <input
+                                type="number"
+                                step="0.01"
+                                className={`${baseInput} text-right font-semibold text-slate-800`}
+                                value={r.costLogistics || ""}
+                                onChange={e => updateRow(r.id, { costLogistics: parseNum(e.target.value) })}
+                                placeholder="0.00"
+                            />
+                        </td>
+
+                        {/* Margin % */}
+                        <td>
+                            <div className="flex items-center gap-1.5 justify-center">
+                                <input
+                                    type="number"
+                                    step="0.1"
+                                    className={`${baseInput} text-right font-bold w-20 ${r.marginPercent < defaultFloor ? 'border-red-500 text-red-600 focus:ring-red-500' : 'text-slate-850'}`}
+                                    value={r.marginPercent}
+                                    onChange={e => updateRow(r.id, { marginPercent: parseNum(e.target.value) })}
+                                    placeholder="30.0"
+                                />
+                                <span className="text-xs font-semibold text-slate-500">%</span>
+                            </div>
+                        </td>
+
+                        {/* ในประกัน (อะไหล่/ค่าแรง) */}
+                        <td>
+                            <div className="flex items-center justify-center gap-2">
+                                <label className="flex items-center gap-1 cursor-pointer bg-white px-1.5 py-0.5 border border-slate-200 rounded text-[10px] font-semibold text-slate-600 select-none">
+                                    <input
+                                        type="checkbox"
+                                        checked={r.warrantyParts}
+                                        onChange={e => updateRow(r.id, { warrantyParts: e.target.checked })}
+                                        className="h-3 w-3 accent-[#c8102e]"
+                                    />
+                                    <span>อะไหล่</span>
+                                </label>
+                                <label className="flex items-center gap-1 cursor-pointer bg-white px-1.5 py-0.5 border border-slate-200 rounded text-[10px] font-semibold text-slate-600 select-none">
+                                    <input
+                                        type="checkbox"
+                                        checked={r.warrantyLabor}
+                                        onChange={e => updateRow(r.id, { warrantyLabor: e.target.checked })}
+                                        className="h-3 w-3 accent-[#c8102e]"
+                                    />
+                                    <span>ค่าแรง</span>
+                                </label>
+                            </div>
+                        </td>
+
+                        {/* ราคาขายคำนวณสุทธิ */}
+                        <td className="text-right font-black text-slate-900 tabular-nums pr-2">
+                            {money(lineTotal(r))}
                         </td>
 
                         {/* ปุ่มเพิ่ม (เฉพาะแถวสุดท้าย) */}
                         <td className="text-center">
                         {r.id === rows.length && (
                             <button
-                            type="button"
-                            onClick={addRow}
-                            className="inline-flex items-center justify-center h-8 w-8 rounded-full border border-[#c8102e] text-[#c8102e] bg-white shadow-sm hover:bg-red-50 hover:shadow-md transition"
-                            title="เพิ่มรายการ"
+                                type="button"
+                                onClick={addRow}
+                                className="inline-flex items-center justify-center h-8 w-8 rounded-full border border-[#c8102e] text-[#c8102e] bg-white shadow-sm hover:bg-red-50 hover:shadow-md transition"
+                                title="เพิ่มรายการ"
                             >
-                            <CirclePlus className="h-4 w-4" />
+                                <CirclePlus className="h-4 w-4" />
                             </button>
                         )}
                         </td>
@@ -525,12 +635,12 @@ export default function QuotationAddPage({ params }: { params: Promise<{ id: str
                         <td className="text-center">
                         {rows.length > 1 && (
                             <button
-                            type="button"
-                            onClick={() => deleteRow(r.id)}
-                            className="inline-flex items-center justify-center h-8 w-8 rounded-full border border-rose-400 text-rose-500 bg-white shadow-sm hover:bg-rose-50 hover:shadow-md transition"
-                            title="ลบรายการ"
+                                type="button"
+                                onClick={() => deleteRow(r.id)}
+                                className="inline-flex items-center justify-center h-8 w-8 rounded-full border border-rose-400 text-rose-500 bg-white shadow-sm hover:bg-rose-50 hover:shadow-md transition"
+                                title="ลบรายการ"
                             >
-                            <CircleMinus className="h-4 w-4" />
+                                <CircleMinus className="h-4 w-4" />
                             </button>
                         )}
                         </td>
@@ -540,37 +650,110 @@ export default function QuotationAddPage({ params }: { params: Promise<{ id: str
                 </table>
             </div>
 
+            {/* V2.0 Global Cost-Plus Summary & Overrides */}
+            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Discount section */}
+                    <div className="space-y-3">
+                        <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">ส่วนลดพิเศษ & เหตุผล (Discount & Promotion)</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label className="block text-[11px] font-semibold text-slate-500 mb-1">จำนวนส่วนลด (บาท)</label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    className="w-full rounded-xl border border-slate-300 px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-[#c8102e] bg-white text-slate-800 font-semibold"
+                                    value={discountAmt}
+                                    onChange={e => setDiscountAmt(e.target.value)}
+                                    placeholder="0.00"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[11px] font-semibold text-slate-500 mb-1">เหตุผลส่วนลด / โปรโมชั่น</label>
+                                <input
+                                    type="text"
+                                    className="w-full rounded-xl border border-slate-300 px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-[#c8102e] bg-white text-slate-800"
+                                    value={discountReason}
+                                    onChange={e => setDiscountReason(e.target.value)}
+                                    placeholder="เช่น ลูกค้า VIP / แคมเปญวันเกิด"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Admin Bypass Creds (Visible only if low margin exists) */}
+                    {rows.some(r => r.desc.trim() !== "" && r.marginPercent < defaultFloor) && (
+                        <div className="bg-red-50 border border-red-200 rounded-xl p-3.5 space-y-2">
+                            <div className="flex items-center gap-2 text-xs font-bold text-red-700">
+                                <span>⚠️ มีรายการที่ Margin ต่ำกว่าเกณฑ์ขั้นต่ำ ({defaultFloor}%)</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    id="bypassCheck"
+                                    checked={bypassAdmin}
+                                    onChange={e => setBypassAdmin(e.target.checked)}
+                                    className="rounded border-slate-300 text-[#c8102e] focus:ring-[#c8102e] h-4 w-4"
+                                />
+                                <label htmlFor="bypassCheck" className="text-xs text-red-800 font-bold cursor-pointer">ขอยกเว้นและอนุมัติโดยสิทธิ์ผู้ดูแลระบบ (Admin Bypass)</label>
+                            </div>
+                            {bypassAdmin && (
+                                <div className="grid grid-cols-2 gap-2 pt-1">
+                                    <input
+                                        type="text"
+                                        className="px-2.5 py-1 border border-slate-300 rounded text-xs text-slate-900 bg-white"
+                                        placeholder="Username ผู้ดูแลระบบ"
+                                        value={adminUser}
+                                        onChange={e => setAdminUser(e.target.value)}
+                                    />
+                                    <input
+                                        type="password"
+                                        className="px-2.5 py-1 border border-slate-300 rounded text-xs text-slate-900 bg-white"
+                                        placeholder="รหัสผ่านผู้ดูแลระบบ"
+                                        value={adminPass}
+                                        onChange={e => setAdminPass(e.target.value)}
+                                    />
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            </div>
+
             {/* รวมค่าอะไหล่ / ค่าแรง / รวมสุทธิ */}
             <div className="flex flex-wrap justify-end gap-3 pt-3">
-                <div className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-right min-w-[170px]">
-                    <div className="text-xs text-slate-500">ค่าอะไหล่ที่อยู่ในประกัน</div>
-                    <div className="text-sm font-semibold tabular-nums text-emerald-700">
-                    {money(warrantyPartsTotal)}
-                    </div>
-                </div>
-                <div className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-right min-w-[170px]">
-                    <div className="text-xs text-slate-500">ค่าแรงที่อยู่ในประกัน</div>
-                    <div className="text-sm font-semibold tabular-nums text-emerald-700">
-                    {money(warrantyLaborTotal)}
+                <div className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-right min-w-[150px]">
+                    <div className="text-xs text-slate-500 font-semibold">ค่าเปิดเครื่องที่ชำระแล้ว (หักออก)</div>
+                    <div className="text-sm font-semibold tabular-nums text-slate-900">
+                        {money(ticketDiagnosticFee)} บาท
                     </div>
                 </div>
 
                 <div className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-right min-w-[150px]">
-                    <div className="text-xs text-slate-500">ค่าอะไหล่ทั้งหมด</div>
+                    <div className="text-xs text-slate-500 font-semibold">ส่วนลดใบเสนอราคา</div>
                     <div className="text-sm font-semibold tabular-nums text-slate-900">
-                        {money(totalParts)}
+                        {money(parseFloat(discountAmt) || 0)} บาท
                     </div>
                 </div>
+
                 <div className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-right min-w-[150px]">
-                    <div className="text-xs text-slate-500">ค่าแรงทั้งหมด</div>
-                    <div className="text-sm font-semibold tabular-nums text-slate-900">
-                        {money(totalLabor)}
+                    <div className="text-xs text-slate-500 font-semibold">ยอดเสนอราคาก่อนภาษี</div>
+                    <div className="text-sm font-bold tabular-nums text-slate-900">
+                        {money(Math.max(0, grandTotal - ticketDiagnosticFee - (parseFloat(discountAmt) || 0)))} บาท
                     </div>
                 </div>
-                <div className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-right min-w-[160px]">
-                    <div className="text-xs text-slate-500">รวมสุทธิ</div>
-                    <div className="text-lg font-semibold tabular-nums text-slate-900">
-                        {money(grandTotal)}
+
+                <div className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-right min-w-[130px]">
+                    <div className="text-xs text-slate-500 font-semibold">ภาษีมูลค่าเพิ่ม (VAT 7%)</div>
+                    <div className="text-sm font-bold tabular-nums text-slate-950">
+                        {money(Math.max(0, grandTotal - ticketDiagnosticFee - (parseFloat(discountAmt) || 0)) * 0.07)} บาท
+                    </div>
+                </div>
+
+                <div className="rounded-2xl border border-slate-200 bg-slate-900 text-white px-5 py-2.5 text-right min-w-[170px] shadow-sm">
+                    <div className="text-xs text-slate-350 font-black">ยอดสุทธิที่เสนอลูกค้า (Net Price)</div>
+                    <div className="text-xl font-black tabular-nums text-white">
+                        {money(Math.max(0, grandTotal - ticketDiagnosticFee - (parseFloat(discountAmt) || 0)) * 1.07)} บาท
                     </div>
                 </div>
             </div>
