@@ -200,14 +200,14 @@ export default function DashBoardPage() {
     { part: "แผงวงจรเครื่องซักผ้า", remaining: 3, status: "ใกล้หมด", color: "orange" }
   ];
 
-  // Technician ranking mock list matching the image
-  const techRankings = [
-    { rank: 1, name: "Tech A", completed: 42, onTime: "97.6%", rework: "1.2%", score: 98.5, medal: "🥇" },
-    { rank: 2, name: "Tech B", completed: 38, onTime: "95.1%", rework: "1.8%", score: 95.2, medal: "🥈" },
-    { rank: 3, name: "Tech C", completed: 35, onTime: "93.2%", rework: "2.1%", score: 92.3, medal: "🥉" },
-    { rank: 4, name: "Tech D", completed: 31, onTime: "91.0%", rework: "2.7%", score: 89.1 },
-    { rank: 5, name: "Tech E", completed: 28, onTime: "89.6%", rework: "3.0%", score: 87.2 },
-    { rank: 6, name: "Tech F", completed: 24, onTime: "87.4%", rework: "3.4%", score: 84.0 }
+  // Vendor ranking mock list matching the image
+  const vendorRankings = [
+    { rank: 1, name: "Vendor A", completed: 42, onTime: "97.6%", rework: "1.2%", score: 98.5, medal: "🥇" },
+    { rank: 2, name: "Vendor B", completed: 38, onTime: "95.1%", rework: "1.8%", score: 95.2, medal: "🥈" },
+    { rank: 3, name: "Vendor C", completed: 35, onTime: "93.2%", rework: "2.1%", score: 92.3, medal: "🥉" },
+    { rank: 4, name: "Vendor D", completed: 31, onTime: "91.0%", rework: "2.7%", score: 89.1 },
+    { rank: 5, name: "Vendor E", completed: 28, onTime: "89.6%", rework: "3.0%", score: 87.2 },
+    { rank: 6, name: "Vendor F", completed: 24, onTime: "87.4%", rework: "3.4%", score: 84.0 }
   ];
 
   // Job trend graph coordinates matching the 7-day trend
@@ -720,12 +720,12 @@ export default function DashBoardPage() {
               </div>
             </div>
 
-            {/* 2. Technician Performance Ranking */}
+            {/* 2. Vendor Performance Ranking */}
             <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-xs font-extrabold text-slate-700 tracking-wider uppercase">TECHNICIAN PERFORMANCE</h3>
-                  <p className="text-[11px] text-slate-400 font-semibold mt-0.5">จัดอันดับประสิทธิภาพช่าง (Top 6)</p>
+                  <h3 className="text-xs font-extrabold text-slate-700 tracking-wider uppercase">VENDOR PERFORMANCE</h3>
+                  <p className="text-[11px] text-slate-400 font-semibold mt-0.5">จัดอันดับประสิทธิภาพผู้ขาย (Top 6)</p>
                 </div>
                 <span className="text-[10px] font-bold text-slate-400 hover:text-slate-600 cursor-pointer">ดูทั้งหมด</span>
               </div>
@@ -736,7 +736,7 @@ export default function DashBoardPage() {
                   <thead>
                     <tr className="border-b border-slate-100 text-slate-450 uppercase">
                       <th className="py-1.5 pr-2 w-10">อันดับ</th>
-                      <th className="py-1.5 pr-2">ช่างเทคนิค</th>
+                      <th className="py-1.5 pr-2">ผู้ขาย / Vendor</th>
                       <th className="py-1.5 pr-2 text-center">งานเสร็จ</th>
                       <th className="py-1.5 pr-2 text-center">On-time</th>
                       <th className="py-1.5 pr-2 text-center">Re-work</th>
@@ -744,7 +744,7 @@ export default function DashBoardPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-slate-750">
-                    {techRankings.map((r, idx) => (
+                    {vendorRankings.map((r, idx) => (
                       <tr key={idx} className="hover:bg-slate-50/50 transition">
                         <td className="py-1.5 pr-2 text-slate-400">
                           {r.medal ? <span className="text-xs">{r.medal}</span> : r.rank}
@@ -766,7 +766,7 @@ export default function DashBoardPage() {
 
               {/* Ranking footer constraint comment */}
               <div className="pt-2 border-t border-slate-100 text-[8.5px] font-bold text-slate-400 leading-normal">
-                * เกณฑ์ Re-work Rate พึงปฏิบัติ ต้องต่ำกว่า 2.1%
+                * เกณฑ์ Re-work Rate พึงปฏิบัติสำหรับผู้ขาย ต้องต่ำกว่า 2.1%
               </div>
             </div>
 
