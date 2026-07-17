@@ -19,6 +19,7 @@ import {
   Box,
   FileText,
   ChevronRight,
+  ChevronDown,
   TrendingDown,
   Info,
   Map,
@@ -91,6 +92,8 @@ export default function DashBoardPage() {
   const [lastUpdated, setLastUpdated] = useState("10:30");
   const [selectedLocation, setSelectedLocation] = useState<string>("");
   const [locations, setLocations] = useState<any[]>([]);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [locationSearch, setLocationSearch] = useState("");
 
   // Load user default location & locations list on mount
   useEffect(() => {
@@ -239,21 +242,96 @@ export default function DashBoardPage() {
 
         {/* Filters and Refresh button */}
         <div className="flex flex-wrap items-center gap-3">
-          {/* Branch Dropdown */}
-          <div className="flex items-center gap-2 bg-white px-2.5 py-1.5 rounded-xl border border-slate-200 shadow-sm text-xs font-semibold text-slate-700">
-            <MapPin className="w-3.5 h-3.5 text-slate-400" />
-            <select
-              value={selectedLocation}
-              onChange={(e) => setSelectedLocation(e.target.value)}
-              className="bg-transparent border-none outline-none pr-6 cursor-pointer font-semibold text-slate-700 py-0.5"
+          {/* Branch Searchable Select Dropdown */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200 shadow-sm text-xs font-semibold text-slate-700 min-w-[200px] justify-between cursor-pointer hover:bg-slate-50 transition"
             >
-              <option value="">ทุกสาขา (All Branches)</option>
-              {locations.map((loc) => (
-                <option key={loc.id} value={loc.id}>
-                  {loc.name} ({loc.id})
-                </option>
-              ))}
-            </select>
+              <div className="flex items-center gap-2">
+                <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                <span className="truncate max-w-[150px]">
+                  {selectedLocation
+                    ? locations.find((l) => l.id === selectedLocation)?.name || selectedLocation
+                    : "ทุกสาขา (All Branches)"}
+                </span>
+              </div>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            </button>
+
+            {isDropdownOpen && (
+              <>
+                <div 
+                  className="fixed inset-0 z-40 bg-transparent" 
+                  onClick={() => {
+                    setIsDropdownOpen(false);
+                    setLocationSearch("");
+                  }} 
+                />
+                <div className="absolute right-0 mt-1.5 w-64 bg-white border border-slate-200 rounded-xl shadow-lg z-50 flex flex-col overflow-hidden animate-fadeIn">
+                  {/* Search Input */}
+                  <div className="p-2 border-b border-slate-100 flex items-center gap-2 bg-slate-50">
+                    <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <input
+                      type="text"
+                      value={locationSearch}
+                      onChange={(e) => setLocationSearch(e.target.value)}
+                      placeholder="พิมพ์ชื่อสาขาเพื่อค้นหา..."
+                      className="w-full bg-transparent border-none outline-none text-xs text-slate-700"
+                      autoFocus
+                    />
+                  </div>
+
+                  {/* Options List */}
+                  <div className="max-h-60 overflow-y-auto scrollbar-hide py-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedLocation("");
+                        setIsDropdownOpen(false);
+                        setLocationSearch("");
+                      }}
+                      className={`w-full text-left px-3 py-2 text-xs font-semibold transition ${
+                        selectedLocation === ""
+                          ? "bg-red-50 text-[#c8102e]"
+                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                      }`}
+                    >
+                      ทุกสาขา (All Branches)
+                    </button>
+
+                    {locations
+                      .filter((l) => {
+                        const q = locationSearch.toLowerCase().trim();
+                        if (!q) return true;
+                        return (
+                          l.name.toLowerCase().includes(q) ||
+                          l.id.toLowerCase().includes(q)
+                        );
+                      })
+                      .map((loc) => (
+                        <button
+                          key={loc.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedLocation(loc.id);
+                            setIsDropdownOpen(false);
+                            setLocationSearch("");
+                          }}
+                          className={`w-full text-left px-3 py-2 text-xs transition ${
+                            selectedLocation === loc.id
+                              ? "bg-red-50 text-[#c8102e] font-bold"
+                              : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                          }`}
+                        >
+                          {loc.name}
+                        </button>
+                      ))}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Date Picker */}

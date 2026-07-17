@@ -5,9 +5,23 @@ export const runtime = "nodejs";
 
 export async function GET() {
   try {
-    const locations = await prisma.location.findMany({
+    let locations = await prisma.location.findMany({
       orderBy: { id: "asc" },
     });
+
+    // Exclude non-TW locations (Auto1, GoWow, BnB, Joy canteens, ctd/chg corporate/events)
+    locations = locations.filter(l => {
+      const name = l.name;
+      const nameLower = name.toLowerCase();
+      if (nameLower.includes("auto1") || nameLower.includes("auto 1") || 
+          nameLower.includes("gowow") || nameLower.includes("go! wow") || nameLower.includes("go wow") ||
+          nameLower.includes("bnb") || nameLower.includes("b&b") || nameLower.includes("joy") || nameLower.includes("bb") ||
+          nameLower.includes("head office") || nameLower.includes("ctd") || nameLower.includes("chg")) {
+        return false;
+      }
+      return name.includes("TW") || name.includes("tw") || name.includes("ไทวัสดุ");
+    });
+
     return NextResponse.json({ ok: true, locations });
   } catch (error) {
     console.error("GET /api/maintain/locations error:", error);
