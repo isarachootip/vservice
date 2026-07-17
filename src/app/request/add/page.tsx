@@ -47,10 +47,60 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
     const [skuLoading, setSkuLoading] = useState(false);
     const [skuError, setSkuError] = useState<string | null>(null);
     const [barcode, setBarcode]         = useState("");
-    const [serialAttachments, setSerialAttachments] = useState<File[]>([]);
-    const [picAttachments, setPicAttachments] = useState<File[]>([]);
-    const serialFileInputRef = useRef<HTMLInputElement | null>(null);
-    const picFileInputRef = useRef<HTMLInputElement | null>(null);
+    const [fileSlot1, setFileSlot1] = useState<File | null>(null);
+    const [fileSlot2, setFileSlot2] = useState<File | null>(null);
+    const [fileSlot3, setFileSlot3] = useState<File | null>(null);
+    const [fileSlot4, setFileSlot4] = useState<File | null>(null);
+
+    const [previewSlot1, setPreviewSlot1] = useState<string>("");
+    const [previewSlot2, setPreviewSlot2] = useState<string>("");
+    const [previewSlot3, setPreviewSlot3] = useState<string>("");
+    const [previewSlot4, setPreviewSlot4] = useState<string>("");
+
+    const slot1Ref = useRef<HTMLInputElement | null>(null);
+    const slot2Ref = useRef<HTMLInputElement | null>(null);
+    const slot3Ref = useRef<HTMLInputElement | null>(null);
+    const slot4Ref = useRef<HTMLInputElement | null>(null);
+
+    useEffect(() => {
+        if (!fileSlot1) {
+            setPreviewSlot1("");
+            return;
+        }
+        const url = URL.createObjectURL(fileSlot1);
+        setPreviewSlot1(url);
+        return () => URL.revokeObjectURL(url);
+    }, [fileSlot1]);
+
+    useEffect(() => {
+        if (!fileSlot2) {
+            setPreviewSlot2("");
+            return;
+        }
+        const url = URL.createObjectURL(fileSlot2);
+        setPreviewSlot2(url);
+        return () => URL.revokeObjectURL(url);
+    }, [fileSlot2]);
+
+    useEffect(() => {
+        if (!fileSlot3) {
+            setPreviewSlot3("");
+            return;
+        }
+        const url = URL.createObjectURL(fileSlot3);
+        setPreviewSlot3(url);
+        return () => URL.revokeObjectURL(url);
+    }, [fileSlot3]);
+
+    useEffect(() => {
+        if (!fileSlot4) {
+            setPreviewSlot4("");
+            return;
+        }
+        const url = URL.createObjectURL(fileSlot4);
+        setPreviewSlot4(url);
+        return () => URL.revokeObjectURL(url);
+    }, [fileSlot4]);
 
     //? V2.0 Config states
     const [diagConfigs, setDiagConfigs] = useState<any[]>([]);
@@ -333,8 +383,8 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
             nextErrors.issue = "กรุณากรอกรายละเอียดอาการเสีย";
         }
         
-        if (!serialAttachments || serialAttachments.length === 0) nextErrors.serialAttachments = "กรุณาแนบไฟล์รูป Serial Number";
-        if (!picAttachments || picAttachments.length === 0) nextErrors.picAttachments = "กรุณาแนบไฟล์";
+        if (!fileSlot4) nextErrors.serialAttachments = "กรุณาแนบรูปถ่าย Serial Number (ช่องที่ 4)";
+        if (!fileSlot1) nextErrors.picAttachments = "กรุณาแนบรูปถ่ายตัวสินค้าด้านบน (ช่องที่ 1)";
 
         setErrors(nextErrors);
 
@@ -388,12 +438,12 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
         formData.append("diagnosticFee", String(diagnosticFee));
         formData.append("payMethod", payMethod);
         formData.append("payRefNo", payRefNo);
-        serialAttachments.forEach((file) => {
-            formData.append("serialAttachments", file);
-        });
-        picAttachments.forEach((file) => {
-            formData.append("picAttachments", file);
-        });
+        if (fileSlot4) {
+            formData.append("serialAttachments", fileSlot4);
+        }
+        if (fileSlot1) formData.append("picAttachments", fileSlot1);
+        if (fileSlot2) formData.append("picAttachments", fileSlot2);
+        if (fileSlot3) formData.append("picAttachments", fileSlot3);
 
         try {
             setSubmitting(true);
@@ -419,6 +469,88 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
         `input-base ${hasError ? "border-red-500 focus:ring-red-500 focus:border-red-500" : ""}`;
 
     const Req = () => <span className="text-red-600 ml-0.5">*</span>;
+
+    const renderUploadSlot = (
+        slotId: 'slot1' | 'slot2' | 'slot3' | 'slot4',
+        title: string,
+        isRequired: boolean,
+        file: File | null,
+        previewUrl: string,
+        setFile: (f: File | null) => void,
+        ref: React.RefObject<HTMLInputElement | null>
+    ) => {
+        return (
+            <div className="flex flex-col bg-white border border-slate-200 rounded-xl p-3 shadow-sm hover:shadow-md transition">
+                <span className="text-[11px] font-bold text-slate-700 mb-2 flex items-center justify-between">
+                    <span>{title}</span>
+                    {isRequired && <span className="text-red-500 font-extrabold">* จำเป็น</span>}
+                </span>
+                
+                <input
+                    type="file"
+                    ref={ref as any}
+                    accept=".jpg,.jpeg,.png,.pdf"
+                    className="hidden"
+                    onChange={(e) => {
+                        const selectedFile = e.target.files?.[0];
+                        if (selectedFile) {
+                            setFile(selectedFile);
+                        }
+                    }}
+                />
+
+                {previewUrl ? (
+                    <div className="relative w-full aspect-video rounded-lg overflow-hidden border border-slate-100 bg-slate-50 group">
+                        {file && file.type === "application/pdf" ? (
+                            <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 font-bold text-xs p-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-red-500 mb-1">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                                </svg>
+                                <span className="truncate max-w-full text-[10px]">{file.name}</span>
+                            </div>
+                        ) : (
+                            <img
+                                src={previewUrl}
+                                alt={title}
+                                className="w-full h-full object-contain"
+                            />
+                        )}
+                        <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-200 gap-2">
+                            <button
+                                type="button"
+                                onClick={() => ref.current?.click()}
+                                className="px-2 py-1 bg-white text-slate-800 rounded hover:bg-slate-100 shadow text-[10px] font-bold"
+                            >
+                                เปลี่ยนรูป
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setFile(null);
+                                    if (ref.current) ref.current.value = "";
+                                }}
+                                className="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700 shadow text-[10px] font-bold"
+                            >
+                                ลบ
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    <div
+                        onClick={() => ref.current?.click()}
+                        className="w-full aspect-video rounded-lg border-2 border-dashed border-slate-300 hover:border-slate-400 bg-slate-50 hover:bg-slate-100/50 flex flex-col items-center justify-center cursor-pointer transition p-2 text-center"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-slate-400 mb-1">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
+                        </svg>
+                        <span className="text-[10px] font-bold text-slate-600">คลิกเพื่ออัปโหลด</span>
+                        <span className="text-[8px] text-slate-400 mt-0.5">JPG, PNG หรือ PDF</span>
+                    </div>
+                )}
+            </div>
+        );
+    };
 
     return (
         <div className="w-full max-w-5xl mx-auto h-[calc(100vh-140px)] flex flex-col justify-between select-none">
@@ -508,38 +640,6 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
 
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label htmlFor="sku" className="block text-[11px] font-semibold text-slate-500 mb-1">SKU<Req /></label>
-                                    <input
-                                        id="sku"
-                                        type="number"
-                                        className={inputClass(!!errors.sku)}
-                                        value={sku}
-                                        onChange={(e) =>
-                                            setSku(e.target.value === "" ? "" : Number(e.target.value))
-                                        }
-                                        disabled={!skuFlg}
-                                        placeholder="ระบุรหัส SKU"
-                                    />
-                                    {errors.sku && <p className="text-red-600 text-[10px] mt-0.5">{errors.sku}</p>}
-                                    {skuLoading && <p className="text-[10px] text-slate-400 mt-0.5">กำลังค้นหา...</p>}
-                                    {skuError && <p className="text-[10px] text-red-600 mt-0.5">{skuError}</p>}
-                                </div>
-                                <div>
-                                    <label htmlFor="barcode" className="block text-[11px] font-semibold text-slate-500 mb-1">Barcode<Req /></label>
-                                    <input
-                                        id="barcode"
-                                        className={inputClass(!!errors.barcode)}
-                                        value={barcode}
-                                        onChange={e => setBarcode(e.target.value)}
-                                        disabled={skuFlg}
-                                        placeholder="ระบุบาร์โค้ด"
-                                    />
-                                    {errors.barcode && <p className="text-red-600 text-[10px] mt-0.5">{errors.barcode}</p>}
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
                                     <label className="block text-[11px] font-semibold text-slate-500 mb-1">ยี่ห้อ<Req /></label>
                                     {skuFlg ? (
                                         <select
@@ -607,6 +707,38 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                         />
                                     )}
                                     {errors.productType && <p className="text-red-600 text-[10px] mt-0.5">{errors.productType}</p>}
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label htmlFor="sku" className="block text-[11px] font-semibold text-slate-500 mb-1">SKU<Req /></label>
+                                    <input
+                                        id="sku"
+                                        type="number"
+                                        className={inputClass(!!errors.sku)}
+                                        value={sku}
+                                        onChange={(e) =>
+                                            setSku(e.target.value === "" ? "" : Number(e.target.value))
+                                        }
+                                        disabled={!skuFlg}
+                                        placeholder="ระบุรหัส SKU"
+                                    />
+                                    {errors.sku && <p className="text-red-600 text-[10px] mt-0.5">{errors.sku}</p>}
+                                    {skuLoading && <p className="text-[10px] text-slate-400 mt-0.5">กำลังค้นหา...</p>}
+                                    {skuError && <p className="text-[10px] text-red-600 mt-0.5">{skuError}</p>}
+                                </div>
+                                <div>
+                                    <label htmlFor="barcode" className="block text-[11px] font-semibold text-slate-500 mb-1">Barcode<Req /></label>
+                                    <input
+                                        id="barcode"
+                                        className={inputClass(!!errors.barcode)}
+                                        value={barcode}
+                                        onChange={e => setBarcode(e.target.value)}
+                                        disabled={skuFlg}
+                                        placeholder="ระบุบาร์โค้ด"
+                                    />
+                                    {errors.barcode && <p className="text-red-600 text-[10px] mt-0.5">{errors.barcode}</p>}
                                 </div>
                             </div>
                         </div>
@@ -778,81 +910,20 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className="block text-[11px] font-semibold text-slate-500 mb-1">รูปถ่าย Serial Number<Req /></label>
-                                    <input
-                                        ref={serialFileInputRef}
-                                        type="file"
-                                        multiple
-                                        accept=".jpg,.jpeg,.png,.pdf"
-                                        className={inputClass(!!errors.serialAttachments)}
-                                        onChange={(e) => setSerialAttachments(Array.from(e.target.files ?? []))}
-                                    />
-                                    {errors.serialAttachments && <p className="text-red-600 text-[10px] mt-0.5">{errors.serialAttachments}</p>}
-                                    
-                                    {serialAttachments.length > 0 && (
-                                        <div className="mt-1 text-[9px] text-slate-500 bg-slate-50 border border-slate-100 p-1 rounded-lg max-h-12 overflow-y-auto">
-                                            {serialAttachments.map((f, idx) => (
-                                                <div key={`${f.name}-${f.size}`} className="flex items-center justify-between gap-1 py-0.5">
-                                                    <span className="truncate flex-grow">{f.name}</span>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            setSerialAttachments((prev) => {
-                                                                const next = prev.filter((_, i) => i !== idx);
-                                                                if (next.length === 0 && serialFileInputRef.current) {
-                                                                    serialFileInputRef.current.value = "";
-                                                                }
-                                                                return next;
-                                                            });
-                                                        }}
-                                                        className="text-red-500 hover:text-red-700 font-bold"
-                                                    >
-                                                        ลบ
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                                <div>
-                                    <label className="block text-[11px] font-semibold text-slate-500 mb-1">รูปถ่ายตัวสินค้า<Req /></label>
-                                    <input
-                                        ref={picFileInputRef}
-                                        type="file"
-                                        multiple
-                                        accept=".jpg,.jpeg,.png,.pdf"
-                                        className={inputClass(!!errors.picAttachments)}
-                                        onChange={(e) => setPicAttachments(Array.from(e.target.files ?? []))}
-                                    />
-                                    {errors.picAttachments && <p className="text-red-600 text-[10px] mt-0.5">{errors.picAttachments}</p>}
-                                    
-                                    {picAttachments.length > 0 && (
-                                        <div className="mt-1 text-[9px] text-slate-500 bg-slate-50 border border-slate-100 p-1 rounded-lg max-h-12 overflow-y-auto">
-                                            {picAttachments.map((f, idx) => (
-                                                <div key={`${f.name}-${f.size}`} className="flex items-center justify-between gap-1 py-0.5">
-                                                    <span className="truncate flex-grow">{f.name}</span>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            setPicAttachments((prev) => {
-                                                                const next = prev.filter((_, i) => i !== idx);
-                                                                if (next.length === 0 && picFileInputRef.current) {
-                                                                    picFileInputRef.current.value = "";
-                                                                }
-                                                                return next;
-                                                            });
-                                                        }}
-                                                        className="text-red-500 hover:text-red-700 font-bold"
-                                                    >
-                                                        ลบ
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
+                        </div>
+
+                        {/* Image Slots Section */}
+                        <div className="md:col-span-2 bg-slate-50 border border-slate-200/80 rounded-2xl p-5 space-y-4">
+                            <h3 className="text-xs font-bold text-slate-800 border-b border-slate-200 pb-1.5 flex items-center gap-1.5 uppercase tracking-wide">
+                                <span className="w-1.5 h-3 bg-[#c8102e] rounded"></span>
+                                รูปถ่ายเครื่องและป้าย Serial เพื่อบันทึกงานซ่อม (Required Photos & Serial)
+                            </h3>
+
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                {renderUploadSlot('slot1', '1. ภาพด้านบน', true, fileSlot1, previewSlot1, setFileSlot1, slot1Ref)}
+                                {renderUploadSlot('slot2', '2. ภาพด้านข้าง', false, fileSlot2, previewSlot2, setFileSlot2, slot2Ref)}
+                                {renderUploadSlot('slot3', '3. ภาพด้านบน', false, fileSlot3, previewSlot3, setFileSlot3, slot3Ref)}
+                                {renderUploadSlot('slot4', '4. ภาพ Serial', true, fileSlot4, previewSlot4, setFileSlot4, slot4Ref)}
                             </div>
                         </div>
 
