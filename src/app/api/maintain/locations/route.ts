@@ -9,17 +9,15 @@ export async function GET() {
       orderBy: { id: "asc" },
     });
 
-    // Exclude non-TW locations (Auto1, GoWow, BnB, Joy canteens, ctd/chg corporate/events)
+    // Exclude Auto1, GoWow, and Joy locations, keeping everything else (TW, BB, Head Office, etc.)
     locations = locations.filter(l => {
-      const name = l.name;
-      const nameLower = name.toLowerCase();
+      const nameLower = l.name.toLowerCase();
       if (nameLower.includes("auto1") || nameLower.includes("auto 1") || 
           nameLower.includes("gowow") || nameLower.includes("go! wow") || nameLower.includes("go wow") ||
-          nameLower.includes("bnb") || nameLower.includes("b&b") || nameLower.includes("joy") || nameLower.includes("bb") ||
-          nameLower.includes("head office") || nameLower.includes("ctd") || nameLower.includes("chg")) {
+          nameLower.includes("joy")) {
         return false;
       }
-      return name.includes("TW") || name.includes("tw") || name.includes("ไทวัสดุ");
+      return true;
     });
 
     return NextResponse.json({ ok: true, locations });
