@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { Pencil, Download, Upload, FileDown } from "lucide-react";
 import * as XLSX from "xlsx";
 
@@ -24,8 +25,17 @@ type VendorInfo = {
     vendor_email: string;
 };
 
-export default function MainTainPage() {
+function MaintainContent() {
     const [tab, setTab] = useState<"status" | "vendor" | "user" | "location" | "product" | "symptom" | "announcement" | "category" | "diagnostic" | "margin" | "service_tier">("status");
+    
+    const searchParams = useSearchParams();
+    const urlTab = searchParams.get("tab");
+
+    useEffect(() => {
+        if (urlTab) {
+            setTab(urlTab as any);
+        }
+    }, [urlTab]);
 
     //* Diagnostic Fee Config state
     const [diagnosticFees, setDiagnosticFees] = useState<any[]>([]);
@@ -3691,5 +3701,13 @@ export default function MainTainPage() {
                 </div>
             )}
         </main>
+    );
+}
+
+export default function MainTainPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-slate-500">กำลังโหลด...</div>}>
+            <MaintainContent />
+        </Suspense>
     );
 }
