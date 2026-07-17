@@ -126,7 +126,7 @@ function SidebarNav({
                     const subTab = sub.href.split("=")[1];
                     const isSubActive = pathname.startsWith("/maintain") && currentTab === subTab;
                     return (
-                      <Link
+                      <a
                         key={sIdx}
                         href={sub.href}
                         className={`flex items-center gap-2.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all duration-150 ${
@@ -137,7 +137,7 @@ function SidebarNav({
                       >
                         {SubIcon && <SubIcon className="w-3.5 h-3.5 shrink-0" />}
                         <span>{sub.label}</span>
-                      </Link>
+                      </a>
                     );
                   })}
                 </div>
