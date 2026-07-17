@@ -350,17 +350,17 @@ export default function StatusPage() {
       </div>
 
       {/* Stats Ribbon */}
-      <div className="bg-[#ecfdf5] border border-[#a7f3d0] text-[#065f46] px-4 py-2.5 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between text-xs sm:text-sm font-bold gap-2">
+      <div className="bg-red-50 border border-red-150 text-[#c8102e] px-4 py-2.5 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between text-xs sm:text-sm font-bold gap-2">
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span className="w-2 h-2 rounded-full bg-[#c8102e] animate-pulse"></span>
           <span>{thaiTodayStr}</span>
         </div>
         <div className="flex items-center gap-4">
-          <span>เปิดใหม่: <strong className="text-emerald-700 font-extrabold text-sm">{stats.newCount}</strong></span>
+          <span>เปิดใหม่: <strong className="text-[#c8102e] font-extrabold text-sm">{stats.newCount}</strong></span>
           <span className="opacity-30">|</span>
           <span>แก้ไขแล้ว: <strong className="text-amber-700 font-extrabold text-sm">{stats.open}</strong></span>
           <span className="opacity-30">|</span>
-          <span>ปิดงาน: <strong className="text-emerald-700 font-extrabold text-sm">{stats.closed}</strong></span>
+          <span>ปิดงาน: <strong className="text-slate-700 font-extrabold text-sm">{stats.closed}</strong></span>
         </div>
       </div>
 
@@ -368,7 +368,7 @@ export default function StatusPage() {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {/* Card 1 */}
         <div className="bg-white border border-slate-200/80 p-4 rounded-2xl flex items-center gap-3.5 shadow-sm hover:shadow-md transition duration-200">
-          <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
             <Layers className="w-5 h-5" />
           </div>
           <div className="flex flex-col min-w-0">
@@ -388,7 +388,7 @@ export default function StatusPage() {
         </div>
         {/* Card 3 */}
         <div className="bg-white border border-slate-200/80 p-4 rounded-2xl flex items-center gap-3.5 shadow-sm hover:shadow-md transition duration-200">
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
             <CheckCircle2 className="w-5 h-5" />
           </div>
           <div className="flex flex-col min-w-0">
@@ -398,7 +398,7 @@ export default function StatusPage() {
         </div>
         {/* Card 4 */}
         <div className="bg-white border border-slate-200/80 p-4 rounded-2xl flex items-center gap-3.5 shadow-sm hover:shadow-md transition duration-200">
-          <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-red-50 text-[#c8102e] flex items-center justify-center shrink-0">
             <ShieldAlert className="w-5 h-5" />
           </div>
           <div className="flex flex-col min-w-0">
@@ -408,7 +408,7 @@ export default function StatusPage() {
         </div>
         {/* Card 5 */}
         <div className="bg-white border border-slate-200/80 p-4 rounded-2xl flex items-center gap-3.5 shadow-sm hover:shadow-md transition duration-200">
-          <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-red-50 text-[#c8102e] flex items-center justify-center shrink-0">
             <Share2 className="w-5 h-5" />
           </div>
           <div className="flex flex-col min-w-0">
@@ -418,7 +418,7 @@ export default function StatusPage() {
         </div>
         {/* Card 6 */}
         <div className="bg-white border border-slate-200/80 p-4 rounded-2xl flex items-center gap-3.5 shadow-sm hover:shadow-md transition duration-200">
-          <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-red-50 text-[#c8102e] flex items-center justify-center shrink-0">
             <Inbox className="w-5 h-5" />
           </div>
           <div className="flex flex-col min-w-0">
@@ -438,7 +438,7 @@ export default function StatusPage() {
           </div>
           <button 
             onClick={() => router.push("/request/add")}
-            className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-sm transition cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2 bg-[#c8102e] hover:bg-[#b00d25] active:bg-[#900a1c] text-white font-bold text-xs sm:text-sm rounded-xl shadow-sm transition duration-150 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             แจ้งซ่อมใหม่
@@ -457,7 +457,7 @@ export default function StatusPage() {
                   setStatusFilter(e.target.value);
                   onSearch(q, e.target.value);
                 }}
-                className="select-custom bg-white border border-slate-200 text-slate-700 rounded-lg px-3 py-1.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="select-custom bg-white border border-slate-200 text-slate-700 rounded-lg px-3 py-1.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#c8102e] focus:border-[#c8102e]"
               >
                 <option value="">ทั้งหมด</option>
                 <option value="10">ส่งซ่อม</option>
@@ -483,7 +483,7 @@ export default function StatusPage() {
               <select
                 value={priorityFilter}
                 onChange={(e) => setPriorityFilter(e.target.value)}
-                className="select-custom bg-white border border-slate-200 text-slate-700 rounded-lg px-3 py-1.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="select-custom bg-white border border-slate-200 text-slate-700 rounded-lg px-3 py-1.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#c8102e] focus:border-[#c8102e]"
               >
                 <option value="">ทั้งหมด</option>
                 <option value="CRITICAL">CRITICAL</option>
@@ -503,7 +503,7 @@ export default function StatusPage() {
                     setLocationFilter(e.target.value);
                     onSearch(q, statusFilter, e.target.value);
                   }}
-                  className="select-custom bg-white border border-slate-200 text-slate-700 rounded-lg px-3 py-1.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="select-custom bg-white border border-slate-200 text-slate-700 rounded-lg px-3 py-1.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#c8102e] focus:border-[#c8102e]"
                 >
                   <option value="">ทั้งหมด</option>
                   {locationsList.map((loc) => (
@@ -526,12 +526,12 @@ export default function StatusPage() {
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 onKeyDown={onKeyDown}
-                className="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-4 py-1.5 text-xs font-semibold text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-4 py-1.5 text-xs font-semibold text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#c8102e] focus:border-[#c8102e]"
               />
             </div>
             <button
               onClick={() => onSearch()}
-              className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition shadow-sm cursor-pointer"
+              className="px-3.5 py-1.5 bg-[#c8102e] hover:bg-[#b00d25] text-white rounded-lg text-xs font-bold transition shadow-sm cursor-pointer"
             >
               ค้นหา
             </button>
@@ -541,7 +541,7 @@ export default function StatusPage() {
         {/* Loading and Error */}
         {loading && (
           <div className="p-12 text-center text-slate-500 font-semibold text-sm">
-            <span className="loading loading-spinner loading-md mr-2 align-middle text-indigo-600"></span>
+            <span className="loading loading-spinner loading-md mr-2 align-middle text-[#c8102e]"></span>
             กำลังโหลดข้อมูลรายการ...
           </div>
         )}
@@ -656,7 +656,7 @@ export default function StatusPage() {
                       <td className="px-4 py-3.5 text-center">
                         <Link
                           href={`/request/view/${r.request_id}`}
-                          className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-slate-200 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition"
+                          className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-slate-200 text-slate-500 hover:bg-red-50 hover:text-[#c8102e] hover:border-red-200 transition"
                           title="ดูรายละเอียด"
                         >
                           <Eye className="w-4 h-4" />
@@ -692,7 +692,7 @@ export default function StatusPage() {
                     onClick={() => setPage(p)}
                     className={`w-7 h-7 rounded-lg text-xs font-bold transition cursor-pointer ${
                       page === p
-                        ? "bg-indigo-600 text-white"
+                        ? "bg-[#c8102e] text-white"
                         : "border border-slate-200 bg-white hover:bg-slate-50 text-slate-600"
                     }`}
                   >
