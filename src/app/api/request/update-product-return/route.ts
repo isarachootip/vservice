@@ -230,6 +230,26 @@ export async function POST(req: Request) {
 
         //* phase คืนสินค้าให้ลูกค้า
         if (action === "ProductCustomerReturn") {
+            const quotations = await prisma.quotation.findMany({
+                where: { request_id: idNum }
+            });
+            const totalQuotationNetPrice = quotations.reduce((sum, q) => sum + (q.net_price ? parseFloat(q.net_price.toString()) : 0), 0);
+
+            const payments = await prisma.payment_transaction.findMany({
+                where: { request_id: idNum }
+            });
+            const repairPaymentsPaid = payments
+                .filter(p => p.payment_type !== "DIAGNOSTIC_FEE")
+                .reduce((sum, p) => sum + parseFloat(p.amount.toString()), 0);
+
+            const outstandingBalance = totalQuotationNetPrice - repairPaymentsPaid;
+            if (outstandingBalance > 0.01) {
+                return NextResponse.json(
+                    { ok: false, message: `ไม่สามารถส่งมอบสินค้าคืนได้เนื่องจากยังมียอดค้างชำระ: ${outstandingBalance.toFixed(2)} บาท` },
+                    { status: 400 }
+                );
+            }
+
             const sentName = form.get("sentName")?.toString();
             const customerName = form.get("customerName")?.toString();
             const sentProductReturnDate =

@@ -37,6 +37,9 @@ export async function GET(req: Request) {
                     orderBy: { id: "asc" }, 
                 }, 
                 repair_attachment: true,
+                payment_transaction: {
+                    orderBy: { id: "asc" }
+                }
             },
         });
 
@@ -95,6 +98,29 @@ export async function GET(req: Request) {
             updated_user: q.updated_user,
             ticket_no: q.ticket_no,
             quotation_no: q.quotation_no,
+
+            cost_parts: q.cost_parts != null ? Number(q.cost_parts) : 0,
+            cost_labor: q.cost_labor != null ? Number(q.cost_labor) : 0,
+            cost_logistics: q.cost_logistics != null ? Number(q.cost_logistics) : 0,
+            margin_percent: q.margin_percent != null ? Number(q.margin_percent) : 0,
+            sell_price: q.sell_price != null ? Number(q.sell_price) : 0,
+            discount: q.discount != null ? Number(q.discount) : 0,
+            vat: q.vat != null ? Number(q.vat) : 0,
+            net_price: q.net_price != null ? Number(q.net_price) : 0,
+            mode: q.mode || null,
+            version: q.version || null
+        }));
+
+        const payments = (reqData.payment_transaction || []).map(p => ({
+            payment_id: p.id,
+            request_id: p.request_id,
+            payment_type: p.payment_type,
+            amount: p.amount != null ? Number(p.amount) : 0,
+            method: p.method,
+            ref_no: p.ref_no,
+            receipt_no: p.receipt_no,
+            created_date: p.received_at,
+            created_user: p.received_by,
         }));
 
         let transactionLogs: Array<{step_no: string | null; act_user_name: string | null; act_trans_log: string | null; act_date_time: Date | null}> = [];
@@ -176,6 +202,7 @@ export async function GET(req: Request) {
             item: items[0] ?? null,
             repair_attachment: attachments,
             quotation: quotations,
+            payment_transaction: payments,
         };
 
         return NextResponse.json({ ok: true, request: payload, transactionLogs });
