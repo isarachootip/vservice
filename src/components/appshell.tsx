@@ -61,10 +61,9 @@ function SidebarNav({
   const [settingsExpanded, setSettingsExpanded] = useState(false);
 
   useEffect(() => {
-    if (pathname.startsWith("/maintain")) {
-      setSettingsExpanded(true);
-    }
+    setSettingsExpanded(pathname.startsWith("/maintain"));
   }, [pathname]);
+
 
   return (
     <nav className="flex flex-col gap-1">
@@ -80,6 +79,7 @@ function SidebarNav({
 
           const handleParentClick = (e: React.MouseEvent) => {
             if (item.subItems) {
+              e.preventDefault();
               // Toggle settingsExpanded
               setSettingsExpanded(!settingsExpanded);
             }
@@ -126,7 +126,7 @@ function SidebarNav({
                     const subTab = sub.href.split("=")[1];
                     const isSubActive = pathname.startsWith("/maintain") && currentTab === subTab;
                     return (
-                      <a
+                      <Link
                         key={sIdx}
                         href={sub.href}
                         className={`flex items-center gap-2.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all duration-150 ${
@@ -137,7 +137,7 @@ function SidebarNav({
                       >
                         {SubIcon && <SubIcon className="w-3.5 h-3.5 shrink-0" />}
                         <span>{sub.label}</span>
-                      </a>
+                      </Link>
                     );
                   })}
                 </div>
@@ -156,7 +156,22 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const [activeAnnouncements, setActiveAnnouncements] = useState<any[]>([]);
   const [closedAnnouncements, setClosedAnnouncements] = useState<Record<number, boolean>>({});
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(true);
+  const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("sidebarCollapsed");
+    if (saved !== null) {
+      setCollapsed(JSON.parse(saved));
+    }
+  }, []);
+
+  const handleToggleCollapse = () => {
+    setCollapsed((prev) => {
+      const next = !prev;
+      localStorage.setItem("sidebarCollapsed", JSON.stringify(next));
+      return next;
+    });
+  };
 
   useEffect(() => {
     setMobileOpen(false);
@@ -344,7 +359,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
 
             {/* Toggle Button for Desktop */}
             <button
-              onClick={() => setCollapsed(!collapsed)}
+              onClick={handleToggleCollapse}
               className="hidden lg:flex p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition cursor-pointer"
               title={collapsed ? "ขยายเมนู" : "ย่อเมนู"}
             >
