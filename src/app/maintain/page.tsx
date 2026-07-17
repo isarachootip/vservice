@@ -218,6 +218,14 @@ export default function MainTainPage() {
     const [newAnnStartDate, setNewAnnStartDate] = useState("");
     const [newAnnEndDate, setNewAnnEndDate] = useState("");
 
+    const formatDatetimeLocalToDisplay = (value: string): string => {
+        if (!value) return "";
+        const [datePart, timePart] = value.split("T");
+        if (!datePart) return "";
+        const [year, month, day] = datePart.split("-");
+        return `${day}/${month}/${year} ${timePart || ""}`;
+    };
+
     const formatAnnDate = (dStr: string | null) => {
         if (!dStr) return "ไม่มีกำหนด";
         const d = new Date(dStr);
@@ -2360,24 +2368,54 @@ export default function MainTainPage() {
                                         <label className="block text-xs font-bold text-slate-600 mb-1.5">
                                             วันที่เริ่มประกาศ (Start Date)
                                         </label>
-                                        <input
-                                            type="datetime-local"
-                                            value={newAnnStartDate}
-                                            onChange={(e) => setNewAnnStartDate(e.target.value)}
-                                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white text-xs font-medium"
-                                        />
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                readOnly
+                                                placeholder="dd/mm/yyyy --:--"
+                                                value={formatDatetimeLocalToDisplay(newAnnStartDate)}
+                                                onClick={(e) => {
+                                                    const picker = e.currentTarget.nextElementSibling as HTMLInputElement;
+                                                    if (picker) {
+                                                        try { picker.showPicker(); } catch (err) { picker.click(); }
+                                                    }
+                                                }}
+                                                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white text-xs font-medium cursor-pointer"
+                                            />
+                                            <input
+                                                type="datetime-local"
+                                                value={newAnnStartDate}
+                                                onChange={(e) => setNewAnnStartDate(e.target.value)}
+                                                className="absolute inset-0 opacity-0 pointer-events-none w-0 h-0"
+                                            />
+                                        </div>
                                     </div>
 
                                     <div>
                                         <label className="block text-xs font-bold text-slate-600 mb-1.5">
                                             วันที่สิ้นสุดประกาศ (End Date)
                                         </label>
-                                        <input
-                                            type="datetime-local"
-                                            value={newAnnEndDate}
-                                            onChange={(e) => setNewAnnEndDate(e.target.value)}
-                                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white text-xs font-medium"
-                                        />
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                readOnly
+                                                placeholder="dd/mm/yyyy --:--"
+                                                value={formatDatetimeLocalToDisplay(newAnnEndDate)}
+                                                onClick={(e) => {
+                                                    const picker = e.currentTarget.nextElementSibling as HTMLInputElement;
+                                                    if (picker) {
+                                                        try { picker.showPicker(); } catch (err) { picker.click(); }
+                                                    }
+                                                }}
+                                                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white text-xs font-medium cursor-pointer"
+                                            />
+                                            <input
+                                                type="datetime-local"
+                                                value={newAnnEndDate}
+                                                onChange={(e) => setNewAnnEndDate(e.target.value)}
+                                                className="absolute inset-0 opacity-0 pointer-events-none w-0 h-0"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 
