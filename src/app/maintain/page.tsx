@@ -737,18 +737,26 @@ function MaintainContent() {
         }
     };
 
-    const handleDeleteCategory = async (id: number) => {
-        if (!confirm("คุณต้องการลบหมวดหมู่นี้ใช่หรือไม่?")) return;
+    const handleDeleteCategory = async (id: number, force: boolean = false) => {
+        if (!force && !confirm("คุณต้องการลบหมวดหมู่นี้ใช่หรือไม่?")) return;
 
         try {
             setCategoryLoading(true);
-            const res = await fetch(`/api/maintain/categories?id=${id}`, {
+            const url = `/api/maintain/categories?id=${id}${force ? "&confirm=true" : ""}`;
+            const res = await fetch(url, {
                 method: "DELETE",
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.message || "ลบไม่สำเร็จ");
 
-            fetchCategories();
+            if (data.requireConfirm) {
+                if (confirm(data.message)) {
+                    handleDeleteCategory(id, true);
+                    return;
+                }
+            } else {
+                fetchCategories();
+            }
         } catch (err: any) {
             alert(err.message);
         } finally {

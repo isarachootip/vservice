@@ -148,6 +148,7 @@ export async function DELETE(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
+    const confirmDelete = searchParams.get("confirm") === "true";
 
     if (!id) {
       return NextResponse.json({ ok: false, message: "ไม่พบ ID ที่ต้องการลบ" }, { status: 400 });
@@ -171,11 +172,12 @@ export async function DELETE(req: Request) {
       }
     });
 
-    if (skuCount > 0) {
+    if (skuCount > 0 && !confirmDelete) {
       return NextResponse.json({
         ok: false,
-        message: `ไม่สามารถลบหมวดหมู่นี้ได้ เนื่องจากมีสินค้า (SKU) จำนวน ${skuCount} รายการใช้งานหมวดหมู่นี้อยู่`
-      }, { status: 400 });
+        requireConfirm: true,
+        message: `มีสินค้า (SKU) จำนวน ${skuCount} รายการใช้งานหมวดหมู่นี้อยู่ ยืนยันการลบหมวดหมู่นี้หรือไม่?`
+      });
     }
 
     await prisma.repair_category.delete({
