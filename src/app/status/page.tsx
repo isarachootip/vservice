@@ -573,7 +573,7 @@ export default function StatusPage() {
                   <th className="px-3 py-3 text-center">สถานะ</th>
                   <th className="px-4 py-3">ผู้บันทึก</th>
                   <th className="px-4 py-3 text-center">วันที่แจ้งซ่อม</th>
-                  <th className="px-4 py-3 text-center w-16">ดูข้อมูล</th>
+                  <th className="px-4 py-3 text-center w-24">การดำเนินงาน</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs text-slate-600">
@@ -652,15 +652,27 @@ export default function StatusPage() {
                         {formatDateWithTime(r.created_date)}
                       </td>
                       
-                      {/* View Action */}
+                      {/* Actions Column */}
                       <td className="px-4 py-3.5 text-center">
-                        <Link
-                          href={`/request/view/${r.request_id}`}
-                          className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-slate-200 text-slate-500 hover:bg-red-50 hover:text-[#c8102e] hover:border-red-200 transition"
-                          title="ดูรายละเอียด"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Link>
+                        <div className="flex items-center justify-center gap-1.5">
+                          <Link
+                            href={`/request/view/${r.request_id}`}
+                            className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-slate-200 text-slate-500 hover:bg-red-50 hover:text-[#c8102e] hover:border-red-200 transition"
+                            title="ดูรายละเอียด"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Link>
+
+                          {canHandle(role, repairRow) && (
+                            <Link
+                              href={optionRoute(repairRow)}
+                              className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-[#c8102e] bg-[#c8102e] text-white hover:bg-[#b00d25] transition"
+                              title="ดำเนินการขั้นตอนถัดไป"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </Link>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
