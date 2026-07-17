@@ -193,6 +193,14 @@ export async function POST(req: Request) {
         request_id: requestId,
       },
     });
+
+    // Trigger customer notification for quotation completed
+    try {
+      const { NotificationService } = await import("@/lib/service/notification.service");
+      await NotificationService.sendNotification(requestId, "QUOTATION");
+    } catch (e) {
+      console.error("⚠️ Failed to trigger quotation notification:", e);
+    }
     
     return NextResponse.json(
       { ok: true, message: "บันทึกใบเสนอราคาสำเร็จ" },

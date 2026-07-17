@@ -88,6 +88,24 @@ export default function DashBoardPage() {
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [statuses, setStatuses] = useState<StatusDef[]>([]);
+  const [isCheckingSla, setIsCheckingSla] = useState(false);
+
+  const triggerSlaCheck = async () => {
+    setIsCheckingSla(true);
+    try {
+      const res = await fetch("/api/notify/sla-check");
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        alert(`ตรวจสอบและส่งการแจ้งเตือน SLA เรียบร้อยแล้ว! (ส่งแจ้งเตือนด่วนใหม่ ${data.alertCount} รายการ)`);
+      } else {
+        alert("ไม่สามารถตรวจสอบ SLA ได้: " + (data.message || "เกิดข้อผิดพลาด"));
+      }
+    } catch {
+      alert("เกิดข้อผิดพลาดในการเรียกระบบตรวจสอบ SLA");
+    } finally {
+      setIsCheckingSla(false);
+    }
+  };
   const [period, setPeriod] = useState<PeriodFilter>("all");
   const [lastUpdated, setLastUpdated] = useState("10:30");
   const [selectedLocation, setSelectedLocation] = useState<string>("");
@@ -345,6 +363,17 @@ export default function DashBoardPage() {
             <RefreshCw className="w-3 h-3 animate-spin-slow" />
             <span>อัปเดตล่าสุด {lastUpdated} น.</span>
           </div>
+
+          {/* SLA Scan & Notify Button */}
+          <button
+            type="button"
+            onClick={triggerSlaCheck}
+            disabled={isCheckingSla}
+            className="flex items-center gap-1.5 bg-red-50 hover:bg-red-100 border border-red-200 rounded-xl px-3 py-2 text-xs font-bold text-[#c8102e] cursor-pointer disabled:opacity-50 transition shadow-sm"
+          >
+            <Bell className={`w-3.5 h-3.5 ${isCheckingSla ? "animate-bounce" : ""}`} />
+            <span>{isCheckingSla ? "กำลังสแกน SLA..." : "สแกนเตือน SLA"}</span>
+          </button>
         </div>
       </div>
 

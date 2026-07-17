@@ -226,6 +226,14 @@ export async function POST(req: Request) {
                     updated_user: updatedUser,
                 },
             });
+
+            // Trigger customer notification for ready for return
+            try {
+              const { NotificationService } = await import("@/lib/service/notification.service");
+              await NotificationService.sendNotification(idNum, "READY_RETURN");
+            } catch (e) {
+              console.error("⚠️ Failed to trigger return notification:", e);
+            }
         }
 
         //* phase คืนสินค้าให้ลูกค้า
