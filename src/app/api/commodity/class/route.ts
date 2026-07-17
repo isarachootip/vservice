@@ -1,16 +1,12 @@
 import { NextResponse } from "next/server";
-import { CommodityRepository } from "@/lib/repository/commodity.repo";
+import { prisma } from "@/lib/database";
 
 export async function GET() {
   try {
-    const rows = await CommodityRepository.getClasses();
-    const data = Array.from(
-      new Set(
-        rows
-          .map(r => (r.class_name ?? "").trim())
-          .filter(Boolean)
-      )
-    ).sort((a, b) => a.localeCompare(b));
+    const rows = await prisma.repair_category.findMany({
+      orderBy: { name: "asc" },
+    });
+    const data = rows.map(r => r.name);
     
     return NextResponse.json({ ok: true, data });
   } catch (err) {

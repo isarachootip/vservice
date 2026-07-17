@@ -94,6 +94,48 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { products } = body; // Array of product objects
 
+    if (!products) {
+      // Single product POST
+      const { sku, sku_name, brand, class_name, sku_cost, sku_price, vendor_no, vendor_name, model, sbc } = body;
+      if (!sku || !sku_name || !brand) {
+        return NextResponse.json({ ok: false, message: "กรุณาระบุข้อมูลจำเป็นให้ครบถ้วน (SKU, ชื่อสินค้า, ยี่ห้อ)" }, { status: 400 });
+      }
+      const skuVal = BigInt(sku);
+      const existing = await prisma.commodity.findUnique({
+        where: { sku: skuVal },
+      });
+      if (existing) {
+        return NextResponse.json({ ok: false, message: "มี SKU นี้อยู่ในระบบแล้ว" }, { status: 400 });
+      }
+      await prisma.commodity.create({
+        data: {
+          sku: skuVal,
+          sbc: sbc ? BigInt(sbc) : null,
+          sku_name: sku_name.trim(),
+          brand: brand.trim(),
+          class_name: class_name?.trim() || "General",
+          sku_cost: Number(sku_cost || 0),
+          sku_price: Number(sku_price || 0),
+          vendor_no: Number(vendor_no || 0),
+          vendor_name: vendor_name?.trim() || "",
+          model: model?.trim() || null,
+          sku_condition: 1,
+          sku_condition_name: "New",
+          dept_no: 1,
+          dept_name: "General",
+          sdept_no: 1,
+          sdept_name: "General",
+          class_no: 1,
+          sclass_no: 1,
+          sclass_name: "General",
+          unit_code: "PC",
+          unit_name: "Piece",
+          sku_status_name: "Active",
+        },
+      });
+      return NextResponse.json({ ok: true, message: "เพิ่มข้อมูลสินค้าสำเร็จ" });
+    }
+
     if (!Array.isArray(products) || products.length === 0) {
       return NextResponse.json(
         { ok: false, message: "ข้อมูลสินค้าไม่ถูกต้อง" },
@@ -104,7 +146,6 @@ export async function POST(req: Request) {
     let insertCount = 0;
     let updateCount = 0;
 
-    // We can upsert in a transaction or individually
     for (const p of products) {
       if (!p.sku || !p.sku_name || !p.brand) {
         continue;
@@ -175,6 +216,73 @@ export async function POST(req: Request) {
     console.error("POST /api/maintain/products error:", error);
     return NextResponse.json(
       { ok: false, message: error.message || "เกิดข้อผิดพลาดในการนำเข้าข้อมูลสินค้า" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(req: Request) {
+  try {
+    const body = await req.json();
+    const { sku, sku_name, brand, class_name, sku_cost, sku_price, vendor_no, vendor_name, model, sbc } = body;
+
+    if (!sku || !sku_name || !brand) {
+      return NextResponse.json({ ok: false, message: "ข้อมูลไม่ครบถ้วน" }, { status: 400 });
+    }
+
+    const skuVal = BigInt(sku);
+    const existing = await prisma.commodity.findUnique({
+      where: { sku: skuVal },
+    });
+
+    if (!existing) {
+      return NextResponse.json({ ok: false, message: "ไม่พบข้อมูลสินค้า" }, { status: 404 });
+    }
+
+    await prisma.commodity.update({
+      where: { sku: skuVal },
+      data: {
+        sbc: sbc ? BigInt(sbc) : null,
+        sku_name: sku_name.trim(),
+        brand: brand.trim(),
+        class_name: class_name?.trim() || "General",
+        sku_cost: Number(sku_cost || 0),
+        sku_price: Number(sku_price || 0),
+        vendor_no: Number(vendor_no || 0),
+        vendor_name: vendor_name?.trim() || "",
+        model: model?.trim() || null,
+        sku_status_name: "Active",
+      },
+    });
+
+    return NextResponse.json({ ok: true, message: "อัปเดตข้อมูลสินค้าสำเร็จ" });
+  } catch (error) {
+    console.error("PUT /api/maintain/products error:", error);
+    return NextResponse.json(
+      { ok: false, message: "เกิดข้อผิดพลาดในการแก้ไขข้อมูลสินค้า" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const sku = searchParams.get("sku");
+
+    if (!sku) {
+      return NextResponse.json({ ok: false, message: "ไม่พบ SKU ที่ต้องการลบ" }, { status: 400 });
+    }
+
+    await prisma.commodity.delete({
+      where: { sku: BigInt(sku) },
+    });
+
+    return NextResponse.json({ ok: true, message: "ลบข้อมูลสินค้าสำเร็จ" });
+  } catch (error) {
+    console.error("DELETE /api/maintain/products error:", error);
+    return NextResponse.json(
+      { ok: false, message: "เกิดข้อผิดพลาดในการลบข้อมูลสินค้า" },
       { status: 500 }
     );
   }

@@ -33,6 +33,31 @@ export async function POST(req: Request) {
         const body = await req.json();
         const { vendors, updatedUser } = body;
 
+        if (!vendors) {
+            // Single vendor POST
+            const { vendor_no, vendor_name, vendor_email } = body;
+            if (!vendor_no || !vendor_name || !vendor_email) {
+                return NextResponse.json({ ok: false, message: "กรุณาระบุข้อมูลให้ครบถ้วน" }, { status: 400 });
+            }
+            const vendorNo = parseInt(vendor_no, 10);
+            const existing = await prisma.vendor_info.findUnique({
+                where: { vendor_no: vendorNo },
+            });
+            if (existing) {
+                return NextResponse.json({ ok: false, message: "มีรหัสผู้รับเหมานี้อยู่ในระบบแล้ว" }, { status: 400 });
+            }
+            await prisma.vendor_info.create({
+                data: {
+                    vendor_no: vendorNo,
+                    vendor_name: vendor_name.trim(),
+                    vendor_email: vendor_email.trim(),
+                    created_user: updatedUser || "admin",
+                    updated_user: updatedUser || "admin",
+                },
+            });
+            return NextResponse.json({ ok: true, message: "เพิ่มข้อมูลผู้รับเหมาสำเร็จ" });
+        }
+
         if (!Array.isArray(vendors) || vendors.length === 0) {
             return NextResponse.json(
                 { ok: false, message: "ข้อมูล Vendor ไม่ถูกต้อง" },
@@ -89,6 +114,79 @@ export async function POST(req: Request) {
         console.error("Import vendor error:", err);
         return NextResponse.json(
             { ok: false, message: "import ไม่สำเร็จ" },
+            { status: 500 }
+        );
+    }
+}
+
+export async function PUT(req: Request) {
+    try {
+        const body = await req.json();
+        const { id, vendor_no, vendor_name, vendor_email, updatedUser } = body;
+
+        if (!id || !vendor_no || !vendor_name || !vendor_email) {
+            return NextResponse.json({ ok: false, message: "ข้อมูลไม่ครบถ้วน" }, { status: 400 });
+        }
+
+        const existing = await prisma.vendor_info.findUnique({
+            where: { id: Number(id) },
+        });
+
+        if (!existing) {
+            return NextResponse.json({ ok: false, message: "ไม่พบข้อมูลผู้รับเหมา" }, { status: 404 });
+        }
+
+        const vendorNo = parseInt(vendor_no, 10);
+        const duplicate = await prisma.vendor_info.findFirst({
+            where: {
+                vendor_no: vendorNo,
+                NOT: { id: Number(id) },
+            },
+        });
+
+        if (duplicate) {
+            return NextResponse.json({ ok: false, message: "มีรหัสผู้รับเหมานี้ในระบบแล้ว" }, { status: 400 });
+        }
+
+        await prisma.vendor_info.update({
+            where: { id: Number(id) },
+            data: {
+                vendor_no: vendorNo,
+                vendor_name: vendor_name.trim(),
+                vendor_email: vendor_email.trim(),
+                updated_user: updatedUser || "admin",
+                updated_date: new Date(),
+            },
+        });
+
+        return NextResponse.json({ ok: true, message: "อัปเดตข้อมูลผู้รับเหมาสำเร็จ" });
+    } catch (error) {
+        console.error("PUT /api/maintain/vendor error:", error);
+        return NextResponse.json(
+            { ok: false, message: "เกิดข้อผิดพลาดในการแก้ไขข้อมูลผู้รับเหมา" },
+            { status: 500 }
+        );
+    }
+}
+
+export async function DELETE(req: Request) {
+    try {
+        const { searchParams } = new URL(req.url);
+        const id = searchParams.get("id");
+
+        if (!id) {
+            return NextResponse.json({ ok: false, message: "ไม่พบ ID ที่ต้องการลบ" }, { status: 400 });
+        }
+
+        await prisma.vendor_info.delete({
+            where: { id: Number(id) },
+        });
+
+        return NextResponse.json({ ok: true, message: "ลบข้อมูลผู้รับเหมาสำเร็จ" });
+    } catch (error) {
+        console.error("DELETE /api/maintain/vendor error:", error);
+        return NextResponse.json(
+            { ok: false, message: "เกิดข้อผิดพลาดในการลบข้อมูลผู้รับเหมา" },
             { status: 500 }
         );
     }

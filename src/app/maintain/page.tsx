@@ -25,7 +25,7 @@ type VendorInfo = {
 };
 
 export default function MainTainPage() {
-    const [tab, setTab] = useState<"status" | "vendor" | "user" | "location" | "product" | "symptom" | "announcement">("status");
+    const [tab, setTab] = useState<"status" | "vendor" | "user" | "location" | "product" | "symptom" | "announcement" | "category">("status");
 
     //* Product Info state
     const [productsList, setProductsList] = useState<any[]>([]);
@@ -35,6 +35,21 @@ export default function MainTainPage() {
     const [productPage, setProductPage] = useState(1);
     const [productTotalPages, setProductTotalPages] = useState(1);
     const [productFileInputRef, setProductFileInputRef] = useState<HTMLInputElement | null>(null);
+    const [showProductModal, setShowProductModal] = useState(false);
+    const [editingProductSku, setEditingProductSku] = useState<string | null>(null);
+    const [productFormData, setProductFormData] = useState({ sku: "", sbc: "", sku_name: "", brand: "", class_name: "", sku_cost: "", sku_price: "", vendor_no: "", vendor_name: "", model: "" });
+    const [productFormError, setProductFormError] = useState<string | null>(null);
+    const [isSavingProduct, setIsSavingProduct] = useState(false);
+
+    //* Category Info state
+    const [categoriesList, setCategoriesList] = useState<any[]>([]);
+    const [categoryLoading, setCategoryLoading] = useState(false);
+    const [categoryError, setCategoryError] = useState<string | null>(null);
+    const [showCategoryModal, setShowCategoryModal] = useState(false);
+    const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
+    const [categoryFormData, setCategoryFormData] = useState({ name: "" });
+    const [categoryFormError, setCategoryFormError] = useState<string | null>(null);
+    const [isSavingCategory, setIsSavingCategory] = useState(false);
 
     //* Symptom Info state
     const [symptomsList, setSymptomsList] = useState<any[]>([]);
@@ -52,6 +67,11 @@ export default function MainTainPage() {
     const [locationSearchQ, setLocationSearchQ] = useState("");
     const [locationFileInputRef, setLocationFileInputRef] = useState<HTMLInputElement | null>(null);
     const [locationsList, setLocationsList] = useState<any[]>([]);
+    const [showLocationModal, setShowLocationModal] = useState(false);
+    const [editingLocationId, setEditingLocationId] = useState<string | null>(null);
+    const [locationFormData, setLocationFormData] = useState({ id: "", name: "", short_name: "", code: "", status: "active", bu: "" });
+    const [locationFormError, setLocationFormError] = useState<string | null>(null);
+    const [isSavingLocation, setIsSavingLocation] = useState(false);
 
     const fetchLocations = useCallback(async () => {
         let alive = true;
@@ -382,6 +402,11 @@ export default function MainTainPage() {
     const [vendorError, setVendorError] = useState<string | null>(null);
     const [vendorSearchQ, setVendorSearchQ] = useState("");
     const [vendorFileInputRef, setVendorFileInputRef] = useState<HTMLInputElement | null>(null);
+    const [showVendorModal, setShowVendorModal] = useState(false);
+    const [editingVendorId, setEditingVendorId] = useState<number | null>(null);
+    const [vendorFormData, setVendorFormData] = useState({ vendor_no: "", vendor_name: "", vendor_email: "" });
+    const [vendorFormError, setVendorFormError] = useState<string | null>(null);
+    const [isSavingVendor, setIsSavingVendor] = useState(false);
 
     //* User & Access Info state
     const [usersRows, setUsersRows] = useState<any[]>([]);
@@ -420,6 +445,322 @@ export default function MainTainPage() {
 
     const isEditMode = editingId !== null;
     const [updatedUser, setUpdatedUser] = useState("");
+
+    const fetchCategories = useCallback(async () => {
+        let alive = true;
+        try {
+            setCategoryLoading(true);
+            setCategoryError(null);
+            const res = await fetch("/api/maintain/categories", { cache: "no-store" });
+            const data = await res.json();
+            if (!data.ok) throw new Error(data?.message || "โหลดข้อมูลหมวดหมู่ไม่สำเร็จ");
+            if (alive) {
+                setCategoriesList(data.categories || []);
+            }
+        } catch (e) {
+            if (alive) {
+                setCategoryError((e as Error).message);
+            }
+        } finally {
+            if (alive) {
+                setCategoryLoading(false);
+            }
+        }
+        return () => { alive = false; };
+    }, []);
+
+
+
+    const openAddCategoryModal = () => {
+        setEditingCategoryId(null);
+        setCategoryFormData({ name: "" });
+        setCategoryFormError(null);
+        setShowCategoryModal(true);
+    };
+
+    const openEditCategoryModal = (cat: any) => {
+        setEditingCategoryId(cat.id);
+        setCategoryFormData({ name: cat.name });
+        setCategoryFormError(null);
+        setShowCategoryModal(true);
+    };
+
+    const handleSaveCategory = async () => {
+        if (!categoryFormData.name.trim()) {
+            setCategoryFormError("กรุณาระบุชื่อหมวดหมู่");
+            return;
+        }
+
+        try {
+            setIsSavingCategory(true);
+            setCategoryFormError(null);
+
+            const method = editingCategoryId ? "PUT" : "POST";
+            const body = {
+                id: editingCategoryId,
+                name: categoryFormData.name,
+                updatedUser,
+            };
+
+            const res = await fetch("/api/maintain/categories", {
+                method,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || "บันทึกไม่สำเร็จ");
+
+            setShowCategoryModal(false);
+            fetchCategories();
+        } catch (err: any) {
+            setCategoryFormError(err.message);
+        } finally {
+            setIsSavingCategory(false);
+        }
+    };
+
+    const handleDeleteCategory = async (id: number) => {
+        if (!confirm("คุณต้องการลบหมวดหมู่นี้ใช่หรือไม่?")) return;
+
+        try {
+            setCategoryLoading(true);
+            const res = await fetch(`/api/maintain/categories?id=${id}`, {
+                method: "DELETE",
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || "ลบไม่สำเร็จ");
+
+            fetchCategories();
+        } catch (err: any) {
+            alert(err.message);
+        } finally {
+            setCategoryLoading(false);
+        }
+    };
+
+    const openAddLocationModal = () => {
+        setEditingLocationId(null);
+        setLocationFormData({ id: "", name: "", short_name: "", code: "", status: "active", bu: "" });
+        setLocationFormError(null);
+        setShowLocationModal(true);
+    };
+
+    const openEditLocationModal = (loc: any) => {
+        setEditingLocationId(loc.id);
+        setLocationFormData({ id: loc.id, name: loc.name, short_name: loc.short_name || "", code: loc.code || "", status: loc.status || "active", bu: loc.bu || "" });
+        setLocationFormError(null);
+        setShowLocationModal(true);
+    };
+
+    const handleSaveLocation = async () => {
+        if (!locationFormData.id.trim() || !locationFormData.name.trim()) {
+            setLocationFormError("กรุณาระบุรหัสสาขาและชื่อสาขา");
+            return;
+        }
+
+        try {
+            setIsSavingLocation(true);
+            setLocationFormError(null);
+
+            const method = editingLocationId ? "PUT" : "POST";
+            const body = {
+                id: locationFormData.id,
+                name: locationFormData.name,
+                short_name: locationFormData.short_name,
+                code: locationFormData.code,
+                status: locationFormData.status,
+                bu: locationFormData.bu,
+            };
+
+            const res = await fetch("/api/maintain/locations", {
+                method,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || "บันทึกไม่สำเร็จ");
+
+            setShowLocationModal(false);
+            fetchLocations();
+        } catch (err: any) {
+            setLocationFormError(err.message);
+        } finally {
+            setIsSavingLocation(false);
+        }
+    };
+
+    const handleDeleteLocation = async (id: string) => {
+        if (!confirm("คุณต้องการลบสาขานี้ใช่หรือไม่?")) return;
+
+        try {
+            setLocationLoading(true);
+            const res = await fetch(`/api/maintain/locations?id=${id}`, {
+                method: "DELETE",
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || "ลบไม่สำเร็จ");
+
+            fetchLocations();
+        } catch (err: any) {
+            alert(err.message);
+        } finally {
+            setLocationLoading(false);
+        }
+    };
+
+    const openAddVendorModal = () => {
+        setEditingVendorId(null);
+        setVendorFormData({ vendor_no: "", vendor_name: "", vendor_email: "" });
+        setVendorFormError(null);
+        setShowVendorModal(true);
+    };
+
+    const openEditVendorModal = (v: any) => {
+        setEditingVendorId(v.id);
+        setVendorFormData({ vendor_no: String(v.vendor_no), vendor_name: v.vendor_name || "", vendor_email: v.vendor_email || "" });
+        setVendorFormError(null);
+        setShowVendorModal(true);
+    };
+
+    const handleSaveVendor = async () => {
+        if (!vendorFormData.vendor_no.trim() || !vendorFormData.vendor_name.trim() || !vendorFormData.vendor_email.trim()) {
+            setVendorFormError("กรุณาระบุข้อมูลให้ครบถ้วน");
+            return;
+        }
+
+        try {
+            setIsSavingVendor(true);
+            setVendorFormError(null);
+
+            const method = editingVendorId ? "PUT" : "POST";
+            const body = {
+                id: editingVendorId,
+                vendor_no: vendorFormData.vendor_no,
+                vendor_name: vendorFormData.vendor_name,
+                vendor_email: vendorFormData.vendor_email,
+                updatedUser,
+            };
+
+            const res = await fetch("/api/maintain/vendor", {
+                method,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || "บันทึกไม่สำเร็จ");
+
+            setShowVendorModal(false);
+            fetchVendorData();
+        } catch (err: any) {
+            setVendorFormError(err.message);
+        } finally {
+            setIsSavingVendor(false);
+        }
+    };
+
+    const handleDeleteVendor = async (id: number) => {
+        if (!confirm("คุณต้องการลบผู้รับเหมารายนี้ใช่หรือไม่?")) return;
+
+        try {
+            setVendorLoading(true);
+            const res = await fetch(`/api/maintain/vendor?id=${id}`, {
+                method: "DELETE",
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || "ลบไม่สำเร็จ");
+
+            fetchVendorData();
+        } catch (err: any) {
+            alert(err.message);
+        } finally {
+            setVendorLoading(false);
+        }
+    };
+
+    const openAddProductModal = () => {
+        setEditingProductSku(null);
+        setProductFormData({ sku: "", sbc: "", sku_name: "", brand: "", class_name: "", sku_cost: "", sku_price: "", vendor_no: "", vendor_name: "", model: "" });
+        setProductFormError(null);
+        setShowProductModal(true);
+    };
+
+    const openEditProductModal = (p: any) => {
+        setEditingProductSku(p.sku);
+        setProductFormData({
+            sku: String(p.sku),
+            sbc: p.sbc || "",
+            sku_name: p.sku_name || "",
+            brand: p.brand || "",
+            class_name: p.class_name || "",
+            sku_cost: String(p.sku_cost || 0),
+            sku_price: String(p.sku_price || 0),
+            vendor_no: String(p.vendor_no || 0),
+            vendor_name: p.vendor_name || "",
+            model: p.model || "",
+        });
+        setProductFormError(null);
+        setShowProductModal(true);
+    };
+
+    const handleSaveProduct = async () => {
+        if (!productFormData.sku.trim() || !productFormData.sku_name.trim() || !productFormData.brand.trim()) {
+            setProductFormError("กรุณาระบุข้อมูลจำเป็นให้ครบถ้วน (SKU, ชื่อสินค้า, ยี่ห้อ)");
+            return;
+        }
+
+        try {
+            setIsSavingProduct(true);
+            setProductFormError(null);
+
+            const method = editingProductSku ? "PUT" : "POST";
+            const body = {
+                sku: productFormData.sku,
+                sbc: productFormData.sbc || null,
+                sku_name: productFormData.sku_name,
+                brand: productFormData.brand,
+                class_name: productFormData.class_name,
+                sku_cost: productFormData.sku_cost,
+                sku_price: productFormData.sku_price,
+                vendor_no: productFormData.vendor_no,
+                vendor_name: productFormData.vendor_name,
+                model: productFormData.model,
+            };
+
+            const res = await fetch("/api/maintain/products", {
+                method,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || "บันทึกไม่สำเร็จ");
+
+            setShowProductModal(false);
+            fetchProducts();
+        } catch (err: any) {
+            setProductFormError(err.message);
+        } finally {
+            setIsSavingProduct(false);
+        }
+    };
+
+    const handleDeleteProduct = async (sku: string) => {
+        if (!confirm("คุณต้องการลบสินค้ารายการนี้ใช่หรือไม่?")) return;
+
+        try {
+            setProductLoading(true);
+            const res = await fetch(`/api/maintain/products?sku=${sku}`, {
+                method: "DELETE",
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || "ลบไม่สำเร็จ");
+
+            fetchProducts();
+        } catch (err: any) {
+            alert(err.message);
+        } finally {
+            setProductLoading(false);
+        }
+    };
 
     const filterRows = (dataToFilter: StatusInfo[], path: string) => {
         setPathFilter(path);
@@ -500,6 +841,16 @@ export default function MainTainPage() {
             fetchVendorData();
         }
     }, [tab, fetchVendorData]);
+
+    //* Load categories and vendor data for category/product tabs
+    useEffect(() => {
+        if (tab === "category" || tab === "product") {
+            fetchCategories();
+        }
+        if (tab === "product") {
+            fetchVendorData();
+        }
+    }, [tab, fetchCategories, fetchVendorData]);
 
     //* Fetch users data
     const fetchUsersData = useCallback(async () => {
@@ -990,6 +1341,16 @@ export default function MainTainPage() {
                         Product Info (สินค้า & ทุน)
                     </button>
                     <button
+                        onClick={() => setTab("category")}
+                        className={`pb-3 px-2 font-medium transition ${
+                            tab === "category"
+                                ? "text-blue-600 border-b-2 border-blue-600"
+                                : "text-slate-600 hover:text-slate-900"
+                        }`}
+                    >
+                        Category Info (หมวดหมู่สินค้า)
+                    </button>
+                    <button
                         onClick={() => setTab("symptom")}
                         className={`pb-3 px-2 font-medium transition ${
                             tab === "symptom"
@@ -1117,7 +1478,13 @@ export default function MainTainPage() {
                 {tab === "vendor" && (
                     <>
                         <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-xl font-semibold text-slate-900">Vendor Info</h2>
+                            <h2 className="text-xl font-semibold text-slate-900">Vendor Info (ผู้รับเหมา)</h2>
+                            <button
+                                onClick={openAddVendorModal}
+                                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg shadow transition text-sm"
+                            >
+                                เพิ่มผู้รับเหมา
+                            </button>
                         </div>
 
                         {vendorError && (
@@ -1172,18 +1539,20 @@ export default function MainTainPage() {
 
                         <div className="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden">
                             <div className="overflow-x-auto">
-                                <table className="w-full">
+                                <table className="w-full text-sm">
                                     <thead className="bg-slate-50 border-b border-slate-200">
                                         <tr>
-                                            <th className="text-center px-6 py-3 font-semibold text-slate-900">No.</th>
-                                            <th className="text-center px-6 py-3 font-semibold text-slate-900">Vendor Name</th>
-                                            <th className="text-center px-6 py-3 font-semibold text-slate-900">Email</th>
+                                            <th className="text-center px-6 py-3 font-semibold text-slate-900 w-16">No.</th>
+                                            <th className="text-left px-6 py-3 font-semibold text-slate-900 w-32">Vendor No</th>
+                                            <th className="text-left px-6 py-3 font-semibold text-slate-900">Vendor Name</th>
+                                            <th className="text-left px-6 py-3 font-semibold text-slate-900">Email</th>
+                                            <th className="text-center px-6 py-3 font-semibold text-slate-900 w-32">การจัดการ</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {filteredVendorRows.length === 0 ? (
                                             <tr>
-                                                <td colSpan={3} className="px-6 py-6 text-center text-slate-500">
+                                                <td colSpan={5} className="px-6 py-6 text-center text-slate-500">
                                                     ไม่พบข้อมูล
                                                 </td>
                                             </tr>
@@ -1191,8 +1560,25 @@ export default function MainTainPage() {
                                             filteredVendorRows.map((row, idx) => (
                                                 <tr key={row.id} className="border-t border-slate-100 hover:bg-slate-50">
                                                     <td className="px-6 py-4 text-slate-900 text-center">{idx + 1}</td>
-                                                    <td className="px-6 py-4 text-slate-700">{row.vendor_name}</td>
+                                                    <td className="px-6 py-4 text-slate-900 font-mono font-semibold">{row.vendor_no}</td>
+                                                    <td className="px-6 py-4 text-slate-700 font-semibold">{row.vendor_name}</td>
                                                     <td className="px-6 py-4 text-slate-700">{row.vendor_email}</td>
+                                                    <td className="px-6 py-4 text-center">
+                                                        <div className="flex items-center justify-center gap-2">
+                                                            <button
+                                                                onClick={() => openEditVendorModal(row)}
+                                                                className="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-md text-xs font-semibold"
+                                                            >
+                                                                แก้ไข
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeleteVendor(row.id)}
+                                                                className="px-2.5 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-md text-xs font-semibold"
+                                                            >
+                                                                ลบ
+                                                            </button>
+                                                        </div>
+                                                    </td>
                                                 </tr>
                                             ))
                                         )}
@@ -1389,6 +1775,12 @@ export default function MainTainPage() {
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-xl font-semibold text-slate-900">จัดการข้อมูลสาขา (Location Management)</h2>
                             <div className="flex gap-3">
+                                <button
+                                    onClick={openAddLocationModal}
+                                    className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg shadow transition text-sm"
+                                >
+                                    เพิ่มสาขา
+                                </button>
                                 <input
                                     type="file"
                                     accept=".xlsx,.xls,.json"
@@ -1399,7 +1791,7 @@ export default function MainTainPage() {
                                 <button
                                     onClick={() => locationFileInputRef?.click()}
                                     disabled={locationLoading}
-                                    className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg shadow transition text-sm disabled:opacity-50"
+                                    className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold rounded-lg shadow transition text-sm disabled:opacity-50"
                                 >
                                     {locationLoading ? "กำลังนำเข้า..." : "นำเข้าข้อมูลสาขา (Excel / JSON)"}
                                 </button>
@@ -1431,20 +1823,22 @@ export default function MainTainPage() {
                                             <th className="text-left px-6 py-3 font-semibold text-slate-900">ID / Code</th>
                                             <th className="text-left px-6 py-3 font-semibold text-slate-900">ชื่อสาขา</th>
                                             <th className="text-left px-6 py-3 font-semibold text-slate-900">ชื่อย่อ (Short Name)</th>
+                                            <th className="text-center px-6 py-3 font-semibold text-slate-900 w-36">BU / Workspace</th>
                                             <th className="text-center px-6 py-3 font-semibold text-slate-900 w-24">สถานะ</th>
+                                            <th className="text-center px-6 py-3 font-semibold text-slate-900 w-32">การจัดการ</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {locationLoading ? (
                                             <tr>
-                                                <td colSpan={5} className="px-6 py-6 text-center text-slate-500">
+                                                <td colSpan={6} className="px-6 py-6 text-center text-slate-500">
                                                     กำลังโหลดข้อมูล...
                                                 </td>
                                             </tr>
                                         ) : locationsList.length === 0 ? (
                                             <tr>
-                                                <td colSpan={5} className="px-6 py-6 text-center text-slate-500">
-                                                    ไม่พบข้อมูลสาขา (กรุณานำเข้าไฟล์ Excel/JSON เพื่อเริ่มต้น)
+                                                <td colSpan={6} className="px-6 py-6 text-center text-slate-500">
+                                                    ไม่พบข้อมูลสาขา
                                                 </td>
                                             </tr>
                                         ) : (
@@ -1459,12 +1853,37 @@ export default function MainTainPage() {
                                                         <td className="px-6 py-4 text-slate-900 font-mono font-semibold">{row.id}</td>
                                                         <td className="px-6 py-4 text-slate-900 font-semibold">{row.name}</td>
                                                         <td className="px-6 py-4 text-slate-700">{row.short_name || "-"}</td>
+                                                        <td className="px-6 py-4 text-center">
+                                                            {row.bu ? (
+                                                                <span className="px-2.5 py-1 rounded bg-violet-100 text-violet-800 text-xs font-bold font-mono">
+                                                                    {row.bu}
+                                                                </span>
+                                                            ) : (
+                                                                <span className="text-slate-400 text-xs italic">Auto</span>
+                                                            )}
+                                                        </td>
                                                         <td className="px-6 py-4 text-slate-700 text-center">
                                                             <span className={`px-2 py-1 rounded text-xs font-semibold ${
                                                                 row.status === "active" ? "bg-green-100 text-green-800" : "bg-slate-100 text-slate-800"
                                                             }`}>
                                                                 {row.status || "active"}
                                                             </span>
+                                                        </td>
+                                                        <td className="px-6 py-4 text-center">
+                                                            <div className="flex items-center justify-center gap-2">
+                                                                <button
+                                                                    onClick={() => openEditLocationModal(row)}
+                                                                    className="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-md text-xs font-semibold"
+                                                                >
+                                                                    แก้ไข
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDeleteLocation(row.id)}
+                                                                    className="px-2.5 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-md text-xs font-semibold"
+                                                                >
+                                                                    ลบ
+                                                                </button>
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                 ))
@@ -1481,6 +1900,12 @@ export default function MainTainPage() {
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-xl font-semibold text-slate-900">จัดการข้อมูลสินค้าและต้นทุน (Product & Cost Management)</h2>
                             <div className="flex gap-3">
+                                <button
+                                    onClick={openAddProductModal}
+                                    className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg shadow transition text-sm"
+                                >
+                                    เพิ่มสินค้า
+                                </button>
                                 <input
                                     type="file"
                                     accept=".xlsx,.xls,.json"
@@ -1491,7 +1916,7 @@ export default function MainTainPage() {
                                 <button
                                     onClick={() => productFileInputRef?.click()}
                                     disabled={productLoading}
-                                    className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg shadow transition text-sm disabled:opacity-50"
+                                    className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold rounded-lg shadow transition text-sm disabled:opacity-50"
                                 >
                                     {productLoading ? "กำลังนำเข้า..." : "นำเข้าข้อมูลสินค้า (Excel)"}
                                 </button>
@@ -1499,7 +1924,7 @@ export default function MainTainPage() {
                         </div>
 
                         {productError && (
-                            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
                                 {productError}
                             </div>
                         )}
@@ -1533,18 +1958,19 @@ export default function MainTainPage() {
                                             <th className="text-left px-6 py-3 font-semibold text-slate-900 w-32">ยี่ห้อ</th>
                                             <th className="text-right px-6 py-3 font-semibold text-slate-900 w-28">ทุน (Cost)</th>
                                             <th className="text-right px-6 py-3 font-semibold text-slate-900 w-28">ราคา (Price)</th>
+                                            <th className="text-center px-6 py-3 font-semibold text-slate-900 w-32">การจัดการ</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {productLoading ? (
                                             <tr>
-                                                <td colSpan={8} className="px-6 py-6 text-center text-slate-500">
+                                                <td colSpan={9} className="px-6 py-6 text-center text-slate-500">
                                                     กำลังโหลดข้อมูล...
                                                 </td>
                                             </tr>
                                         ) : productsList.length === 0 ? (
                                             <tr>
-                                                <td colSpan={8} className="px-6 py-6 text-center text-slate-500">
+                                                <td colSpan={9} className="px-6 py-6 text-center text-slate-500">
                                                     ไม่พบข้อมูลสินค้า
                                                 </td>
                                             </tr>
@@ -1562,6 +1988,22 @@ export default function MainTainPage() {
                                                     </td>
                                                     <td className="px-6 py-4 text-slate-900 text-right font-mono font-semibold">
                                                         {row.sku_price?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-center">
+                                                        <div className="flex items-center justify-center gap-2">
+                                                            <button
+                                                                onClick={() => openEditProductModal(row)}
+                                                                className="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-md text-xs font-semibold"
+                                                            >
+                                                                แก้ไข
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeleteProduct(row.sku)}
+                                                                className="px-2.5 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-md text-xs font-semibold"
+                                                            >
+                                                                ลบ
+                                                            </button>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             ))
@@ -1653,6 +2095,78 @@ export default function MainTainPage() {
                                                             </button>
                                                             <button
                                                                 onClick={() => handleDeleteSymptom(row.id)}
+                                                                className="px-2.5 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-md text-xs font-semibold"
+                                                            >
+                                                                ลบ
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {tab === "category" && (
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-xl font-semibold text-slate-900">จัดการหมวดหมู่สินค้า (Category Management)</h2>
+                            <button
+                                onClick={openAddCategoryModal}
+                                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg shadow transition text-sm"
+                            >
+                                เพิ่มหมวดหมู่
+                            </button>
+                        </div>
+
+                        {categoryError && (
+                            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                                {categoryError}
+                            </div>
+                        )}
+
+                        <div className="bg-white rounded-xl shadow-sm border border-slate-200/80 overflow-hidden">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm">
+                                    <thead className="bg-slate-50 border-b border-slate-200">
+                                        <tr>
+                                            <th className="text-center px-6 py-3 font-semibold text-slate-900 w-16">ลำดับ</th>
+                                            <th className="text-left px-6 py-3 font-semibold text-slate-900">ชื่อหมวดหมู่</th>
+                                            <th className="text-center px-6 py-3 font-semibold text-slate-900 w-32">การจัดการ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {categoryLoading ? (
+                                            <tr>
+                                                <td colSpan={3} className="px-6 py-6 text-center text-slate-500">
+                                                    กำลังโหลดข้อมูล...
+                                                </td>
+                                            </tr>
+                                        ) : categoriesList.length === 0 ? (
+                                            <tr>
+                                                <td colSpan={3} className="px-6 py-6 text-center text-slate-500">
+                                                    ไม่พบข้อมูลหมวดหมู่
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            categoriesList.map((row, idx) => (
+                                                <tr key={row.id} className="border-t border-slate-100 hover:bg-slate-50">
+                                                    <td className="px-6 py-4 text-slate-900 text-center">{idx + 1}</td>
+                                                    <td className="px-6 py-4 text-slate-900 font-semibold">{row.name}</td>
+                                                    <td className="px-6 py-4 text-center">
+                                                        <div className="flex items-center justify-center gap-2">
+                                                            <button
+                                                                onClick={() => openEditCategoryModal(row)}
+                                                                className="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-md text-xs font-semibold"
+                                                            >
+                                                                แก้ไข
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeleteCategory(row.id)}
                                                                 className="px-2.5 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-md text-xs font-semibold"
                                                             >
                                                                 ลบ
@@ -2182,6 +2696,391 @@ export default function MainTainPage() {
                                 className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-medium disabled:opacity-50 transition shadow"
                             >
                                 {isSavingUser ? "กำลังบันทึก..." : "บันทึก"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showCategoryModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-lg max-w-md w-full p-6 shadow-lg">
+                        <h2 className="text-xl font-bold text-slate-900 mb-4">
+                            {editingCategoryId ? "แก้ไขหมวดหมู่สินค้า" : "เพิ่มหมวดหมู่สินค้าใหม่"}
+                        </h2>
+
+                        {categoryFormError && (
+                            <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded mb-4 text-sm">
+                                {categoryFormError}
+                            </div>
+                        )}
+
+                        <div className="space-y-4 mb-6">
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1">ชื่อหมวดหมู่ <span className="text-red-500">*</span></label>
+                                <input
+                                    type="text"
+                                    value={categoryFormData.name}
+                                    onChange={(e) => setCategoryFormData({ name: e.target.value })}
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 text-slate-900"
+                                    placeholder="เช่น เครื่องซักผ้า, ทีวี, เครื่องใช้ไฟฟ้า..."
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3 justify-end">
+                            <button
+                                onClick={() => setShowCategoryModal(false)}
+                                disabled={isSavingCategory}
+                                className="px-4 py-2 text-slate-700 bg-slate-200 hover:bg-slate-300 rounded-lg font-medium disabled:opacity-50 transition"
+                            >
+                                ยกเลิก
+                            </button>
+                            <button
+                                onClick={handleSaveCategory}
+                                disabled={isSavingCategory}
+                                className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-medium disabled:opacity-50 transition shadow"
+                            >
+                                {isSavingCategory ? "กำลังบันทึก..." : "บันทึก"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showLocationModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-lg max-w-md w-full p-6 shadow-lg">
+                        <h2 className="text-xl font-bold text-slate-900 mb-4">
+                            {editingLocationId ? "แก้ไขข้อมูลสาขา" : "เพิ่มสาขาใหม่"}
+                        </h2>
+
+                        {locationFormError && (
+                            <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded mb-4 text-sm">
+                                {locationFormError}
+                            </div>
+                        )}
+
+                        <div className="space-y-4 mb-6">
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1">รหัสสาขา (ID/Code) <span className="text-red-500">*</span></label>
+                                <input
+                                    type="text"
+                                    value={locationFormData.id}
+                                    onChange={(e) => setLocationFormData({ ...locationFormData, id: e.target.value })}
+                                    disabled={editingLocationId !== null}
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 disabled:bg-slate-100 text-slate-900"
+                                    placeholder="เช่น BN, RAMA9"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1">ชื่อสาขา <span className="text-red-500">*</span></label>
+                                <input
+                                    type="text"
+                                    value={locationFormData.name}
+                                    onChange={(e) => setLocationFormData({ ...locationFormData, name: e.target.value })}
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 text-slate-900"
+                                    placeholder="เช่น บางนา, พระราม 9"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1">ชื่อย่อ (Short Name)</label>
+                                <input
+                                    type="text"
+                                    value={locationFormData.short_name}
+                                    onChange={(e) => setLocationFormData({ ...locationFormData, short_name: e.target.value })}
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 text-slate-900"
+                                    placeholder="เช่น BN"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1">รหัสย่อ (Code)</label>
+                                <input
+                                    type="text"
+                                    value={locationFormData.code}
+                                    onChange={(e) => setLocationFormData({ ...locationFormData, code: e.target.value })}
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 text-slate-900"
+                                    placeholder="เช่น 1001"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1">Business Unit / Workspace (BU Prefix)</label>
+                                <select
+                                    value={locationFormData.bu}
+                                    onChange={(e) => setLocationFormData({ ...locationFormData, bu: e.target.value })}
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white text-slate-900 font-semibold"
+                                >
+                                    <option value="">-- อัตโนมัติ (Auto-detect) --</option>
+                                    <option value="TW">TW (ไทวัสดุ / Thaiwatsadu)</option>
+                                    <option value="A1">A1 (Auto1 / Auto 1)</option>
+                                    <option value="BB">BB (Baan & Beyond / BNB)</option>
+                                    <option value="GW">GW (Go Wow)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1">สถานะ</label>
+                                <select
+                                    value={locationFormData.status}
+                                    onChange={(e) => setLocationFormData({ ...locationFormData, status: e.target.value })}
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white text-slate-900"
+                                >
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3 justify-end">
+                            <button
+                                onClick={() => setShowLocationModal(false)}
+                                disabled={isSavingLocation}
+                                className="px-4 py-2 text-slate-700 bg-slate-200 hover:bg-slate-300 rounded-lg font-medium disabled:opacity-50 transition"
+                            >
+                                ยกเลิก
+                            </button>
+                            <button
+                                onClick={handleSaveLocation}
+                                disabled={isSavingLocation}
+                                className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-medium disabled:opacity-50 transition shadow"
+                            >
+                                {isSavingLocation ? "กำลังบันทึก..." : "บันทึก"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showVendorModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-lg max-w-md w-full p-6 shadow-lg">
+                        <h2 className="text-xl font-bold text-slate-900 mb-4">
+                            {editingVendorId ? "แก้ไขข้อมูลผู้รับเหมา" : "เพิ่มผู้รับเหมาใหม่"}
+                        </h2>
+
+                        {vendorFormError && (
+                            <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded mb-4 text-sm">
+                                {vendorFormError}
+                            </div>
+                        )}
+
+                        <div className="space-y-4 mb-6">
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1">รหัสผู้รับเหมา (Vendor No) <span className="text-red-500">*</span></label>
+                                <input
+                                    type="number"
+                                    value={vendorFormData.vendor_no}
+                                    onChange={(e) => setVendorFormData({ ...vendorFormData, vendor_no: e.target.value })}
+                                    disabled={editingVendorId !== null}
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 disabled:bg-slate-100 text-slate-900"
+                                    placeholder="เช่น 100201"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1">ชื่อผู้รับเหมา <span className="text-red-500">*</span></label>
+                                <input
+                                    type="text"
+                                    value={vendorFormData.vendor_name}
+                                    onChange={(e) => setVendorFormData({ ...vendorFormData, vendor_name: e.target.value })}
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 text-slate-900"
+                                    placeholder="เช่น บจก. เทคโน แอดวานซ์"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1">อีเมลผู้รับเหมา <span className="text-red-500">*</span></label>
+                                <input
+                                    type="email"
+                                    value={vendorFormData.vendor_email}
+                                    onChange={(e) => setVendorFormData({ ...vendorFormData, vendor_email: e.target.value })}
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 text-slate-900"
+                                    placeholder="เช่น contact@vendor.com"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3 justify-end">
+                            <button
+                                onClick={() => setShowVendorModal(false)}
+                                disabled={isSavingVendor}
+                                className="px-4 py-2 text-slate-700 bg-slate-200 hover:bg-slate-300 rounded-lg font-medium disabled:opacity-50 transition"
+                            >
+                                ยกเลิก
+                            </button>
+                            <button
+                                onClick={handleSaveVendor}
+                                disabled={isSavingVendor}
+                                className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-medium disabled:opacity-50 transition shadow"
+                            >
+                                {isSavingVendor ? "กำลังบันทึก..." : "บันทึก"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showProductModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-lg max-w-lg w-full p-6 shadow-lg max-h-[90vh] overflow-y-auto">
+                        <h2 className="text-xl font-bold text-slate-900 mb-4">
+                            {editingProductSku ? "แก้ไขข้อมูลสินค้า" : "เพิ่มสินค้าใหม่"}
+                        </h2>
+
+                        {productFormError && (
+                            <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded mb-4 text-sm">
+                                {productFormError}
+                            </div>
+                        )}
+
+                        <div className="space-y-4 mb-6">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-1">รหัสสินค้า (SKU) <span className="text-red-500">*</span></label>
+                                    <input
+                                        type="text"
+                                        value={productFormData.sku}
+                                        onChange={(e) => setProductFormData({ ...productFormData, sku: e.target.value })}
+                                        disabled={editingProductSku !== null}
+                                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 disabled:bg-slate-100 text-slate-900"
+                                        placeholder="เช่น 12345678"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-1">รหัสบาร์โค้ด (SBC/Barcode)</label>
+                                    <input
+                                        type="text"
+                                        value={productFormData.sbc}
+                                        onChange={(e) => setProductFormData({ ...productFormData, sbc: e.target.value })}
+                                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 text-slate-900"
+                                        placeholder="เช่น 8851234567890"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1">ชื่อสินค้า <span className="text-red-500">*</span></label>
+                                <input
+                                    type="text"
+                                    value={productFormData.sku_name}
+                                    onChange={(e) => setProductFormData({ ...productFormData, sku_name: e.target.value })}
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 text-slate-900"
+                                    placeholder="เช่น หม้อหุงข้าวไฟฟ้า 1.8 ลิตร"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-1">ยี่ห้อ (Brand) <span className="text-red-500">*</span></label>
+                                    <input
+                                        type="text"
+                                        value={productFormData.brand}
+                                        onChange={(e) => setProductFormData({ ...productFormData, brand: e.target.value })}
+                                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 text-slate-900"
+                                        placeholder="เช่น Sharp, Toshiba"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-1">รุ่น (Model)</label>
+                                    <input
+                                        type="text"
+                                        value={productFormData.model}
+                                        onChange={(e) => setProductFormData({ ...productFormData, model: e.target.value })}
+                                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 text-slate-900"
+                                        placeholder="เช่น KS-18E"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1">หมวดหมู่สินค้า (Category)</label>
+                                <select
+                                    value={productFormData.class_name}
+                                    onChange={(e) => setProductFormData({ ...productFormData, class_name: e.target.value })}
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white text-slate-900 font-medium"
+                                >
+                                    <option value="">-- เลือกหมวดหมู่ --</option>
+                                    {categoriesList.map(cat => (
+                                        <option key={cat.id} value={cat.name}>{cat.name}</option>
+                                    ))}
+                                    <option value="General">General</option>
+                                </select>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-1">ต้นทุน (Cost)</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        value={productFormData.sku_cost}
+                                        onChange={(e) => setProductFormData({ ...productFormData, sku_cost: e.target.value })}
+                                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 text-slate-900"
+                                        placeholder="0.00"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-1">ราคาขาย (Price)</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        value={productFormData.sku_price}
+                                        onChange={(e) => setProductFormData({ ...productFormData, sku_price: e.target.value })}
+                                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 text-slate-900"
+                                        placeholder="0.00"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-1">รหัสผู้รับเหมา (Vendor No)</label>
+                                    <select
+                                        value={productFormData.vendor_no}
+                                        onChange={(e) => {
+                                            const vNo = e.target.value;
+                                            const vName = vendorRows.find(v => String(v.vendor_no) === vNo)?.vendor_name || "";
+                                            setProductFormData({ ...productFormData, vendor_no: vNo, vendor_name: vName });
+                                        }}
+                                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white text-slate-900 font-medium"
+                                    >
+                                        <option value="">-- เลือกผู้รับเหมา --</option>
+                                        {vendorRows.map(v => (
+                                            <option key={v.id} value={String(v.vendor_no)}>{v.vendor_no} - {v.vendor_name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-1">ชื่อผู้รับเหมา (Vendor Name)</label>
+                                    <input
+                                        type="text"
+                                        value={productFormData.vendor_name}
+                                        onChange={(e) => setProductFormData({ ...productFormData, vendor_name: e.target.value })}
+                                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 bg-slate-100 text-slate-900"
+                                        disabled
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3 justify-end">
+                            <button
+                                onClick={() => setShowProductModal(false)}
+                                disabled={isSavingProduct}
+                                className="px-4 py-2 text-slate-700 bg-slate-200 hover:bg-slate-300 rounded-lg font-medium disabled:opacity-50 transition"
+                            >
+                                ยกเลิก
+                            </button>
+                            <button
+                                onClick={handleSaveProduct}
+                                disabled={isSavingProduct}
+                                className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-medium disabled:opacity-50 transition shadow"
+                            >
+                                {isSavingProduct ? "กำลังบันทึก..." : "บันทึก"}
                             </button>
                         </div>
                     </div>

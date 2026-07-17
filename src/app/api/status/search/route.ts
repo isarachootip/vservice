@@ -19,6 +19,7 @@ type SearchRow = {
   qty: number | null;
   in_warranty: string | null;
   store_code: string | null;
+  location_id: string | null;
   status: number | null;
   customer_receive_date: Date | null;
   created_date: Date | null;
@@ -34,6 +35,31 @@ type SearchRow = {
   reject_from_status: string | null;
   sla_hours: number | null;
 };
+
+function getStoreNickFromLocation(name: string, shortName: string): string {
+  const n = name.toUpperCase();
+  const s = (shortName || "").toUpperCase();
+  
+  let clean = name
+    .replace(/AUTO\s*1/gi, "")
+    .replace(/TW/g, "")
+    .replace(/ไทวัสดุ/g, "")
+    .replace(/สาขา/g, "")
+    .replace(/\*/g, "")
+    .trim();
+  
+  if (clean.includes("บางนา")) return "BNN";
+  if (clean.includes("พระราม 9") || clean.includes("พระราม9")) return "RM9";
+  if (clean.includes("สุขาภิบาล 3")) return "SH3";
+  if (clean.includes("นวมินทร์")) return "NVM";
+  if (clean.includes("รังสิต")) return "RST";
+  if (clean.includes("สระบุรี")) return "SRB";
+  
+  if (clean.includes("สำนักงานใหญ่")) return "HQ";
+  
+  const eng = clean.match(/[A-Z0-9]+/g);
+  return (eng && eng[0]) ? eng[0].slice(0, 3).toUpperCase().padEnd(3, 'X') : clean.slice(0, 3).trim().toUpperCase();
+}
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -89,40 +115,69 @@ export async function GET(req: Request) {
     });
   }
 
+  let matchedLocationIds: string[] = [];
   if (q) {
-    const matchedStores = await prisma.store.findMany({
-      where: {
-        store_nick3: {
-          contains: q,
-          mode: "insensitive",
+    const [matchedStores, matchedLocations] = await Promise.all([
+      prisma.store.findMany({
+        where: {
+          OR: [
+            { store_nick3: { contains: q, mode: "insensitive" } },
+            { store_name_th: { contains: q, mode: "insensitive" } },
+            { store_name_en: { contains: q, mode: "insensitive" } },
+          ],
         },
-      },
-      select: {
-        store_code: true,
-      },
-    });
+        select: {
+          store_code: true,
+        },
+      }),
+      prisma.location.findMany({
+        where: {
+          OR: [
+            { name: { contains: q, mode: "insensitive" } },
+            { short_name: { contains: q, mode: "insensitive" } },
+          ],
+        },
+        select: {
+          id: true,
+        },
+      }),
+    ]);
     matchedStoreCodes = matchedStores.map((s) => s.store_code);
+    matchedLocationIds = matchedLocations.map((l) => l.id);
   }
 
   if (q) {
     andConditions.push({
       OR: [
-        { serial_no: { contains: q } },
-        { brand: { contains: q } },
-        { product_type: { contains: q } },
-        { repair_request: { is: { request_no: { contains: q } } } },
-        { repair_request: { is: { customer_name: { contains: q } } } },
+        { serial_no: { contains: q, mode: "insensitive" } },
+        { brand: { contains: q, mode: "insensitive" } },
+        { product_type: { contains: q, mode: "insensitive" } },
+        { model: { contains: q, mode: "insensitive" } },
+        { issue: { contains: q, mode: "insensitive" } },
+        { repair_request: { is: { request_no: { contains: q, mode: "insensitive" } } } },
+        { repair_request: { is: { customer_name: { contains: q, mode: "insensitive" } } } },
         ...(matchedStoreCodes.length > 0
-        ? [
-            {
-              repair_request: {
-                is: {
-                  store_code: { in: matchedStoreCodes },
+          ? [
+              {
+                repair_request: {
+                  is: {
+                    store_code: { in: matchedStoreCodes },
+                  },
                 },
               },
-            },
-          ]
-        : []),
+            ]
+          : []),
+        ...(matchedLocationIds.length > 0
+          ? [
+              {
+                repair_request: {
+                  is: {
+                    location_id: { in: matchedLocationIds },
+                  },
+                },
+              },
+            ]
+          : []),
       ],
     });
   }
@@ -159,6 +214,7 @@ export async function GET(req: Request) {
         ri.qty,
         ri.in_warranty,
         rr.store_code,
+        rr.location_id,
         rr.status,
         rr.customer_receive_date,
         rr.created_date,
@@ -194,13 +250,18 @@ export async function GET(req: Request) {
         ${q
           ? Prisma.sql`
             AND (
-              ri.serial_no LIKE ${likeQ}
-              OR ri.brand LIKE ${likeQ}
-              OR ri.product_type LIKE ${likeQ}
-              OR rr.request_no LIKE ${likeQ}
-              OR rr.customer_name LIKE ${likeQ}
+              ri.serial_no ILIKE ${likeQ}
+              OR ri.brand ILIKE ${likeQ}
+              OR ri.product_type ILIKE ${likeQ}
+              OR ri.model ILIKE ${likeQ}
+              OR ri.issue ILIKE ${likeQ}
+              OR rr.request_no ILIKE ${likeQ}
+              OR rr.customer_name ILIKE ${likeQ}
               ${matchedStoreCodes.length > 0
                 ? Prisma.sql`OR rr.store_code IN (${Prisma.join(matchedStoreCodes)})`
+                : Prisma.empty}
+              ${matchedLocationIds.length > 0
+                ? Prisma.sql`OR rr.location_id IN (${Prisma.join(matchedLocationIds)})`
                 : Prisma.empty}
             )
           `
@@ -228,6 +289,7 @@ export async function GET(req: Request) {
             request_no: true,
             customer_name: true,
             store_code: true,
+            location_id: true,
             arrive_to_dc_date: true,
             receive_from_user_date: true,
             send_to_vendor_date: true,
@@ -286,6 +348,10 @@ export async function GET(req: Request) {
         i.repair_request?.store_code != null
           ? String(i.repair_request.store_code).trim()
           : null,
+      location_id:
+        i.repair_request?.location_id != null
+          ? String(i.repair_request.location_id).trim()
+          : null,
       status: i.repair_request?.status ?? null,
       customer_receive_date: i.repair_request?.customer_receive_date ?? null,
       created_date: i.repair_request?.created_date ?? null,
@@ -330,9 +396,26 @@ export async function GET(req: Request) {
     }])
   );
 
+  //* ค้นหาข้อมูล Location เพื่อหาชื่อย่อสาขาของแต่ละรายการ
+  const locationIds = Array.from(new Set(items.map(it => it.location_id).filter(Boolean)));
+  const locations = locationIds.length
+    ? await prisma.location.findMany({
+        where: { id: { in: locationIds as string[] } }
+      })
+    : [];
+  const locationMap = new Map(locations.map(l => [l.id, l]));
+
   const rows = items.map(i => {
     const codeStr = i.store_code != null ? String(i.store_code).trim() : null;
     const info = codeStr ? storeMap.get(codeStr) : undefined;
+
+    const loc = i.location_id ? locationMap.get(i.location_id) : null;
+    let displayNick = "";
+    if (loc) {
+      displayNick = getStoreNickFromLocation(loc.name, loc.short_name || "");
+    } else {
+      displayNick = info?.nickName ?? codeStr ?? "-";
+    }
 
     return {
       id: i.id,
@@ -346,7 +429,7 @@ export async function GET(req: Request) {
       qty: i.qty,
       in_warranty: i.in_warranty,
       store_code: codeStr,
-      store_nick: info?.nickName ?? codeStr,
+      store_nick: displayNick,
       status: i.status ?? null,
       customer_receive_date: i.customer_receive_date ?? null,
       created_date: i.created_date ?? null,
