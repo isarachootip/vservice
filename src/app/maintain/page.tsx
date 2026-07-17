@@ -3022,7 +3022,7 @@ function MaintainContent() {
                                         <button
                                             type="button"
                                             onClick={() => {
-                                                setUserFormData({ ...userFormData, locationId: "" });
+                                                setUserFormData({ ...userFormData, locationId: "", storeCode: "" });
                                                 setLocSearch("");
                                             }}
                                             className="absolute right-8 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-sm font-semibold"
@@ -3051,7 +3051,7 @@ function MaintainContent() {
                                             <div className="absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-lg z-20">
                                                 <div 
                                                     onClick={() => {
-                                                        setUserFormData({ ...userFormData, locationId: "" });
+                                                        setUserFormData({ ...userFormData, locationId: "", storeCode: "" });
                                                         setIsLocDropdownOpen(false);
                                                     }}
                                                     className="px-3 py-2 hover:bg-slate-100 cursor-pointer text-sm text-slate-500 font-semibold border-b border-slate-100"
@@ -3068,7 +3068,11 @@ function MaintainContent() {
                                                         <div
                                                             key={loc.id}
                                                             onClick={() => {
-                                                                setUserFormData({ ...userFormData, locationId: loc.id });
+                                                                setUserFormData({ 
+                                                                    ...userFormData, 
+                                                                    locationId: loc.id,
+                                                                    storeCode: loc.code || loc.id
+                                                                });
                                                                 setIsLocDropdownOpen(false);
                                                             }}
                                                             className={`px-3 py-2 hover:bg-slate-100 cursor-pointer text-sm font-semibold flex justify-between items-center ${

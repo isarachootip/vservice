@@ -23,7 +23,7 @@ export class UsersRepository {
       JOIN user_roles ur ON ur.roles_id = u.roles_id
       JOIN user_roles_has_permission urp ON urp.user_roles_roles_id = ur.roles_id
       JOIN permission p ON urp.permission_id = p.permission_id
-      JOIN store s ON s.store_code = u.store_code
+      LEFT JOIN store s ON s.store_code = u.store_code
       WHERE u.user_name = ${username}`;
   }
 
