@@ -17,7 +17,9 @@ import {
   Settings,
   LogOut,
   HelpCircle,
-  ChevronDown
+  ChevronDown,
+  Menu,
+  X
 } from "lucide-react";
 
 type UserData = {
@@ -35,6 +37,11 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserData | null>(null);
   const [activeAnnouncements, setActiveAnnouncements] = useState<any[]>([]);
   const [closedAnnouncements, setClosedAnnouncements] = useState<Record<number, boolean>>({});
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
 
   // Exclude login and base customer-facing views from the staff sidebar layout
   const isAuthPage = pathname === "/login" || pathname === "/";
@@ -126,12 +133,47 @@ export default function AppShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#f4f6f8]">
+    <div className="flex min-h-screen bg-[#f4f6f8] flex-col lg:flex-row">
+      {/* Mobile Top Bar */}
+      <div className="lg:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm w-full">
+        <button
+          onClick={() => setMobileOpen(true)}
+          className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600 transition"
+          title="Open menu"
+        >
+          <Menu className="w-6 h-6" />
+        </button>
+        <div className="flex items-center gap-1.5 select-none">
+          <div className="w-8 h-8 bg-[#c8102e] rounded flex flex-col items-center justify-center p-0.5 relative shrink-0 shadow-sm">
+            <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-white stroke-[2.5] absolute inset-0 m-auto" style={{ top: '-1px' }}>
+              <polygon points="12,3 3,11 6,11 6,20 18,20 18,11 21,11" fill="white" stroke="white" />
+            </svg>
+            <span className="text-[#c8102e] font-extrabold text-[10px] z-10 select-none relative" style={{ top: '2px' }}>ไท</span>
+          </div>
+          <span className="text-[#121212] font-black text-base tracking-tight leading-none">วัสดุ</span>
+        </div>
+        <div className="w-8 h-8 rounded-full bg-red-50 text-[#c8102e] border border-red-150 font-extrabold text-xs flex items-center justify-center shadow-sm">
+          {userInitials}
+        </div>
+      </div>
+
+      {/* Backdrop for Mobile Drawer */}
+      {mobileOpen && (
+        <div 
+          onClick={() => setMobileOpen(false)}
+          className="fixed inset-0 bg-slate-900/50 z-40 lg:hidden backdrop-blur-xs transition-opacity duration-300"
+        />
+      )}
+
       {/* Red/White themed sidebar */}
-      <aside className="w-64 bg-white border-r border-slate-200 text-slate-700 flex flex-col justify-between shrink-0 sticky top-0 h-screen z-20 shadow-sm">
+      <aside className={`
+        fixed inset-y-0 left-0 w-64 bg-white border-r border-slate-200 text-slate-700 flex flex-col justify-between shrink-0 z-50 shadow-xl lg:shadow-sm
+        transition-transform duration-300 transform lg:translate-x-0 lg:static lg:h-screen lg:z-20
+        ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
+      `}>
         <div className="flex flex-col h-full overflow-y-auto scrollbar-hide">
           {/* Sidebar Top Header Logo (Thai Watsadu Brand Replica) */}
-          <div className="flex items-center gap-2 px-5 py-4 border-b border-slate-100 bg-white">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-white">
             <div className="flex items-center gap-1.5">
               {/* Red House Box */}
               <div className="w-11 h-11 bg-[#c8102e] rounded flex flex-col items-center justify-center p-0.5 relative shrink-0 shadow-sm">
@@ -147,6 +189,15 @@ export default function AppShell({ children }: { children: ReactNode }) {
                 <span className="text-[#555] text-[9px] font-bold tracking-wider leading-none mt-1">SERVICE CENTER</span>
               </div>
             </div>
+
+            {/* Close Button on Mobile Drawer */}
+            <button
+              onClick={() => setMobileOpen(false)}
+              className="lg:hidden p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition"
+              title="Close menu"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
           <div className="p-3">
@@ -320,7 +371,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
 
       {/* Right Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="sticky top-0 bg-white border-b border-slate-200/80 px-6 py-3.5 flex items-center justify-between z-10 shadow-sm">
+        <header className="hidden lg:flex sticky top-0 bg-white border-b border-slate-200/80 px-6 py-3.5 items-center justify-between z-10 shadow-sm">
           <div className="flex items-center gap-3">
             <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
               <span className="text-[#c8102e] font-black">VService</span>
