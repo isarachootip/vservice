@@ -176,7 +176,19 @@ export async function DELETE(req: Request) {
       return NextResponse.json({
         ok: false,
         requireConfirm: true,
-        message: `มีสินค้า (SKU) จำนวน ${skuCount} รายการใช้งานหมวดหมู่นี้อยู่ ยืนยันการลบหมวดหมู่นี้หรือไม่?`
+        message: `มีสินค้า (SKU) จำนวน ${skuCount} รายการใช้งานหมวดหมู่นี้อยู่ หากยืนยันการลบ ระบบจะลบสินค้าทั้ง ${skuCount} รายการนี้ออกจากตารางสินค้าด้วย ยืนยันการลบหมวดหมู่และสินค้าทั้งหมดหรือไม่?`
+      });
+    }
+
+    // If confirmed and skuCount > 0, delete all commodities under this category first
+    if (skuCount > 0) {
+      await prisma.commodity.deleteMany({
+        where: {
+          class_name: {
+            equals: existing.name.trim(),
+            mode: "insensitive"
+          }
+        }
       });
     }
 
@@ -184,7 +196,7 @@ export async function DELETE(req: Request) {
       where: { id: Number(id) },
     });
 
-    return NextResponse.json({ ok: true, message: "ลบข้อมูลหมวดหมู่สำเร็จ" });
+    return NextResponse.json({ ok: true, message: "ลบข้อมูลหมวดหมู่และสินค้าในกลุ่มสำเร็จ" });
   } catch (error) {
     console.error("DELETE /api/maintain/categories error:", error);
     return NextResponse.json(
