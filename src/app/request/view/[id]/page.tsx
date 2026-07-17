@@ -298,14 +298,14 @@ export default function RequestViewPage({ params }: { params: Promise<{ id: stri
                 //* signature for step 237
                 const sig237 = (r.repair_attachment ?? []).filter(
                     (a: { id: number; file_path: string; file_name: string; step_no: string }) =>
-                        String(a.step_no) === "237" && a.file_name.toUpperCase().includes("SIGNATURE")
+                        String(a.step_no) === "299" && a.file_name.toUpperCase().includes("SIGNATURE")
                 );
                 setSignatureAttachments237(sig237);
 
                 //* signature for step 37
                 const sig37 = (r.repair_attachment ?? []).filter(
                     (a: { id: number; file_path: string; file_name: string; step_no: string }) =>
-                        String(a.step_no) === "37" && a.file_name.toUpperCase().includes("SIGNATURE")
+                        String(a.step_no) === "399" && a.file_name.toUpperCase().includes("SIGNATURE")
                 );
                 setSignatureAttachments37(sig37);
 

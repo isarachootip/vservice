@@ -40,8 +40,9 @@ export async function POST(req: Request) {
         } = await req.json();
 
         const ip = getClientIp(req);
-        const statusByMode = mode === "DC" ? 233 : mode === "VEN" ? 33 : null;
-        const stepNoByMode = mode === "DC" ? "232" : mode === "VEN" ? "32" : null;
+        // SRS v2.1: DC → 260 (แจ้งผลการอนุมัติ), Vendor → 330
+        const statusByMode = mode === "DC" ? 260 : mode === "VEN" ? 330 : null;
+        const stepNoByMode = mode === "DC" ? "260" : mode === "VEN" ? "330" : null;
 
         if (!requestId) {
         return NextResponse.json({ error: "Missing request_Id" }, { status: 400 });

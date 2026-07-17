@@ -143,65 +143,100 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
     const [brandLoading, setBrandLoading] = useState(false);
     const [brandError, setBrandError] = useState<string | null>(null);
 
-    //*for productType
+    //? sku list (commodity)
+    const [skuList, setSkuList] = useState<any[]>([]);
+    const [skuListLoading, setSkuListLoading] = useState(false);
+    const [skuListError, setSkuListError] = useState<string | null>(null);
+
+    // Fetch all brands on mount
     useEffect(() => {
         const controller = new AbortController();
         (async () => {
-            setClassLoading(true);
-            setClassError(null);
+            setBrandLoading(true);
+            setBrandError(null);
             try {
-                const res = await fetch("/api/commodity/class", {
+                const res = await fetch("/api/commodity/brand", {
                     signal: controller.signal,
                     cache: "no-store",
                 });
                 const json = await res.json();
-
-                setClassList(Array.isArray(json?.data) ? json.data : []);
+                setBrandList(Array.isArray(json?.data) ? json.data : []);
             } catch (e: unknown) {
                 if (e instanceof Error && e.name === "AbortError") return;
-                    setClassError("โหลดรายการประเภทสินค้าไม่สำเร็จ");
+                setBrandError("โหลดรายการยี่ห้อไม่สำเร็จ");
             } finally {
-                setClassLoading(false);
+                setBrandLoading(false);
             }
         })();
 
         return () => controller.abort();
     }, []);
 
-    //*for brand
+    // Fetch classes (product types) for selected brand
     useEffect(() => {
-        if (!productType?.trim()) {
-            setBrandList([]);
+        if (!brand?.trim()) {
+            setClassList([]);
             return;
         }
 
         const controller = new AbortController();
-
         const t = setTimeout(async () => {
-            setBrandLoading(true);
-            setBrandError(null);
-
+            setClassLoading(true);
+            setClassError(null);
             try {
-                const res = await fetch(
-                    `/api/commodity/brand?class=${encodeURIComponent(productType)}`,
-                    { signal: controller.signal, cache: "no-store" }
-                );
+                const res = await fetch(`/api/commodity/class?brand=${encodeURIComponent(brand)}`, {
+                    signal: controller.signal,
+                    cache: "no-store",
+                });
                 const json = await res.json();
-                setBrandList(Array.isArray(json?.data) ? json.data : []);
+                setClassList(Array.isArray(json?.data) ? json.data : []);
             } catch (e: unknown) {
                 if (e instanceof Error && e.name === "AbortError") return;
-                    setBrandError("โหลดรายการยี่ห้อไม่สำเร็จ");
-                    setBrandList([]);
+                setClassError("โหลดรายการประเภทสินค้าไม่สำเร็จ");
+                setClassList([]);
             } finally {
-                setBrandLoading(false);
+                setClassLoading(false);
             }
-        }, 200); 
+        }, 150);
 
         return () => {
             clearTimeout(t);
             controller.abort();
         };
-    }, [productType]);
+    }, [brand]);
+
+    // Fetch SKU list matching selected brand and class
+    useEffect(() => {
+        if (!brand?.trim() || !productType?.trim()) {
+            setSkuList([]);
+            return;
+        }
+
+        const controller = new AbortController();
+        const t = setTimeout(async () => {
+            setSkuListLoading(true);
+            setSkuListError(null);
+            try {
+                const res = await fetch(`/api/commodity/list?brand=${encodeURIComponent(brand)}&class=${encodeURIComponent(productType)}`, {
+                    signal: controller.signal,
+                    cache: "no-store",
+                });
+                const json = await res.json();
+                setSkuList(Array.isArray(json?.data) ? json.data : []);
+            } catch (e: unknown) {
+                if (e instanceof Error && e.name === "AbortError") return;
+                setSkuListError("โหลดรายการสินค้าไม่สำเร็จ");
+                setSkuList([]);
+            } finally {
+                setSkuListLoading(false);
+            }
+        }, 150);
+
+        return () => {
+            clearTimeout(t);
+            controller.abort();
+        };
+    }, [brand, productType]);
 
     useEffect(() => {
         if (!skuFlg) {
@@ -505,6 +540,41 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
 
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
+                                    <label className="block text-[11px] font-semibold text-slate-500 mb-1">ยี่ห้อ<Req /></label>
+                                    {skuFlg ? (
+                                        <select
+                                            className="input-base text-xs py-1"
+                                            value={brand}
+                                            onChange={(e) => {
+                                                const v = e.target.value;
+                                                setBrand(v);
+                                                setProductType("");
+                                                setClassList([]);
+                                                setSkuList([]);
+                                                setSku("");
+                                                setBarcode("");
+                                                setModel("");
+                                            }}
+                                        >
+                                            <option value="">-- เลือกยี่ห้อ --</option>
+                                            {brandList.map((s) => (
+                                                <option key={s} value={s}>
+                                                    {s}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    ) : (
+                                        <input
+                                            type="text"
+                                            className={inputClass(!!errors.brand)}
+                                            value={brand}
+                                            onChange={(e) => setBrand(e.target.value)}
+                                            placeholder="ระบุยี่ห้อ"
+                                        />
+                                    )}
+                                    {errors.brand && <p className="text-red-600 text-[10px] mt-0.5">{errors.brand}</p>}
+                                </div>
+                                <div>
                                     <label className="block text-[11px] font-semibold text-slate-500 mb-1">ประเภทสินค้า<Req /></label>
                                     {skuFlg ? (
                                         <select
@@ -513,10 +583,12 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                             onChange={(e) => {
                                                 const v = e.target.value;
                                                 setProductType(v);
-                                                setBrand("");
-                                                setBrandList([]);
+                                                setSkuList([]);
+                                                setSku("");
+                                                setBarcode("");
+                                                setModel("");
                                             }}
-                                            disabled={true}
+                                            disabled={!brand}
                                         >
                                             <option value="">-- เลือกประเภท --</option>
                                             {classList.map((c) => (
@@ -536,33 +608,6 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                     )}
                                     {errors.productType && <p className="text-red-600 text-[10px] mt-0.5">{errors.productType}</p>}
                                 </div>
-                                <div>
-                                    <label className="block text-[11px] font-semibold text-slate-500 mb-1">ยี่ห้อ<Req /></label>
-                                    {skuFlg ? (
-                                        <select
-                                            className="input-base text-xs py-1"
-                                            value={brand}
-                                            onChange={(e) => setBrand(e.target.value)}
-                                            disabled={true}
-                                        >
-                                            <option value="">-- เลือกยี่ห้อ --</option>
-                                            {brandList.map((s) => (
-                                                <option key={`${productType}-${s}`} value={s}>
-                                                    {s}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    ) : (
-                                        <input
-                                            type="text"
-                                            className={inputClass(!!errors.brand)}
-                                            value={brand}
-                                            onChange={(e) => setBrand(e.target.value)}
-                                            placeholder="ระบุยี่ห้อ"
-                                        />
-                                    )}
-                                    {errors.brand && <p className="text-red-600 text-[10px] mt-0.5">{errors.brand}</p>}
-                                </div>
                             </div>
                         </div>
 
@@ -575,15 +620,49 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
 
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label htmlFor="model" className="block text-[11px] font-semibold text-slate-500 mb-1">รุ่นสินค้า</label>
-                                    <input
-                                        id="model"
-                                        className="input-base text-xs py-1"
-                                        value={model}
-                                        onChange={e => setModel(e.target.value)}
-                                        disabled={skuFlg}
-                                        placeholder="ระบุรุ่นสินค้า"
-                                    />
+                                    <label htmlFor="model" className="block text-[11px] font-semibold text-slate-500 mb-1">รุ่นสินค้า / SKU<Req /></label>
+                                    {skuFlg ? (
+                                        <select
+                                            id="model"
+                                            className="input-base text-xs py-1"
+                                            value={sku && barcode && model ? `${sku}|${barcode}|${model}` : ""}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                if (!val) {
+                                                    setSku("");
+                                                    setBarcode("");
+                                                    setModel("");
+                                                    return;
+                                                }
+                                                const [selectedSku, selectedBarcode, selectedModel] = val.split("|");
+                                                setSku(Number(selectedSku));
+                                                setBarcode(selectedBarcode);
+                                                setModel(selectedModel);
+                                            }}
+                                            disabled={!productType}
+                                        >
+                                            <option value="">-- เลือกรุ่นสินค้า --</option>
+                                            {(() => {
+                                                const list = [...skuList];
+                                                if (sku && model && !list.some(item => String(item.sku) === String(sku))) {
+                                                    list.unshift({ sku: String(sku), bar_code: barcode, sku_name: model });
+                                                }
+                                                return list.map((item) => (
+                                                    <option key={item.sku} value={`${item.sku}|${item.bar_code}|${item.sku_name}`}>
+                                                        [{item.sku}] {item.sku_name}
+                                                    </option>
+                                                ));
+                                            })()}
+                                        </select>
+                                    ) : (
+                                        <input
+                                            id="model"
+                                            className="input-base text-xs py-1"
+                                            value={model}
+                                            onChange={e => setModel(e.target.value)}
+                                            placeholder="ระบุรุ่นสินค้า"
+                                        />
+                                    )}
                                 </div>
                                 <div>
                                     <label htmlFor="serial" className="block text-[11px] font-semibold text-slate-500 mb-1">Serial Number (เลขเครื่อง)</label>

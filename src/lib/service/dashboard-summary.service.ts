@@ -23,10 +23,10 @@ export type DashboardSummary = {
     statusCounts: Array<{ statusId: number; count: number }>;
 };
 
+// รหัสสถานะใหม่ 3 หลัก (SRS v2.1)
 export class DashboardService {
     static async getSummary(period: PeriodFilter, locationId?: string): Promise<DashboardSummary> {
         const grouped = await DashboardRepository.getStatusCounts(period, locationId);
-        // console.log("grouped : ",grouped)
         const countMap = new Map<number, number>();
         for (const row of grouped) {
             countMap.set(row.status ?? 0, row._count.status);
@@ -35,29 +35,41 @@ export class DashboardService {
         const sumStatuses = (statuses: number[]) =>
             statuses.reduce((sum, s) => sum + (countMap.get(s) ?? 0), 0);
 
+        // รอลูกค้ารับ = 290 (DC Path) หรือ 390 (Vendor Path)
         const [approvedRepairDone, rejectedRepairCancelled] = await Promise.all([
-            DashboardRepository.countByStatusAndApproveFlg([36, 236], "Y", period, locationId),
-            DashboardRepository.countByStatusAndApproveFlg([36, 236], "N", period, locationId),
+            DashboardRepository.countByStatusAndApproveFlg([290, 390], "Y", period, locationId),
+            DashboardRepository.countByStatusAndApproveFlg([290, 390], "N", period, locationId),
         ]);
-        // console.log("groupeddRepairDone : ",approvedRepairDone)
-        // console.log("groupedRepairCancelled : ",rejectedRepairCancelled)
+
         return {
             totalRequest: grouped.reduce((sum, row) => sum + row._count.status, 0),
 
-            pendingRepair: sumStatuses([10, 11, 20, 201, 21, 22, 23, 232, 233, 30, 31, 32, 33]),
+            // รอดำเนินการ: ตั้งแต่เปิดงานจนถึงก่อน Vendor ส่งคืน
+            pendingRepair: sumStatuses([
+                100, 110,                    // รับงาน
+                200, 210, 220, 230, 240, 250, 260,  // DC Path ก่อนซ่อม
+                300, 310, 320, 330           // Vendor Path ก่อนซ่อม
+            ]),
 
-            inProgress: sumStatuses([235, 35]),
+            // กำลังซ่อม: รอ Vendor ส่งคืน
+            inProgress: sumStatuses([275, 345]),
 
-            completed: sumStatuses([2360, 2361, 236, 360, 36, 361]),
+            // ซ่อมเสร็จ/รอส่งคืน: DC รับคืน → GR รับคืน → CS รับคืน
+            completed: sumStatuses([280, 285, 290, 350, 360, 390]),
 
-            returned: sumStatuses([237, 37]),
+            // ปิดงาน: ลูกค้ารับแล้ว
+            returned: sumStatuses([299, 399]),
 
-            cancelled: sumStatuses([0, 234, 34]),
+            // ยกเลิก / ไม่อนุมัติ
+            cancelled: sumStatuses([0, 270, 340]),
 
             pendingByRole: {
-                cs: sumStatuses([10, 23, 232, 233, 31, 32, 33]),
-                gr: sumStatuses([11, 20, 201, 30]),
-                dc: sumStatuses([21, 22]),
+                // CS: เปิดงาน, ขออนุมัติ, แจ้งผล, รับสินค้าคืน
+                cs: sumStatuses([100, 240, 250, 260, 290, 310, 320, 330, 390]),
+                // GR: รับสินค้า, เปิด log DC, รับคืนจาก DC, รอ Vendor
+                gr: sumStatuses([110, 200, 210, 280, 285, 300]),
+                // DC: รับสินค้า, รอ Vendor, จัดการ Vendor
+                dc: sumStatuses([220, 230, 270, 275]),
             },
 
             completedBreakdown: {
@@ -66,8 +78,8 @@ export class DashboardService {
             },
 
             cancelledBreakdown: {
-                userCancelled: sumStatuses([234, 34]),
-                twCancelled: sumStatuses([0]),
+                userCancelled: sumStatuses([270, 340]),  // ลูกค้าไม่อนุมัติซ่อม
+                twCancelled: sumStatuses([0]),             // ยกเลิกโดยร้าน
             },
             statusCounts: grouped.map(row => ({
                 statusId: row.status ?? 0,

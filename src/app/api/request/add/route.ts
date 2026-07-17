@@ -148,7 +148,7 @@ export async function POST(req: Request) {
         act_user_name: createdUser,
         act_ip_address: ip,
         act_trans_log: trans_log_text,
-        step_no: "10",
+        step_no: "100",
         request_id: created.id,
       }
     });
@@ -201,7 +201,7 @@ export async function POST(req: Request) {
         file_name: fileName,
         mime_type: f.type || null,
         file_size: f.size ?? null,
-        step_no: "10", 
+        step_no: "100", 
       });
     }
 
@@ -221,7 +221,7 @@ export async function POST(req: Request) {
         file_name: fileName,
         mime_type: f.type || null,
         file_size: f.size ?? null,
-        step_no: "10", 
+        step_no: "100", 
       });
     }
 

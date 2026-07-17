@@ -15,38 +15,39 @@ export enum Phase {
     CUSTOMER_RETURN = "CUSTOMER ได้รับสินค้า",
 }
 
+// STATUS_PHASE_MAP ใช้รหัสมาตรฐานใหม่ 3 หลัก (SRS v2.1)
 export const STATUS_PHASE_MAP: Record<number, Phase> = {
 
-    10: Phase.START,
-    11: Phase.START,
-    20: Phase.DC,
-    30: Phase.VENDOR,
+    100: Phase.START,
+    110: Phase.START,
+    200: Phase.DC,
+    300: Phase.VENDOR,
 
-    //! DC
-    201: Phase.DC,
-    21: Phase.DC_STEP1,
-    22: Phase.DC_STEP2,
-    23: Phase.REVIEW_PRICE,
+    //! DC Path
+    210: Phase.DC,
+    220: Phase.DC_STEP1,
+    230: Phase.DC_STEP2,
+    240: Phase.REVIEW_PRICE,
 
-    232: Phase.CUST_APPROVE,
-    233: Phase.REPORT_APPROVE,
-    234: Phase.REJECT_PROCESS,
-    235: Phase.APPROVE_PROCESS,
-    2360: Phase.DC_RETURN,
-    2361: Phase.DC_RETURN,
-    236: Phase.VENDOR_RETURN,
-    237: Phase.CUSTOMER_RETURN,
+    250: Phase.CUST_APPROVE,
+    260: Phase.REPORT_APPROVE,
+    270: Phase.REJECT_PROCESS,
+    275: Phase.APPROVE_PROCESS,
+    280: Phase.DC_RETURN,
+    285: Phase.DC_RETURN,
+    290: Phase.VENDOR_RETURN,
+    299: Phase.CUSTOMER_RETURN,
 
-    //! Vendor
-    31: Phase.REVIEW_PRICE,
-    32: Phase.CUST_APPROVE,
-    33: Phase.REPORT_APPROVE,
-    34: Phase.REJECT_PROCESS,
-    35: Phase.APPROVE_PROCESS,
+    //! Vendor Path
+    310: Phase.REVIEW_PRICE,
+    320: Phase.CUST_APPROVE,
+    330: Phase.REPORT_APPROVE,
+    340: Phase.REJECT_PROCESS,
+    345: Phase.APPROVE_PROCESS,
+    350: Phase.VENDOR_RETURN,
     360: Phase.VENDOR_RETURN,
-    361: Phase.VENDOR_RETURN,
-    36: Phase.VENDOR_RETURN,
-    37: Phase.CUSTOMER_RETURN,
+    390: Phase.VENDOR_RETURN,
+    399: Phase.CUSTOMER_RETURN,
 
 };
 

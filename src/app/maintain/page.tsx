@@ -1486,124 +1486,8 @@ export default function MainTainPage() {
 
     return (
         <main className="min-h-[calc(100vh-3.5rem)] flex items-start justify-center px-4 py-10 overflow-x-hidden scrollbar-hide">
-            <div className="w-full max-w-6xl">
-                <div className="flex items-center justify-between mb-6">
-                    <h1 className="text-3xl font-bold text-slate-900">ข้อมูลการซ่อม</h1>
-                </div>
-
-                <div className="flex gap-4 mb-6 border-b border-slate-200">
-                    <button
-                        onClick={() => setTab("status")}
-                        className={`pb-3 px-2 font-medium transition ${
-                            tab === "status"
-                                ? "text-[#c8102e] border-b-2 border-[#c8102e]"
-                                : "text-slate-600 hover:text-slate-900"
-                        }`}
-                    >
-                        Status Info
-                    </button>
-                    <button
-                        onClick={() => setTab("vendor")}
-                        className={`pb-3 px-2 font-medium transition ${
-                            tab === "vendor"
-                                ? "text-[#c8102e] border-b-2 border-[#c8102e]"
-                                : "text-slate-600 hover:text-slate-900"
-                        }`}
-                    >
-                        Vendor Info
-                    </button>
-                    <button
-                        onClick={() => setTab("user")}
-                        className={`pb-3 px-2 font-medium transition ${
-                            tab === "user"
-                                ? "text-[#c8102e] border-b-2 border-[#c8102e]"
-                                : "text-slate-600 hover:text-slate-900"
-                        }`}
-                    >
-                        User & Access Info
-                    </button>
-                    <button
-                        onClick={() => setTab("location")}
-                        className={`pb-3 px-2 font-medium transition ${
-                            tab === "location"
-                                ? "text-[#c8102e] border-b-2 border-[#c8102e]"
-                                : "text-slate-600 hover:text-slate-900"
-                        }`}
-                    >
-                        Location Info
-                    </button>
-                    <button
-                        onClick={() => setTab("product")}
-                        className={`pb-3 px-2 font-medium transition ${
-                            tab === "product"
-                                ? "text-[#c8102e] border-b-2 border-[#c8102e]"
-                                : "text-slate-600 hover:text-slate-900"
-                        }`}
-                    >
-                        Product Info (สินค้า & ทุน)
-                    </button>
-                    <button
-                        onClick={() => setTab("category")}
-                        className={`pb-3 px-2 font-medium transition ${
-                            tab === "category"
-                                ? "text-[#c8102e] border-b-2 border-[#c8102e]"
-                                : "text-slate-600 hover:text-slate-900"
-                        }`}
-                    >
-                        Category Info (หมวดหมู่สินค้า)
-                    </button>
-                    <button
-                        onClick={() => setTab("symptom")}
-                        className={`pb-3 px-2 font-medium transition ${
-                            tab === "symptom"
-                                ? "text-[#c8102e] border-b-2 border-[#c8102e]"
-                                : "text-slate-600 hover:text-slate-900"
-                        }`}
-                    >
-                        Symptom Info (อาการเสีย)
-                    </button>
-                    <button
-                        onClick={() => setTab("announcement")}
-                        className={`pb-3 px-2 font-medium transition ${
-                            tab === "announcement"
-                                ? "text-[#c8102e] border-b-2 border-[#c8102e]"
-                                : "text-slate-600 hover:text-slate-900"
-                        }`}
-                    >
-                        ตั้งค่าประกาศ (Announcements)
-                    </button>
-                    <button
-                        onClick={() => setTab("diagnostic")}
-                        className={`pb-3 px-2 font-medium transition ${
-                            tab === "diagnostic"
-                                ? "text-[#c8102e] border-b-2 border-[#c8102e]"
-                                : "text-slate-600 hover:text-slate-900"
-                        }`}
-                    >
-                        Diagnostic Fee Config
-                    </button>
-                    <button
-                        onClick={() => setTab("margin")}
-                        className={`pb-3 px-2 font-medium transition ${
-                            tab === "margin"
-                                ? "text-[#c8102e] border-b-2 border-[#c8102e]"
-                                : "text-slate-600 hover:text-slate-900"
-                        }`}
-                    >
-                        Margin Config
-                    </button>
-                    <button
-                        onClick={() => setTab("service_tier")}
-                        className={`pb-3 px-2 font-medium transition ${
-                            tab === "service_tier"
-                                ? "text-[#c8102e] border-b-2 border-[#c8102e]"
-                                : "text-slate-600 hover:text-slate-900"
-                        }`}
-                    >
-                        Service Tier Config
-                    </button>
-                </div>
-
+            <div className="w-full max-w-7xl">
+                <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm animate-fadeIn">
                 {tab === "status" && (
                     <>
                         <div className="flex items-center justify-between mb-6">
@@ -2652,6 +2536,204 @@ export default function MainTainPage() {
                         </div>
                     </div>
                 )}
+
+                {tab === "diagnostic" && (
+                    <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm">
+                        <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
+                            <div>
+                                <h2 className="text-lg font-bold text-slate-800">Diagnostic Fee Config (ค่าเปิดเครื่อง)</h2>
+                                <p className="text-xs text-slate-500 font-semibold mt-0.5">กำหนดค่าตรวจเช็คเครื่องเปล่าแยกตามประเภทสินค้า สำหรับงานนอกประกัน</p>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    setEditingDiag(null);
+                                    setDiagFormData({ product_type: "", fee_amount: "", waive_in_warranty: true });
+                                    setShowDiagModal(true);
+                                }}
+                                className="px-4 py-2 bg-[#c8102e] hover:bg-[#b00d25] text-white rounded-lg text-xs font-bold transition shadow-sm"
+                            >
+                                เพิ่มการตั้งค่าใหม่
+                            </button>
+                        </div>
+                        {diagError && <div className="text-red-655 text-xs my-2">{diagError}</div>}
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm border-collapse">
+                                <thead>
+                                    <tr className="border-b border-slate-100 text-left text-slate-500 font-semibold text-xs">
+                                        <th className="py-2.5">ประเภทสินค้า (Product Type)</th>
+                                        <th className="py-2.5 text-right w-36">ค่าบริการ (บาท)</th>
+                                        <th className="py-2.5 text-center w-36">ยกเว้นในประกัน</th>
+                                        <th className="py-2.5 text-center w-32">จัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-50 text-slate-700 text-xs font-medium">
+                                    {diagLoading && <tr><td colSpan={4} className="py-4 text-center">กำลังโหลด...</td></tr>}
+                                    {!diagLoading && diagnosticFees.length === 0 && <tr><td colSpan={4} className="py-4 text-center text-slate-400">ไม่มีข้อมูล</td></tr>}
+                                    {diagnosticFees.map(item => (
+                                        <tr key={item.id} className="hover:bg-slate-50/50">
+                                            <td className="py-2.5 font-bold">{item.product_type}</td>
+                                            <td className="py-2.5 text-right font-bold text-slate-900">{parseFloat(item.fee_amount).toLocaleString("th-TH", { minimumFractionDigits: 2 })}</td>
+                                            <td className="py-2.5 text-center">{item.waive_in_warranty ? "Yes" : "No"}</td>
+                                            <td className="py-2.5 text-center flex items-center justify-center gap-2">
+                                                <button
+                                                    onClick={() => {
+                                                        setEditingDiag(item);
+                                                        setDiagFormData({ product_type: item.product_type, fee_amount: String(item.fee_amount), waive_in_warranty: item.waive_in_warranty });
+                                                        setShowDiagModal(true);
+                                                    }}
+                                                    className="px-2 py-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded transition font-semibold"
+                                                >
+                                                    แก้ไข
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteDiag(item.id)}
+                                                    className="px-2 py-1 text-xs bg-rose-50 hover:bg-rose-100 text-rose-600 rounded transition font-semibold"
+                                                >
+                                                    ลบ
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+
+                {tab === "margin" && (
+                    <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm">
+                        <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
+                            <div>
+                                <h2 className="text-lg font-bold text-slate-800">Margin Config (อัตรากำไรขั้นต้น)</h2>
+                                <p className="text-xs text-slate-500 font-semibold mt-0.5">กำหนด Margin เป้าหมายและ Margin ขั้นต่ำเพื่อป้อนการเสนอราคากลาง</p>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    setEditingMargin(null);
+                                    setMarginFormData({ product_type: "", margin_percent: "", margin_floor: "" });
+                                    setShowMarginModal(true);
+                                }}
+                                className="px-4 py-2 bg-[#c8102e] hover:bg-[#b00d25] text-white rounded-lg text-xs font-bold transition shadow-sm"
+                            >
+                                เพิ่มการตั้งค่าใหม่
+                            </button>
+                        </div>
+                        {marginError && <div className="text-red-655 text-xs my-2">{marginError}</div>}
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm border-collapse">
+                                <thead>
+                                    <tr className="border-b border-slate-100 text-left text-slate-500 font-semibold text-xs">
+                                        <th className="py-2.5">ประเภทสินค้า (Product Type)</th>
+                                        <th className="py-2.5 text-right w-36">Margin แนะนำ (%)</th>
+                                        <th className="py-2.5 text-right w-36">Margin ขั้นต่ำ (%)</th>
+                                        <th className="py-2.5 text-center w-32">จัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-50 text-slate-700 text-xs font-medium">
+                                    {marginLoading && <tr><td colSpan={4} className="py-4 text-center">กำลังโหลด...</td></tr>}
+                                    {!marginLoading && margins.length === 0 && <tr><td colSpan={4} className="py-4 text-center text-slate-400">ไม่มีข้อมูล</td></tr>}
+                                    {margins.map(item => (
+                                        <tr key={item.id} className="hover:bg-slate-50/50">
+                                            <td className="py-2.5 font-bold">{item.product_type}</td>
+                                            <td className="py-2.5 text-right font-bold text-slate-900">{parseFloat(item.margin_percent).toFixed(2)} %</td>
+                                            <td className="py-2.5 text-right font-bold text-red-600">{parseFloat(item.margin_floor).toFixed(2)} %</td>
+                                            <td className="py-2.5 text-center flex items-center justify-center gap-2">
+                                                <button
+                                                    onClick={() => {
+                                                        setEditingMargin(item);
+                                                        setMarginFormData({ product_type: item.product_type, margin_percent: String(item.margin_percent), margin_floor: String(item.margin_floor) });
+                                                        setShowMarginModal(true);
+                                                    }}
+                                                    className="px-2 py-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded transition font-semibold"
+                                                >
+                                                    แก้ไข
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteMargin(item.id)}
+                                                    className="px-2 py-1 text-xs bg-rose-5 -hover:bg-rose-100 text-rose-600 rounded transition font-semibold"
+                                                >
+                                                    ลบ
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+
+                {tab === "service_tier" && (
+                    <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm">
+                        <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
+                            <div>
+                                <h2 className="text-lg font-bold text-slate-800">Service Tier Config (ระดับบริการ)</h2>
+                                <p className="text-xs text-slate-500 font-semibold mt-0.5">ตั้งค่าระดับการให้บริการ, ตัวคูณ SLA และค่าธรรมเนียมซ่อมด่วน</p>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    setEditingTier(null);
+                                    setTierFormData({ tier: "", sla_multiplier: "1.00", surcharge_type: "FLAT", surcharge_value: "0.00", active_flg: "Y" });
+                                    setShowTierModal(true);
+                                }}
+                                className="px-4 py-2 bg-[#c8102e] hover:bg-[#b00d25] text-white rounded-lg text-xs font-bold transition shadow-sm"
+                            >
+                                เพิ่มระดับบริการใหม่
+                            </button>
+                        </div>
+                        {tierError && <div className="text-red-655 text-xs my-2">{tierError}</div>}
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm border-collapse">
+                                <thead>
+                                    <tr className="border-b border-slate-100 text-left text-slate-500 font-semibold text-xs">
+                                        <th className="py-2.5">ระดับบริการ (Service Tier)</th>
+                                        <th className="py-2.5 text-center w-28">ตัวคูณ SLA</th>
+                                        <th className="py-2.5 text-center w-36">ประเภท Surcharge</th>
+                                        <th className="py-2.5 text-right w-28">มูลค่า</th>
+                                        <th className="py-2.5 text-center w-20">สถานะ</th>
+                                        <th className="py-2.5 text-center w-32">จัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-50 text-slate-700 text-xs font-medium">
+                                    {tierLoading && <tr><td colSpan={6} className="py-4 text-center">กำลังโหลด...</td></tr>}
+                                    {!tierLoading && serviceTiers.length === 0 && <tr><td colSpan={6} className="py-4 text-center text-slate-400">ไม่มีข้อมูล</td></tr>}
+                                    {serviceTiers.map(item => (
+                                        <tr key={item.id} className="hover:bg-slate-50/50">
+                                            <td className="py-2.5 font-black text-slate-900">{item.tier}</td>
+                                            <td className="py-2.5 text-center font-bold text-emerald-600">{parseFloat(item.sla_multiplier).toFixed(2)}x</td>
+                                            <td className="py-2.5 text-center">{item.surcharge_type}</td>
+                                            <td className="py-2.5 text-right font-black">{parseFloat(item.surcharge_value).toFixed(2)}</td>
+                                            <td className="py-2.5 text-center">
+                                                <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${item.active_flg === "Y" ? "bg-green-50 text-green-700 border border-green-200" : "bg-slate-100 text-slate-500"}`}>
+                                                    {item.active_flg === "Y" ? "Active" : "Inactive"}
+                                                </span>
+                                            </td>
+                                            <td className="py-2.5 text-center flex items-center justify-center gap-2">
+                                                <button
+                                                    onClick={() => {
+                                                        setEditingTier(item);
+                                                        setTierFormData({ tier: item.tier, sla_multiplier: String(item.sla_multiplier), surcharge_type: item.surcharge_type, surcharge_value: String(item.surcharge_value), active_flg: item.active_flg });
+                                                        setShowTierModal(true);
+                                                    }}
+                                                    className="px-2 py-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded transition font-semibold"
+                                                >
+                                                    แก้ไข
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteTier(item.id)}
+                                                    className="px-2 py-1 text-xs bg-rose-50 hover:bg-rose-100 text-rose-600 rounded transition font-semibold"
+                                                >
+                                                    ลบ
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+                </div>
             </div>
 
             {showSymptomModal && (
@@ -3392,202 +3474,7 @@ export default function MainTainPage() {
                     </div>
                 </div>
             )}
-                {tab === "diagnostic" && (
-                    <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm">
-                        <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
-                            <div>
-                                <h2 className="text-lg font-bold text-slate-800">Diagnostic Fee Config (ค่าเปิดเครื่อง)</h2>
-                                <p className="text-xs text-slate-500 font-semibold mt-0.5">กำหนดค่าตรวจเช็คเครื่องเปล่าแยกตามประเภทสินค้า สำหรับงานนอกประกัน</p>
-                            </div>
-                            <button
-                                onClick={() => {
-                                    setEditingDiag(null);
-                                    setDiagFormData({ product_type: "", fee_amount: "", waive_in_warranty: true });
-                                    setShowDiagModal(true);
-                                }}
-                                className="px-4 py-2 bg-[#c8102e] hover:bg-[#b00d25] text-white rounded-lg text-xs font-bold transition shadow-sm"
-                            >
-                                เพิ่มการตั้งค่าใหม่
-                            </button>
-                        </div>
-                        {diagError && <div className="text-red-655 text-xs my-2">{diagError}</div>}
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-sm border-collapse">
-                                <thead>
-                                    <tr className="border-b border-slate-100 text-left text-slate-500 font-semibold text-xs">
-                                        <th className="py-2.5">ประเภทสินค้า (Product Type)</th>
-                                        <th className="py-2.5 text-right w-36">ค่าบริการ (บาท)</th>
-                                        <th className="py-2.5 text-center w-36">ยกเว้นในประกัน</th>
-                                        <th className="py-2.5 text-center w-32">จัดการ</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-50 text-slate-700 text-xs font-medium">
-                                    {diagLoading && <tr><td colSpan={4} className="py-4 text-center">กำลังโหลด...</td></tr>}
-                                    {!diagLoading && diagnosticFees.length === 0 && <tr><td colSpan={4} className="py-4 text-center text-slate-400">ไม่มีข้อมูล</td></tr>}
-                                    {diagnosticFees.map(item => (
-                                        <tr key={item.id} className="hover:bg-slate-50/50">
-                                            <td className="py-2.5 font-bold">{item.product_type}</td>
-                                            <td className="py-2.5 text-right font-bold text-slate-900">{parseFloat(item.fee_amount).toLocaleString("th-TH", { minimumFractionDigits: 2 })}</td>
-                                            <td className="py-2.5 text-center">{item.waive_in_warranty ? "Yes" : "No"}</td>
-                                            <td className="py-2.5 text-center flex items-center justify-center gap-2">
-                                                <button
-                                                    onClick={() => {
-                                                        setEditingDiag(item);
-                                                        setDiagFormData({ product_type: item.product_type, fee_amount: String(item.fee_amount), waive_in_warranty: item.waive_in_warranty });
-                                                        setShowDiagModal(true);
-                                                    }}
-                                                    className="px-2 py-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded transition font-semibold"
-                                                >
-                                                    แก้ไข
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteDiag(item.id)}
-                                                    className="px-2 py-1 text-xs bg-rose-50 hover:bg-rose-100 text-rose-600 rounded transition font-semibold"
-                                                >
-                                                    ลบ
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                )}
 
-                {tab === "margin" && (
-                    <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm">
-                        <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
-                            <div>
-                                <h2 className="text-lg font-bold text-slate-800">Margin Config (อัตรากำไรขั้นต้น)</h2>
-                                <p className="text-xs text-slate-500 font-semibold mt-0.5">กำหนด Margin เป้าหมายและ Margin ขั้นต่ำเพื่อป้อนการเสนอราคากลาง</p>
-                            </div>
-                            <button
-                                onClick={() => {
-                                    setEditingMargin(null);
-                                    setMarginFormData({ product_type: "", margin_percent: "", margin_floor: "" });
-                                    setShowMarginModal(true);
-                                }}
-                                className="px-4 py-2 bg-[#c8102e] hover:bg-[#b00d25] text-white rounded-lg text-xs font-bold transition shadow-sm"
-                            >
-                                เพิ่มการตั้งค่าใหม่
-                            </button>
-                        </div>
-                        {marginError && <div className="text-red-655 text-xs my-2">{marginError}</div>}
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-sm border-collapse">
-                                <thead>
-                                    <tr className="border-b border-slate-100 text-left text-slate-500 font-semibold text-xs">
-                                        <th className="py-2.5">ประเภทสินค้า (Product Type)</th>
-                                        <th className="py-2.5 text-right w-36">Margin แนะนำ (%)</th>
-                                        <th className="py-2.5 text-right w-36">Margin ขั้นต่ำ (%)</th>
-                                        <th className="py-2.5 text-center w-32">จัดการ</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-50 text-slate-700 text-xs font-medium">
-                                    {marginLoading && <tr><td colSpan={4} className="py-4 text-center">กำลังโหลด...</td></tr>}
-                                    {!marginLoading && margins.length === 0 && <tr><td colSpan={4} className="py-4 text-center text-slate-400">ไม่มีข้อมูล</td></tr>}
-                                    {margins.map(item => (
-                                        <tr key={item.id} className="hover:bg-slate-50/50">
-                                            <td className="py-2.5 font-bold">{item.product_type}</td>
-                                            <td className="py-2.5 text-right font-bold text-slate-900">{parseFloat(item.margin_percent).toFixed(2)} %</td>
-                                            <td className="py-2.5 text-right font-bold text-red-600">{parseFloat(item.margin_floor).toFixed(2)} %</td>
-                                            <td className="py-2.5 text-center flex items-center justify-center gap-2">
-                                                <button
-                                                    onClick={() => {
-                                                        setEditingMargin(item);
-                                                        setMarginFormData({ product_type: item.product_type, margin_percent: String(item.margin_percent), margin_floor: String(item.margin_floor) });
-                                                        setShowMarginModal(true);
-                                                    }}
-                                                    className="px-2 py-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded transition font-semibold"
-                                                >
-                                                    แก้ไข
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteMargin(item.id)}
-                                                    className="px-2 py-1 text-xs bg-rose-5 -hover:bg-rose-100 text-rose-600 rounded transition font-semibold"
-                                                >
-                                                    ลบ
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                )}
-
-                {tab === "service_tier" && (
-                    <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm">
-                        <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
-                            <div>
-                                <h2 className="text-lg font-bold text-slate-800">Service Tier Config (ระดับบริการ)</h2>
-                                <p className="text-xs text-slate-500 font-semibold mt-0.5">ตั้งค่าระดับการให้บริการ, ตัวคูณ SLA และค่าธรรมเนียมซ่อมด่วน</p>
-                            </div>
-                            <button
-                                onClick={() => {
-                                    setEditingTier(null);
-                                    setTierFormData({ tier: "", sla_multiplier: "1.00", surcharge_type: "FLAT", surcharge_value: "0.00", active_flg: "Y" });
-                                    setShowTierModal(true);
-                                }}
-                                className="px-4 py-2 bg-[#c8102e] hover:bg-[#b00d25] text-white rounded-lg text-xs font-bold transition shadow-sm"
-                            >
-                                เพิ่มระดับบริการใหม่
-                            </button>
-                        </div>
-                        {tierError && <div className="text-red-655 text-xs my-2">{tierError}</div>}
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-sm border-collapse">
-                                <thead>
-                                    <tr className="border-b border-slate-100 text-left text-slate-500 font-semibold text-xs">
-                                        <th className="py-2.5">ระดับบริการ (Service Tier)</th>
-                                        <th className="py-2.5 text-center w-28">ตัวคูณ SLA</th>
-                                        <th className="py-2.5 text-center w-36">ประเภท Surcharge</th>
-                                        <th className="py-2.5 text-right w-28">มูลค่า</th>
-                                        <th className="py-2.5 text-center w-20">สถานะ</th>
-                                        <th className="py-2.5 text-center w-32">จัดการ</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-50 text-slate-700 text-xs font-medium">
-                                    {tierLoading && <tr><td colSpan={6} className="py-4 text-center">กำลังโหลด...</td></tr>}
-                                    {!tierLoading && serviceTiers.length === 0 && <tr><td colSpan={6} className="py-4 text-center text-slate-400">ไม่มีข้อมูล</td></tr>}
-                                    {serviceTiers.map(item => (
-                                        <tr key={item.id} className="hover:bg-slate-50/50">
-                                            <td className="py-2.5 font-black text-slate-900">{item.tier}</td>
-                                            <td className="py-2.5 text-center font-bold text-emerald-600">{parseFloat(item.sla_multiplier).toFixed(2)}x</td>
-                                            <td className="py-2.5 text-center">{item.surcharge_type}</td>
-                                            <td className="py-2.5 text-right font-black">{parseFloat(item.surcharge_value).toFixed(2)}</td>
-                                            <td className="py-2.5 text-center">
-                                                <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${item.active_flg === "Y" ? "bg-green-50 text-green-700 border border-green-200" : "bg-slate-100 text-slate-500"}`}>
-                                                    {item.active_flg === "Y" ? "Active" : "Inactive"}
-                                                </span>
-                                            </td>
-                                            <td className="py-2.5 text-center flex items-center justify-center gap-2">
-                                                <button
-                                                    onClick={() => {
-                                                        setEditingTier(item);
-                                                        setTierFormData({ tier: item.tier, sla_multiplier: String(item.sla_multiplier), surcharge_type: item.surcharge_type, surcharge_value: String(item.surcharge_value), active_flg: item.active_flg });
-                                                        setShowTierModal(true);
-                                                    }}
-                                                    className="px-2 py-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded transition font-semibold"
-                                                >
-                                                    แก้ไข
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteTier(item.id)}
-                                                    className="px-2 py-1 text-xs bg-rose-50 hover:bg-rose-100 text-rose-600 rounded transition font-semibold"
-                                                >
-                                                    ลบ
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                )}
 
             {/* Diagnostic Fee Modal */}
             {showDiagModal && (

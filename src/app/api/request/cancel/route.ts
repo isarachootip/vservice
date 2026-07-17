@@ -51,8 +51,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, message: "ไม่พบข้อมูลใบแจ้งซ่อม" }, { status: 404 });
     }
 
+    // FIX-02: ยกเลิกอิสระได้เฉพาะก่อนสินค้าถึง Vendor (SRS v2.1 หัวข้อ 10)
     const currentStatus = request.status ?? 0;
-    const allowedStatuses = [10, 11, 20, 201, 30];
+    const allowedStatuses = [100, 110, 200, 210, 300];
     const isAllowedSelf = allowedStatuses.includes(currentStatus);
 
     let approverName: string | null = null;
@@ -86,7 +87,7 @@ export async function POST(req: Request) {
       }, { status: 400 });
     }
 
-    // Perform atomic status update
+    // Set status = 0 (000 = ยกเลิก)
     await prisma.repair_request.update({
       where: { id: idNum },
       data: {

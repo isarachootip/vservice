@@ -346,14 +346,16 @@ model repair_bundle_master {
 }
 
 model status_info {
-  status_id    Int       @id
-  status_name  String?   @db.VarChar(300)
-  path_type    String?   @db.VarChar(10)
-  sla_hours    Int       @default(0)
-  created_user String?   @db.VarChar(10)
-  created_date DateTime? @default(now()) @db.Timestamp(6)
-  updated_user String?   @db.VarChar(10)
-  updated_date DateTime? @default(now()) @db.Timestamp(6)
+  status_id     Int       @id
+  status_name   String?   @db.VarChar(300)
+  path_type     String?   @db.VarChar(10)
+  sla_hours     Int       @default(0)
+  legacy_code   String?   @db.VarChar(10)     // รหัสเดิมก่อน migrate (SRS v2.1)
+  display_order Int?      @default(0)
+  created_user  String?   @db.VarChar(10)
+  created_date  DateTime? @default(now()) @db.Timestamp(6)
+  updated_user  String?   @db.VarChar(10)
+  updated_date  DateTime? @default(now()) @db.Timestamp(6)
 }
 
 model vendor_info {

@@ -80,7 +80,7 @@ export async function POST(req: Request) {
                 ? new Date(vendorReturnDate)
                 : null;
 
-            const nextStatus = 2360;
+            const nextStatus = 280; // DC รับสินค้าคืนจาก Vendor (SRS v2.1)
 
             await prisma.repair_request.update({
                 where: { id: idNum },
@@ -106,7 +106,7 @@ export async function POST(req: Request) {
                 ? new Date(vendorReturnDate)
                 : null;
 
-            const nextStatus = 236;
+            const nextStatus = 290; // CS รับสินค้าคืนแล้ว / รอลูกค้ารับ (DC Path → GR direct to HO)
 
             await prisma.repair_request.update({
                 where: { id: idNum },
@@ -132,7 +132,7 @@ export async function POST(req: Request) {
                 ? new Date(vendorReturnDate)
                 : null;
 
-            const nextStatus = 360;
+            const nextStatus = 350; // Vendor คืนผ่าน DC แทนสาขา (DC รอส่งเข้าสาขา)
 
             await prisma.repair_request.update({
                 where: { id: idNum },
@@ -158,8 +158,8 @@ export async function POST(req: Request) {
                 ? new Date(dcReturnDate)
                 : null;
 
-            const nextStatus = mode === "DC" ? 2361 : 36;
-            // const nextStatus = 236;
+            const nextStatus = mode === "DC" ? 285 : 360; // GR รับสินค้าคืนจาก DC/Vendor
+            // const nextStatus = 290;
 
             await prisma.repair_request.update({
                 where: { id: idNum },
@@ -185,7 +185,7 @@ export async function POST(req: Request) {
                 ? new Date(vendorReturnDate)
                 : null;
 
-            const nextStatus = mode === "DC" ? 236 : 361;
+            const nextStatus = mode === "DC" ? 290 : 360; // DC→290, Vendor→360
 
             await prisma.repair_request.update({
                 where: { id: idNum },
@@ -212,7 +212,7 @@ export async function POST(req: Request) {
                 ? new Date(grReturnDate)
                 : null;
 
-            const nextStatus = mode === "DC" ? 236 : 36;
+            const nextStatus = mode === "DC" ? 290 : 390; // GR คืนสินค้าให้ CS: DC→290, Vendor→390
 
             await prisma.repair_request.update({
                 where: { id: idNum },
@@ -268,7 +268,7 @@ export async function POST(req: Request) {
                 : null;
             const signatureBase64 = form.get("signatureSign")?.toString();
 
-            const nextStatus = mode === "DC" ? 237 : 37;
+            const nextStatus = mode === "DC" ? 299 : 399; // ลูกค้ารับสินค้าแล้ว (ปิดงาน)
 
             const prefix = `${profile.in_bu}R${profile.store_nick}`;
             const now = new Date();
@@ -316,7 +316,7 @@ export async function POST(req: Request) {
                     await fs.writeFile(filePath, buffer);
 
                     const publicPath = `/uploads/repair/${requestNo}/${fileName}`;
-                    const signatureStep = mode === "DC" ? "237" : "37";
+                    const signatureStep = mode === "DC" ? "299" : "399";
 
                     await prisma.repair_attachment.create({
                         data: {
@@ -346,19 +346,19 @@ export async function POST(req: Request) {
             //* condition stamp step file แนบ
             let step = "";
             if(action === "ProductVendorReturn"){
-                step = "361";
+                step = "360";
             }else if(action === "ProductGrReturnToCs" && mode === "VEN"){
-                step = "36";
+                step = "390";
             }else if(action === "ProductCustomerReturn" && mode === "VEN"){
-                step = "37";
+                step = "399";
             }else if(action === "ProductVendorToDcReturn"){
-                step = "2360";
+                step = "280";
             }else if(action === "ProductDcReturn"){
-                step = "2361";
+                step = "285";
              }else if(action === "ProductGrReturnToCs" && mode === "DC"){
-                step = "236";
+                step = "290";
             }else if(action === "ProductCustomerReturn" && mode === "DC"){
-                step = "237";
+                step = "299";
             }
 
             for (let i = 0; i < files.length; i++) {
@@ -395,22 +395,22 @@ export async function POST(req: Request) {
         let stepNo = "";
         if(action === "ProductVendorReturn"){
             log_text = "เพิ่มข้อมูลบันทึกการส่งคืนสินค้าจาก Vendor ใบแจ้งซ่อม : ";
-            stepNo = "361";
+            stepNo = "360";
         }else if(action === "ProductDcReturn"){
             log_text = "เพิ่มข้อมูลบันทึกการส่งคืนสินค้าจาก DC ใบแจ้งซ่อม : ";
-            stepNo = "236";
+            stepNo = "285";
         }else if(action === "ProductVendorToDcReturn"){
             log_text = "เพิ่มข้อมูลบันทึกการส่งคืนสินค้าจาก Vendor ถึง DC ใบแจ้งซ่อม : ";
-            stepNo = "2360";
+            stepNo = "280";
         }else if(action === "ProductVendorToHO"){
             log_text = "เพิ่มข้อมูลบันทึกการส่งคืนสินค้าจาก Vendor ถึง สาขา ใบแจ้งซ่อม : ";
-            stepNo = "361";
+            stepNo = "360";
         }else if(action === "ProductVendorToDcInstead"){
             log_text = "เพิ่มข้อมูลบันทึกการส่งคืนสินค้าจาก Vendor ถึง DC รับแทนสาขา ใบแจ้งซ่อม : ";
-            stepNo = "360";
+            stepNo = "350";
         }else if(action === "ProductCustomerReturn"){
             log_text = "เพิ่มข้อมูลบันทึกการส่งคืนสินค้าให้ลูกค้า ใบแจ้งซ่อม : ";
-            stepNo = mode === "VEN" ? "37" : "237";
+            stepNo = mode === "VEN" ? "399" : "299";
         }
         const trans_log_text = log_text + existing.request_no;
         await prisma.transaction_log.create({

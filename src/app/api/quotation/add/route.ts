@@ -121,8 +121,9 @@ export async function POST(req: Request) {
       approverName = adminAuth.user_name;
     }
 
-    const statusByMode = mode === "DC" ? 232 : mode === "VEN" ? 32 : null;
-    const stepNoByMode = mode === "DC" ? "232" : mode === "VEN" ? "32" : null;
+    // SRS v2.1: DC Path → 250 (ขออนุมัติราคาจากลูกค้า), Vendor Path → 320
+    const statusByMode = mode === "DC" ? 250 : mode === "VEN" ? 320 : null;
+    const stepNoByMode = mode === "DC" ? "250" : mode === "VEN" ? "320" : null;
 
     if (!statusByMode || !stepNoByMode) {
       return NextResponse.json(

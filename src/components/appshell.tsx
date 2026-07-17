@@ -1,7 +1,7 @@
 "use client";
 
-import { ReactNode, useEffect, useState, useMemo } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { ReactNode, useEffect, useState, useMemo, Suspense } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   Home,
@@ -21,8 +21,19 @@ import {
   ChevronLeft,
   ChevronRight,
   Menu,
-  X
+  X,
+  List,
+  Truck,
+  ShieldAlert,
+  MapPin,
+  Layers,
+  AlertTriangle,
+  Megaphone,
+  Coins,
+  Percent,
+  Clock
 } from "lucide-react";
+
 
 type UserData = {
   user_name: string;
@@ -32,6 +43,111 @@ type UserData = {
   permissions?: string[];
   store_code?: string | null;
 };
+
+
+function SidebarNav({
+  menuItems,
+  collapsed,
+  mobileOpen,
+  pathname
+}: {
+  menuItems: any[];
+  collapsed: boolean;
+  mobileOpen: boolean;
+  pathname: string;
+}) {
+  const searchParams = useSearchParams();
+  const currentTab = searchParams.get("tab") || "status";
+  const [settingsExpanded, setSettingsExpanded] = useState(false);
+
+  useEffect(() => {
+    if (pathname.startsWith("/maintain")) {
+      setSettingsExpanded(true);
+    }
+  }, [pathname]);
+
+  return (
+    <nav className="flex flex-col gap-1">
+      {menuItems
+        .filter((item) => item.show !== false)
+        .map((item, idx) => {
+          const Icon = item.icon;
+          const isParentActive = pathname === item.href;
+          
+          const isActive = item.href === "/maintain" 
+            ? pathname.startsWith("/maintain")
+            : isParentActive;
+
+          const handleParentClick = (e: React.MouseEvent) => {
+            if (item.subItems) {
+              // Toggle settingsExpanded
+              setSettingsExpanded(!settingsExpanded);
+            }
+          };
+
+          return (
+            <div key={idx} className="flex flex-col">
+              <Link
+                href={item.href}
+                onClick={handleParentClick}
+                title={collapsed ? item.label : undefined}
+                className={`flex items-center transition-all duration-150 py-2 text-sm font-semibold rounded-lg ${
+                  collapsed ? "lg:justify-center lg:px-2" : "justify-between px-3"
+                } ${
+                  isActive
+                    ? "bg-[#c8102e] text-white shadow-sm"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Icon className={`w-4.5 h-4.5 shrink-0 ${isActive ? "text-white" : "text-slate-400"}`} />
+                  {(!collapsed || mobileOpen) && (
+                    <span className="animate-fadeIn">{item.label}</span>
+                  )}
+                </div>
+                {(!collapsed || mobileOpen) && (
+                  <div className="flex items-center gap-1.5">
+                    {item.badge !== undefined && (
+                      <span className="bg-[#c8102e] text-white text-[10px] font-bold px-2 py-0.5 rounded-full min-w-5 text-center">
+                        {item.badge}
+                      </span>
+                    )}
+                    {item.subItems && (
+                      <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${settingsExpanded ? "rotate-180" : ""}`} />
+                    )}
+                  </div>
+                )}
+              </Link>
+
+              {item.subItems && settingsExpanded && (!collapsed || mobileOpen) && (
+                <div className="flex flex-col gap-0.5 pl-6 mt-1 border-l border-slate-200 ml-5 animate-fadeIn">
+                  {item.subItems.map((sub: any, sIdx: number) => {
+                    const SubIcon = sub.icon;
+                    const subTab = sub.href.split("=")[1];
+                    const isSubActive = pathname.startsWith("/maintain") && currentTab === subTab;
+                    return (
+                      <Link
+                        key={sIdx}
+                        href={sub.href}
+                        className={`flex items-center gap-2.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all duration-150 ${
+                          isSubActive
+                            ? "text-[#c8102e] bg-[#c8102e]/5 font-extrabold"
+                            : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
+                        }`}
+                      >
+                        {SubIcon && <SubIcon className="w-3.5 h-3.5 shrink-0" />}
+                        <span>{sub.label}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+    </nav>
+  );
+}
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -231,40 +347,9 @@ export default function AppShell({ children }: { children: ReactNode }) {
 
           <div className="p-3">
             {/* Navigation Links */}
-            <nav className="flex flex-col gap-1">
-              {menuItems
-                .filter((item) => item.show !== false)
-                .map((item, idx) => {
-                  const Icon = item.icon;
-                  const isActive = pathname === item.href;
-                  return (
-                    <Link
-                      key={idx}
-                      href={item.href}
-                      title={collapsed ? item.label : undefined}
-                      className={`flex items-center transition-all duration-150 py-2 text-sm font-semibold rounded-lg ${
-                        collapsed ? "lg:justify-center lg:px-2" : "justify-between px-3"
-                      } ${
-                        isActive
-                          ? "bg-[#c8102e] text-white shadow-sm"
-                          : "text-slate-600 hover:text-slate-900 hover:bg-slate-105"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <Icon className={`w-4.5 h-4.5 shrink-0 ${isActive ? "text-white" : "text-slate-400"}`} />
-                        {(!collapsed || mobileOpen) && (
-                          <span className="animate-fadeIn">{item.label}</span>
-                        )}
-                      </div>
-                      {(!collapsed || mobileOpen) && item.badge !== undefined && (
-                        <span className="bg-[#c8102e] text-white text-[10px] font-bold px-2 py-0.5 rounded-full min-w-5 text-center">
-                          {item.badge}
-                        </span>
-                      )}
-                    </Link>
-                  );
-                })}
-            </nav>
+            <Suspense fallback={<div className="h-40" />}>
+              <SidebarNav menuItems={menuItems} collapsed={collapsed} mobileOpen={mobileOpen} pathname={pathname} />
+            </Suspense>
 
             {/* CALL CENTER Banner Card */}
             {/* CALL CENTER Banner Card */}

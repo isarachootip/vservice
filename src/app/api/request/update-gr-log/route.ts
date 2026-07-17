@@ -59,7 +59,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ ok: false, message: "ไม่พบข้อมูลใบแจ้งซ่อม" }, { status: 404 });
         }
 
-        const StatusGrLogForDc = 201;
+        const StatusGrLogForDc = 210; // รอ DC มารับสินค้า (SRS v2.1)
 
         await prisma.repair_request.update({
             where: { id: idNum },
@@ -118,7 +118,7 @@ export async function POST(req: Request) {
                 act_user_name: updatedUser,
                 act_ip_address: ip,
                 act_trans_log: trans_log_text,
-                step_no: String(StatusGrLogForDc),
+                step_no: "200", // GR เปิด log DC (SRS v2.1)
                 request_id: idNum,                
             }
         });

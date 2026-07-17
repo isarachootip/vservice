@@ -50,9 +50,20 @@ export class CommodityRepository {
         // });
     }
 
-    static async getBrand(className: string) {
+    static async getBrand(className?: string) {
         const cls = (className ?? "").trim();
-        if (!cls) return [];
+        if (!cls) {
+            return prisma.$queryRaw<{ brand: string }[]>`
+                SELECT DISTINCT
+                    TRIM(c.brand) AS brand
+                FROM public.commodity c
+                WHERE
+                    TRIM(c.brand) <> ''
+                    AND c.brand IS NOT NULL
+                    AND TRIM(c.sku_status_name) = 'Active'
+                ORDER BY TRIM(c.brand)
+            `;
+        }
 
         return prisma.$queryRaw<{ brand: string }[]>`
             SELECT DISTINCT
@@ -65,13 +76,5 @@ export class CommodityRepository {
                 AND TRIM(c.sku_status_name) = 'Active'
             ORDER BY TRIM(c.brand)
         `;
-        // const cls = (className ?? "").trim();
-        // if (!cls) return [];
-        // return prisma.commodity.findMany({
-        //     where: { class_name: { equals: cls, mode: "insensitive" }, sku_status_name: "Active" },
-        //     distinct: ["brand"],
-        //     select: { brand: true },
-        //     orderBy: { brand: "asc" },
-        // });
     }
 }

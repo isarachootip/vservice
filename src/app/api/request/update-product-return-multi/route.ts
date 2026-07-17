@@ -58,18 +58,17 @@ export async function POST(req: Request) {
             ? new Date(vendorReturnDateStr)
             : null;
 
-        //* หา step
         let step = "";
         if (action === "ProductVendorReturn") {
-            step = "361";
+            step = "360";
         } else if (action === "ProductCustomerReturn" && mode === "VEN") {
-            step = "37";
+            step = "399";
         } else if (action === "ProductVendorToDcReturn") {
-            step = "2360";
+            step = "280";
         } else if (action === "ProductDcReturn") {
-            step = "236";
+            step = "285";
         } else if (action === "ProductCustomerReturn" && mode === "DC") {
-            step = "237";
+            step = "299";
         }
 
         let log_text = "";
@@ -88,7 +87,7 @@ export async function POST(req: Request) {
         }
 
         if (action === "ProductVendorToDcReturn") {
-            const nextStatus = 2360;
+            const nextStatus = 280; // DC รับสินค้าคืนจาก Vendor (SRS v2.1)
             await prisma.$transaction(async (tx) => {
                 await tx.repair_request.updateMany({
                     where: { id: { in: requestIds } },

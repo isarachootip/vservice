@@ -80,7 +80,7 @@ export async function POST(req: Request) {
                 ? new Date(dcReturnDate)
                 : null;
 
-            const nextStatus = 201;
+            const nextStatus = 210; // รอ DC มารับสินค้า (SRS v2.1)
 
             await prisma.repair_request.update({
                 where: { id: idNum },
@@ -100,7 +100,7 @@ export async function POST(req: Request) {
         //* Determine step based on action
         let step = "";
         if(action === "ProductRejDcToHO"){
-            step = "21";
+            step = "220"; // DC รับสินค้าจากสาขา (SRS v2.1)
         }
 
         if (files?.length) {

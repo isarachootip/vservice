@@ -60,7 +60,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ ok: false, message: "ไม่พบข้อมูลใบแจ้งซ่อม" }, { status: 404 });
         }
 
-        const StatusGrToCS = 11;
+        const StatusGrToCS = 110;
 
         await prisma.repair_request.update({
             where: { id: idNum },

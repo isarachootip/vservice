@@ -594,7 +594,7 @@ export default function RequestEditPage({ params }: { params: Promise<{ id: stri
                 const transData = await transRes.json();
                 const transLogs = Array.isArray(transData?.transactionLogs) ? transData.transactionLogs : [];
                 const pathSelectionLog = transLogs.find(
-                    (log: {step_no: string | null; act_user_name: string | null}) => log.step_no === "20" || log.step_no === "30"
+                    (log: {step_no: string | null; act_user_name: string | null}) => log.step_no === "200" || log.step_no === "300"
                 );
                 if (pathSelectionLog?.act_user_name) {
                     setPathSelectedBy(pathSelectionLog.act_user_name);

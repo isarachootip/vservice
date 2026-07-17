@@ -54,25 +54,25 @@ export async function POST(req: Request) {
         const receiveDt = dcReceiveDate ? new Date(dcReceiveDate) : null;
         const arriveDt = dcArriveDate ? new Date(dcArriveDate) : null;
 
-        if(statusNum === 201){
+        if(statusNum === 210){
             await prisma.repair_request.update({
             where: { id: idNum },
                 data: {
                     dc_receiver_name: dcReceiver,
                     dc_receive_date: receiveDt,
                     dc_receiver_tel: receiverTel,
-                    status: 21,
+                    status: 220,
                     updated_user: updatedUser,
                     reject_flg: null,
                     reject_from_status: null,
                 },
             });
-        }else if(statusNum === 21){
+        }else if(statusNum === 220){
             await prisma.repair_request.update({
             where: { id: idNum },
                 data: {
                     arrive_to_dc_date: arriveDt,
-                    status: 22,
+                    status: 230,
                     updated_user: updatedUser,
                     reject_flg: null,
                     reject_from_status: null,
@@ -108,9 +108,10 @@ export async function POST(req: Request) {
         
         //* condition stamp step file แนบ
         let step = "";
-        if(statusNum === 201){
-            step = "21";
-        }else if(statusNum === 21){
+        if(statusNum === 210){
+            step = "220";
+        }else if(statusNum === 220){
+            step = "220"; // keep step as 220
         }
 
         for (let i = 0; i < files.length; i++) {
@@ -139,7 +140,7 @@ export async function POST(req: Request) {
             await prisma.repair_attachment.createMany({ data: attachmentRows });
         }
         
-        if(statusNum === 201){
+        if(statusNum === 210){
             const trans_log_text = "เพิ่มข้อมูลบันทึกการรับสินค้าของ DC : " + requestNo; 
             await prisma.transaction_log.create({
                 data: {
@@ -150,7 +151,7 @@ export async function POST(req: Request) {
                     request_id: idNum,
                 }
             });
-        }else if(statusNum === 21){
+        }else if(statusNum === 220){
             const trans_log_text = "เพิ่มข้อมูลวันที่ DC รับสินค้าเข้าที่ DC : " + requestNo; 
             await prisma.transaction_log.create({
                 data: {

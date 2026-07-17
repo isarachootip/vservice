@@ -67,7 +67,7 @@ export async function POST(req: Request) {
                 send_to_vendor_by: receiverName,
                 send_to_vendor_tel: receiverTel,
                 send_to_vendor_date: sendDateDt,
-                status: 31,
+                status: 310,
                 updated_user: updatedUser,
             },
         });
@@ -104,7 +104,7 @@ export async function POST(req: Request) {
                 file_name: fileName,      
                 mime_type: f.type || null,
                 file_size: f.size ?? null,
-                step_no: "31"
+                step_no: "310"
             });
         }
 
@@ -118,7 +118,7 @@ export async function POST(req: Request) {
                 act_user_name: updatedUser,
                 act_ip_address: ip,
                 act_trans_log: trans_log_text,
-                step_no: "31",
+                step_no: "310",
                 request_id: idNum,
             }
         });

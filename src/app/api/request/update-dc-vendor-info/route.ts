@@ -51,7 +51,7 @@ export async function POST(req: Request) {
                 send_to_vendor_by: receiverName,
                 send_to_vendor_date: sendDateDt,
                 send_to_vendor_tel: vendorReceiverTel,
-                status: 23,
+                status: 240,
                 updated_user: updatedUser,
             },
         });
@@ -100,7 +100,7 @@ export async function POST(req: Request) {
                 file_name: fileName,
                 mime_type: f.type || null,
                 file_size: f.size ?? null,
-                step_no: String(23)
+                step_no: "240"
             });
         }
                 

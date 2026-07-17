@@ -97,9 +97,9 @@ export async function POST(req: Request) {
     }
 
     let choice: string = "";
-    if(body.status == 20){
+    if(body.status == 200){
       choice = "DC"
-    }else if(body.status == 30){
+    }else if(body.status == 300){
       choice = "Vendor"
     }
     const trans_log_text = "ปรับสถานะใบแจ้งซ่อม : " + res.request_no + " จัดส่งให้ " + choice + serialLogText;

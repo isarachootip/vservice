@@ -43,16 +43,17 @@ export async function POST(req: Request) {
             return NextResponse.json({ ok: false, message: "ไม่พบข้อมูลใบแจ้งซ่อม" }, { status: 404 });
         }
 
+        // SRS v2.1: DC อนุมัติ → 275, ไม่อนุมัติ → 270; Vendor อนุมัติ → 345, ไม่อนุมัติ → 340
         const statusByMode = mode === "DC"
-            ? (approveFlg === "Y" ? 235 : 234)
+            ? (approveFlg === "Y" ? 275 : 270)
             : mode === "VEN"
-            ? (approveFlg === "Y" ? 35 : 34)
+            ? (approveFlg === "Y" ? 345 : 340)
             : null;
 
         const stepNoByMode = mode === "DC"
-            ? (approveFlg === "Y" ? "235" : "234")
+            ? (approveFlg === "Y" ? "275" : "270")
             : mode === "VEN"
-            ? (approveFlg === "Y" ? "35" : "34")
+            ? (approveFlg === "Y" ? "345" : "340")
             : null;
 
         if (!statusByMode || !stepNoByMode) {

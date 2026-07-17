@@ -6,27 +6,30 @@ import { UserService, UserRowWithPermissionsList } from "@/lib/service/users.ser
 
 export const runtime = "nodejs";
 
+// Rollback Map ตาม SRS v2.1 หัวข้อ 3.6
 const prevStatusMap: Record<number, number> = {
-    20: 11,
-    201: 20,
-    21: 201,
-    22: 21, //*กรณี DC ลืมขนสินค้าไปจากสาขา ต้องย้อนไปกรกอตั้งแต่ตอน DC รับของ
-    23: 22,
-    232: 23,
-    233: 232,
-    234: 233,
-    235: 234,
-    2360: 235,
-    236: 235,
-    237: 236,
+    // DC Path
+    200: 110,
+    210: 200,
+    220: 210, //* กรณี DC ลืมขนสินค้าไปจากสาขา ต้องย้อนไปตั้งแต่ตอน DC รับของ
+    230: 220,
+    240: 230,
+    250: 240,
+    260: 250,
+    270: 260,
+    275: 270,
+    280: 275,
+    290: 275, //* หมายเหตุ SRS: 290→275 ข้ามขา 280/285 (คงพฤติกรรมเดิม 236→235)
+    299: 290,
 
-    31: 30,
-    32: 31,
-    33: 32,
-    34: 33,
-    35: 34,
-    36: 35,
-    37: 36,
+    // Vendor Path
+    310: 300,
+    320: 310,
+    330: 320,
+    340: 330,
+    345: 340,
+    390: 345, //* 350/360 ไม่อยู่ใน rollback map ตามระบบเดิม
+    399: 390,
 };
 
 function getClientIp(req: Request): string {
@@ -133,7 +136,7 @@ export async function POST(req: Request) {
                 reject_from_status: String(current.status),
             };
             //*กรณี rollback หลัง DC รับของไปแล้ว
-            if (current.status === 201 || current.status === 21 || current.status === 22) {
+            if (current.status === 210 || current.status === 220 || current.status === 230) {
                 updateData.dc_receiver_name = null;
                 updateData.dc_receive_date = null;
                 updateData.dc_receiver_tel = null;
@@ -145,27 +148,26 @@ export async function POST(req: Request) {
                 where: { id: n },
                 data: updateData,
             });
-            //* ลบ attachment
+            //* ลบ attachment step 220 (DC รับสินค้า) เมื่อตีกลับ
             await tx.repair_attachment.deleteMany({
-                where: { request_id : n , step_no : '21'},
+                where: { request_id : n , step_no : '220'},
             });
 
             const ip = getClientIp(req);
             let transLogText = "";
-            if(current.status === 20){
+            if (current.status === 200) {
                 transLogText =
                 `GR Reject ช่วง GR เปิด log DC : ${current.request_no}` +
                 ` | เหตุผล : ${reason}`;
-            }
-            else if (current.status === 201) {
+            } else if (current.status === 210) {
                 transLogText =
                 `GR Reject ช่วง รอ DC มารับสินค้า : ${current.request_no}` +
                 ` | เหตุผล : ${reason}`;
-            } else if (current.status === 21) {
+            } else if (current.status === 220) {
                 transLogText =
                 `GR Reject ช่วง DC รับสินค้าจากสาขาแล้ว : ${current.request_no}` +
                 ` | เหตุผล : ${reason}`;
-            } else if (current.status === 22) {
+            } else if (current.status === 230) {
                 transLogText =
                 `DC Reject ช่วง DC รอ Vendor มารับสินค้า : ${current.request_no}` +
                 ` | เหตุผล : ${reason}`;
