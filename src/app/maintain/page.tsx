@@ -82,6 +82,7 @@ function MaintainContent() {
     const [showCategoryModal, setShowCategoryModal] = useState(false);
     const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
     const [categoryFormData, setCategoryFormData] = useState({ name: "", name_th: "", active_flg: "Y" });
+    const [categorySearchQ, setCategorySearchQ] = useState("");
     const [categoryFormError, setCategoryFormError] = useState<string | null>(null);
     const [isSavingCategory, setIsSavingCategory] = useState(false);
 
@@ -763,6 +764,11 @@ function MaintainContent() {
             setCategoryLoading(false);
         }
     };
+
+    const filteredCategories = categoriesList.filter(row =>
+        (row.name || "").toLowerCase().includes(categorySearchQ.toLowerCase()) ||
+        (row.name_th || "").toLowerCase().includes(categorySearchQ.toLowerCase())
+    );
 
     const openAddLocationModal = () => {
         setEditingLocationId(null);
@@ -2281,14 +2287,30 @@ function MaintainContent() {
 
                 {tab === "category" && (
                     <div className="space-y-6">
-                        <div className="flex items-center justify-between mb-6">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
                             <h2 className="text-xl font-semibold text-slate-900">จัดการหมวดหมู่สินค้า (Category Management)</h2>
-                            <button
-                                onClick={openAddCategoryModal}
-                                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg shadow transition text-sm"
-                            >
-                                เพิ่มหมวดหมู่
-                            </button>
+                            <div className="flex items-center gap-3 w-full sm:w-auto">
+                                <div className="relative flex-grow sm:flex-grow-0 sm:w-64">
+                                    <input
+                                        type="text"
+                                        placeholder="ค้นหาหมวดหมู่..."
+                                        value={categorySearchQ}
+                                        onChange={(e) => setCategorySearchQ(e.target.value)}
+                                        className="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 text-slate-900"
+                                    />
+                                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.637 10.637Z" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={openAddCategoryModal}
+                                    className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg shadow transition text-sm flex-shrink-0"
+                                >
+                                    เพิ่มหมวดหมู่
+                                </button>
+                            </div>
                         </div>
 
                         {categoryError && (
@@ -2316,14 +2338,14 @@ function MaintainContent() {
                                                     กำลังโหลดข้อมูล...
                                                 </td>
                                             </tr>
-                                        ) : categoriesList.length === 0 ? (
+                                        ) : filteredCategories.length === 0 ? (
                                             <tr>
                                                 <td colSpan={5} className="px-6 py-6 text-center text-slate-500">
                                                     ไม่พบข้อมูลหมวดหมู่
                                                 </td>
                                             </tr>
                                         ) : (
-                                            categoriesList.map((row, idx) => (
+                                            filteredCategories.map((row, idx) => (
                                                 <tr key={row.id} className="border-t border-slate-100 hover:bg-slate-55">
                                                     <td className="px-6 py-4 text-slate-900 text-center">{idx + 1}</td>
                                                     <td className="px-6 py-4 text-slate-900 font-semibold">{row.name}</td>
