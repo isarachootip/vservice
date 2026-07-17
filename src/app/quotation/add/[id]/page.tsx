@@ -46,6 +46,7 @@ export default function QuotationAddPage({ params }: { params: Promise<{ id: str
 
     const [vendorName, setVendorName] = useState("");
     const [status,      setStatus]    = useState<number | "">("");
+    const [commodityInfo, setCommodityInfo] = useState<any | null>(null);
 
     const parseNum = (v: string) =>
         v.trim() === "" ? 0 : Number(v.replace(/,/g, "")) || 0;
@@ -99,7 +100,7 @@ export default function QuotationAddPage({ params }: { params: Promise<{ id: str
     );
 
   const baseInput =
-    "w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-400 bg-white";
+    "w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#c8102e] focus:border-[#c8102e] bg-white";
 
   const inputClass = (hasError?: boolean) =>
         `input-base ${hasError ? "border-red-500 focus:ring-red-500 focus:border-red-500" : ""}`;
@@ -115,8 +116,53 @@ export default function QuotationAddPage({ params }: { params: Promise<{ id: str
                 const data = await res.json();
                 if (!res.ok) throw new Error(data?.message || "โหลดข้อมูลไม่สำเร็จ");
                 const r = data.request;
-                setVendorName(r.vendor_name);
-                setStatus(r.status);
+                setVendorName(r.vendor_name || "");
+                setStatus(r.status || "");
+
+                // If request has a repair item with sku_code, fetch its commodity details
+                if (r.item && r.item.sku_code) {
+                    const comRes = await fetch(`/api/commodity/lookup?sku=${r.item.sku_code}`, { cache: "no-store" });
+                    const comData = await comRes.json();
+                    if (comRes.ok && comData.data) {
+                        const commodity = comData.data;
+                        if (alive) {
+                            setCommodityInfo(commodity);
+                            // Pre-populate the first row with SKU details and cost price (ราคาทุน)
+                            setRows([
+                                {
+                                    id: 1,
+                                    desc: commodity.sku_name || `${r.item.brand} ${r.item.model}`,
+                                    parts: commodity.sku_cost || 0, // ราคาทุน
+                                    labor: 0,
+                                    warrantyParts: false,
+                                    warrantyLabor: false,
+                                }
+                            ]);
+                        }
+                    } else if (alive) {
+                        setRows([
+                            {
+                                id: 1,
+                                desc: `${r.item.brand || ""} ${r.item.model || ""} (${r.item.product_type || ""})`,
+                                parts: 0,
+                                labor: 0,
+                                warrantyParts: false,
+                                warrantyLabor: false,
+                            }
+                        ]);
+                    }
+                } else if (r.item && alive) {
+                    setRows([
+                        {
+                            id: 1,
+                            desc: `${r.item.brand || ""} ${r.item.model || ""} (${r.item.product_type || ""})`,
+                            parts: 0,
+                            labor: 0,
+                            warrantyParts: false,
+                            warrantyLabor: false,
+                        }
+                    ]);
+                }
             } catch (e) {
                 console.error(e);
             } finally {
@@ -124,7 +170,7 @@ export default function QuotationAddPage({ params }: { params: Promise<{ id: str
             }
         })();
         return () => {
-        alive = false;
+            alive = false;
         };
     }, [id]);
 
@@ -247,6 +293,30 @@ export default function QuotationAddPage({ params }: { params: Promise<{ id: str
                 <h2 className="text-lg font-semibold text-slate-900">
                     รายละเอียดใบเสนอราคา
                 </h2>
+
+                {commodityInfo && (
+                    <div className="bg-white border border-slate-200/80 rounded-2xl p-4.5 mb-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="space-y-1">
+                            <span className="text-[10px] font-extrabold text-[#777] tracking-wider uppercase">ข้อมูลสินค้า/อะไหล่จากฐานข้อมูล (Commodity Info)</span>
+                            <div className="text-sm font-bold text-slate-800 flex flex-wrap items-center gap-x-2 gap-y-1 mt-0.5">
+                                <span className="text-[#c8102e]">SKU: {commodityInfo.sku}</span>
+                                <span className="text-slate-300">|</span>
+                                <span>{commodityInfo.sku_name}</span>
+                            </div>
+                            <p className="text-xs text-slate-500 font-medium">ยี่ห้อ: {commodityInfo.brand} | หมวดหมู่: {commodityInfo.class_name}</p>
+                        </div>
+                        <div className="flex gap-4">
+                            <div className="bg-slate-50 border border-slate-150 px-4 py-2 rounded-xl text-right min-w-[120px]">
+                                <span className="text-[10px] text-slate-450 block font-bold">ราคาทุน (Cost)</span>
+                                <span className="text-sm font-extrabold text-slate-700 tabular-nums">{money(commodityInfo.sku_cost || 0)} บาท</span>
+                            </div>
+                            <div className="bg-slate-50 border border-slate-150 px-4 py-2 rounded-xl text-right min-w-[120px]">
+                                <span className="text-[10px] text-slate-450 block font-bold">ราคาแนะนำ (Price)</span>
+                                <span className="text-sm font-extrabold text-slate-700 tabular-nums">{money(commodityInfo.sku_price || 0)} บาท</span>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
                     <div className="flex flex-wrap items-center gap-2">
@@ -392,7 +462,7 @@ export default function QuotationAddPage({ params }: { params: Promise<{ id: str
                                 warrantyParts: e.target.checked,
                                 })
                             }
-                            className="h-5 w-5 accent-sky-600"
+                            className="h-5 w-5 accent-[#c8102e]"
                             />
                         </div>
                         </td>
@@ -427,7 +497,7 @@ export default function QuotationAddPage({ params }: { params: Promise<{ id: str
                                 warrantyLabor: e.target.checked,
                                 })
                             }
-                            className="h-5 w-5 accent-sky-600"
+                            className="h-5 w-5 accent-[#c8102e]"
                             />
                         </div>
                         </td>
@@ -443,7 +513,7 @@ export default function QuotationAddPage({ params }: { params: Promise<{ id: str
                             <button
                             type="button"
                             onClick={addRow}
-                            className="inline-flex items-center justify-center h-8 w-8 rounded-full border border-sky-500 text-sky-600 bg-white shadow-sm hover:bg-sky-50 hover:shadow-md transition"
+                            className="inline-flex items-center justify-center h-8 w-8 rounded-full border border-[#c8102e] text-[#c8102e] bg-white shadow-sm hover:bg-red-50 hover:shadow-md transition"
                             title="เพิ่มรายการ"
                             >
                             <CirclePlus className="h-4 w-4" />

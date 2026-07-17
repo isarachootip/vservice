@@ -6,6 +6,8 @@ export type commodityRow = {
   bar_code: string;
   class_name: string;
   brand: string;
+  sku_cost?: number;
+  sku_price?: number;
 };
 
 export class CommodityRepository {
@@ -20,7 +22,9 @@ export class CommodityRepository {
             c.sbc::text        AS bar_code,
             trim(c.class_name) AS class_name,
             trim(c.brand)      AS brand,
-            trim(c.sku_name)   AS sku_name
+            trim(c.sku_name)   AS sku_name,
+            c.sku_cost::float  AS sku_cost,
+            c.sku_price::float AS sku_price
         FROM public.commodity c
         WHERE c.sku::text = ${sku}
             AND c.sku_status_name = 'Active'`;
