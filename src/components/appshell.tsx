@@ -31,7 +31,8 @@ import {
   Megaphone,
   Coins,
   Percent,
-  Clock
+  Clock,
+  MessageSquare
 } from "lucide-react";
 
 
@@ -268,6 +269,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
     { href: "/request/add", label: "รับเครื่อง / สร้างงาน", icon: Wrench, show: canAddRequest },
     { href: "#", label: "ลูกค้า", icon: Users },
     { href: "/quotation", label: "ใบเสนอราคา", icon: FileText, badge: 8 },
+    { href: "/chat", label: "ห้องสนทนา", icon: MessageSquare },
     { href: "/maintain?tab=location", label: "สาขา / จุดบริการ", icon: Store, show: isAdmin },
     { href: "#", label: "รายงาน / วิเคราะห์", icon: BarChart2 },
     { href: "#", label: "การแจ้งเตือน", icon: Bell, badge: 6 },

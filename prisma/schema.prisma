@@ -204,6 +204,7 @@ model users {
   location_id    String?    @db.VarChar(50)
   user_roles     user_roles @relation(fields: [roles_id], references: [roles_id], onDelete: NoAction, map: "fk_users_roles")
   location       location?  @relation(fields: [location_id], references: [id], onDelete: SetNull)
+  chat_messages  chat_message[]
 }
 
 model quotation {
@@ -449,4 +450,27 @@ model service_tier_config {
   surcharge_type  String  @db.VarChar(50)
   surcharge_value Decimal @db.Decimal(10, 2)
   active_flg      String  @db.VarChar(5) @default("Y")
+}
+
+model chat_room {
+  id           Int            @id @default(autoincrement())
+  location_id  String?        @db.VarChar(50)
+  vendor_no    Int?
+  created_at   DateTime       @default(now()) @db.Timestamp(6)
+  messages     chat_message[]
+
+  @@unique([location_id, vendor_no])
+}
+
+model chat_message {
+  id           Int        @id @default(autoincrement())
+  room_id      Int
+  sender_id    Int
+  sender_name  String     @db.VarChar(100)
+  sender_role  String     @db.VarChar(50)
+  message      String     @db.Text
+  created_at   DateTime   @default(now()) @db.Timestamp(6)
+
+  room         chat_room  @relation(fields: [room_id], references: [id], onDelete: Cascade)
+  sender       users      @relation(fields: [sender_id], references: [user_id], onDelete: Cascade)
 }
