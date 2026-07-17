@@ -5,32 +5,30 @@ export const runtime = "nodejs";
 
 export async function GET() {
   try {
-    let list = await prisma.repair_category.findMany({
+    // 1. Fetch unique active classes from commodity
+    const rawClasses = await prisma.$queryRaw<{ class_name: string }[]>`
+      SELECT DISTINCT TRIM(class_name) AS class_name 
+      FROM public.commodity 
+      WHERE class_name IS NOT NULL AND TRIM(class_name) <> '' AND TRIM(sku_status_name) = 'Active'
+    `;
+    const uniqueNames = Array.from(new Set(rawClasses.map(c => c.class_name.trim()))).filter(Boolean);
+
+    // 2. Sync any missing categories
+    if (uniqueNames.length > 0) {
+      await prisma.repair_category.createMany({
+        data: uniqueNames.map(name => ({
+          name,
+          created_user: "system",
+          updated_user: "system",
+        })),
+        skipDuplicates: true,
+      });
+    }
+
+    // 3. Retrieve all categories
+    const list = await prisma.repair_category.findMany({
       orderBy: { name: "asc" },
     });
-
-    if (list.length === 0) {
-      // Auto-seed from commodity
-      const rawClasses = await prisma.$queryRaw<{ class_name: string }[]>`
-        SELECT DISTINCT TRIM(class_name) AS class_name 
-        FROM public.commodity 
-        WHERE class_name IS NOT NULL AND TRIM(class_name) <> '' AND TRIM(sku_status_name) = 'Active'
-      `;
-      const uniqueNames = Array.from(new Set(rawClasses.map(c => c.class_name.trim()))).filter(Boolean);
-      if (uniqueNames.length > 0) {
-        await prisma.repair_category.createMany({
-          data: uniqueNames.map(name => ({
-            name,
-            created_user: "system",
-            updated_user: "system",
-          })),
-          skipDuplicates: true,
-        });
-        list = await prisma.repair_category.findMany({
-          orderBy: { name: "asc" },
-        });
-      }
-    }
 
     return NextResponse.json({ ok: true, categories: list });
   } catch (error) {

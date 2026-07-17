@@ -57,9 +57,10 @@ export default function MainTainPage() {
     const [symptomError, setSymptomError] = useState<string | null>(null);
     const [showSymptomModal, setShowSymptomModal] = useState(false);
     const [editingSymptomId, setEditingSymptomId] = useState<number | null>(null);
-    const [symptomFormData, setSymptomFormData] = useState({ name: "", description: "" });
+    const [symptomFormData, setSymptomFormData] = useState({ name: "", description: "", category: "" });
     const [symptomFormError, setSymptomFormError] = useState<string | null>(null);
     const [isSavingSymptom, setIsSavingSymptom] = useState(false);
+    const [selectedSymptomCategory, setSelectedSymptomCategory] = useState<string>("");
 
     //* Location Info state
     const [locationLoading, setLocationLoading] = useState(false);
@@ -322,14 +323,14 @@ export default function MainTainPage() {
 
     const openAddSymptomModal = () => {
         setEditingSymptomId(null);
-        setSymptomFormData({ name: "", description: "" });
+        setSymptomFormData({ name: "", description: "", category: "" });
         setSymptomFormError(null);
         setShowSymptomModal(true);
     };
 
     const openEditSymptomModal = (sym: any) => {
         setEditingSymptomId(sym.id);
-        setSymptomFormData({ name: sym.name, description: sym.description || "" });
+        setSymptomFormData({ name: sym.name, description: sym.description || "", category: sym.category || "" });
         setSymptomFormError(null);
         setShowSymptomModal(true);
     };
@@ -349,6 +350,7 @@ export default function MainTainPage() {
                 id: editingSymptomId,
                 name: symptomFormData.name,
                 description: symptomFormData.description,
+                category: symptomFormData.category,
                 updatedUser,
             };
 
@@ -844,7 +846,7 @@ export default function MainTainPage() {
 
     //* Load categories and vendor data for category/product tabs
     useEffect(() => {
-        if (tab === "category" || tab === "product") {
+        if (tab === "category" || tab === "product" || tab === "symptom") {
             fetchCategories();
         }
         if (tab === "product") {
@@ -2037,79 +2039,107 @@ export default function MainTainPage() {
                     </div>
                 )}
 
-                {tab === "symptom" && (
-                    <div className="space-y-6">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-xl font-semibold text-slate-900">จัดการประเภทอาการเสีย (Symptom/Issue Type Management)</h2>
-                            <button
-                                onClick={openAddSymptomModal}
-                                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg shadow transition text-sm"
-                            >
-                                เพิ่มประเภทอาการเสีย
-                            </button>
-                        </div>
+                {tab === "symptom" && (() => {
+                    const filteredSymptoms = selectedSymptomCategory
+                        ? symptomsList.filter((s) => s.category === selectedSymptomCategory)
+                        : symptomsList;
 
-                        {symptomError && (
-                            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                                {symptomError}
+                    return (
+                        <div className="space-y-6">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                                <div>
+                                    <h2 className="text-xl font-semibold text-slate-900">จัดการประเภทอาการเสีย (Symptom/Issue Type Management)</h2>
+                                    <p className="text-xs text-slate-500 mt-1">กำหนดอาการเสียและจัดกลุ่มตามหมวดหมู่สินค้า</p>
+                                </div>
+                                <div className="flex flex-wrap items-center gap-3">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs font-semibold text-slate-500 whitespace-nowrap">ตัวกรองหมวดหมู่:</span>
+                                        <select
+                                            value={selectedSymptomCategory}
+                                            onChange={(e) => setSelectedSymptomCategory(e.target.value)}
+                                            className="select select-bordered select-sm max-w-xs text-xs h-9 bg-white"
+                                        >
+                                            <option value="">ทั้งหมด (All Category)</option>
+                                            {categoriesList.map((cat) => (
+                                                <option key={cat.id} value={cat.name}>
+                                                    {cat.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <button
+                                        onClick={openAddSymptomModal}
+                                        className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg shadow transition text-sm"
+                                    >
+                                        เพิ่มประเภทอาการเสีย
+                                    </button>
+                                </div>
                             </div>
-                        )}
 
-                        <div className="bg-white rounded-xl shadow-sm border border-slate-200/80 overflow-hidden">
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-sm">
-                                    <thead className="bg-slate-50 border-b border-slate-200">
-                                        <tr>
-                                            <th className="text-center px-6 py-3 font-semibold text-slate-900 w-16">ลำดับ</th>
-                                            <th className="text-left px-6 py-3 font-semibold text-slate-900">ชื่ออาการเสีย</th>
-                                            <th className="text-left px-6 py-3 font-semibold text-slate-900">รายละเอียด/คำอธิบาย</th>
-                                            <th className="text-center px-6 py-3 font-semibold text-slate-900 w-32">การจัดการ</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {symptomLoading ? (
+                            {symptomError && (
+                                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                                    {symptomError}
+                                </div>
+                            )}
+
+                            <div className="bg-white rounded-xl shadow-sm border border-slate-200/80 overflow-hidden">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm">
+                                        <thead className="bg-slate-50 border-b border-slate-200">
                                             <tr>
-                                                <td colSpan={4} className="px-6 py-6 text-center text-slate-500">
-                                                    กำลังโหลดข้อมูล...
-                                                </td>
+                                                <th className="text-center px-6 py-3 font-semibold text-slate-900 w-16">ลำดับ</th>
+                                                <th className="text-left px-6 py-3 font-semibold text-slate-900 w-48">หมวดหมู่สินค้า</th>
+                                                <th className="text-left px-6 py-3 font-semibold text-slate-900">ชื่ออาการเสีย</th>
+                                                <th className="text-left px-6 py-3 font-semibold text-slate-900">รายละเอียด/คำอธิบาย</th>
+                                                <th className="text-center px-6 py-3 font-semibold text-slate-900 w-32">การจัดการ</th>
                                             </tr>
-                                        ) : symptomsList.length === 0 ? (
-                                            <tr>
-                                                <td colSpan={4} className="px-6 py-6 text-center text-slate-500">
-                                                    ไม่พบข้อมูลอาการเสีย
-                                                </td>
-                                            </tr>
-                                        ) : (
-                                            symptomsList.map((row, idx) => (
-                                                <tr key={row.id} className="border-t border-slate-100 hover:bg-slate-50">
-                                                    <td className="px-6 py-4 text-slate-900 text-center">{idx + 1}</td>
-                                                    <td className="px-6 py-4 text-slate-900 font-semibold">{row.name}</td>
-                                                    <td className="px-6 py-4 text-slate-700">{row.description || "-"}</td>
-                                                    <td className="px-6 py-4 text-center">
-                                                        <div className="flex items-center justify-center gap-2">
-                                                            <button
-                                                                onClick={() => openEditSymptomModal(row)}
-                                                                className="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-md text-xs font-semibold"
-                                                            >
-                                                                แก้ไข
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleDeleteSymptom(row.id)}
-                                                                className="px-2.5 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-md text-xs font-semibold"
-                                                            >
-                                                                ลบ
-                                                            </button>
-                                                        </div>
+                                        </thead>
+                                        <tbody>
+                                            {symptomLoading ? (
+                                                <tr>
+                                                    <td colSpan={5} className="px-6 py-6 text-center text-slate-500">
+                                                        กำลังโหลดข้อมูล...
                                                     </td>
                                                 </tr>
-                                            ))
-                                        )}
-                                    </tbody>
-                                </table>
+                                            ) : filteredSymptoms.length === 0 ? (
+                                                <tr>
+                                                    <td colSpan={5} className="px-6 py-6 text-center text-slate-500">
+                                                        ไม่พบข้อมูลอาการเสีย
+                                                    </td>
+                                                </tr>
+                                            ) : (
+                                                filteredSymptoms.map((row, idx) => (
+                                                    <tr key={row.id} className="border-t border-slate-100 hover:bg-slate-50">
+                                                        <td className="px-6 py-4 text-slate-900 text-center">{idx + 1}</td>
+                                                        <td className="px-6 py-4 text-slate-900 font-semibold">{row.category || "ทั่วไป (General)"}</td>
+                                                        <td className="px-6 py-4 text-slate-900 font-semibold">{row.name}</td>
+                                                        <td className="px-6 py-4 text-slate-700">{row.description || "-"}</td>
+                                                        <td className="px-6 py-4 text-center">
+                                                            <div className="flex items-center justify-center gap-2">
+                                                                <button
+                                                                    onClick={() => openEditSymptomModal(row)}
+                                                                    className="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-md text-xs font-semibold"
+                                                                >
+                                                                    แก้ไข
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDeleteSymptom(row.id)}
+                                                                    className="px-2.5 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-md text-xs font-semibold"
+                                                                >
+                                                                    ลบ
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )}
+                    );
+                })()}
 
                 {tab === "category" && (
                     <div className="space-y-6">
@@ -2378,6 +2408,22 @@ export default function MainTainPage() {
                         )}
 
                         <div className="space-y-4 mb-6">
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1">หมวดหมู่สินค้า</label>
+                                <select
+                                    value={symptomFormData.category}
+                                    onChange={(e) => setSymptomFormData({ ...symptomFormData, category: e.target.value })}
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white"
+                                >
+                                    <option value="">ทั่วไป (General)</option>
+                                    {categoriesList.map((cat) => (
+                                        <option key={cat.id} value={cat.name}>
+                                            {cat.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 mb-1">ชื่ออาการเสีย <span className="text-red-500">*</span></label>
                                 <input

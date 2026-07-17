@@ -371,6 +371,7 @@ model symptom {
   id           Int       @id @default(autoincrement())
   name         String    @db.VarChar(100)
   description  String?   @db.VarChar(200)
+  category     String?   @db.VarChar(100)
   created_user String?   @db.VarChar(50)
   created_date DateTime? @default(now()) @db.Timestamp(6)
   updated_user String?   @db.VarChar(50)

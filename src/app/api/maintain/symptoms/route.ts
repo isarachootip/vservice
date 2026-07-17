@@ -21,7 +21,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { name, description, updatedUser } = body;
+    const { name, description, category, updatedUser } = body;
 
     if (!name) {
       return NextResponse.json({ ok: false, message: "กรุณาระบุชื่ออาการเสีย" }, { status: 400 });
@@ -31,6 +31,7 @@ export async function POST(req: Request) {
       data: {
         name: name.trim(),
         description: description?.trim() || null,
+        category: category?.trim() || null,
         created_user: updatedUser || "admin",
         updated_user: updatedUser || "admin",
       },
@@ -49,7 +50,7 @@ export async function POST(req: Request) {
 export async function PUT(req: Request) {
   try {
     const body = await req.json();
-    const { id, name, description, updatedUser } = body;
+    const { id, name, description, category, updatedUser } = body;
 
     if (!id || !name) {
       return NextResponse.json({ ok: false, message: "ข้อมูลไม่ครบถ้วน" }, { status: 400 });
@@ -68,6 +69,7 @@ export async function PUT(req: Request) {
       data: {
         name: name.trim(),
         description: description?.trim() || null,
+        category: category?.trim() || null,
         updated_user: updatedUser || "admin",
         updated_date: new Date(),
       },
