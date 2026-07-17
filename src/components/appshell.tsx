@@ -253,12 +253,30 @@ export default function AppShell({ children }: { children: ReactNode }) {
     { href: "/request/add", label: "รับเครื่อง / สร้างงาน", icon: Wrench, show: canAddRequest },
     { href: "#", label: "ลูกค้า", icon: Users },
     { href: "/quotation", label: "ใบเสนอราคา", icon: FileText, badge: 8 },
-    { href: "#", label: "สินค้าคงคลัง / อะไหล่", icon: Package },
-    { href: "#", label: "ช่างเทคนิค", icon: UserCheck },
-    { href: "#", label: "สาขา / จุดบริการ", icon: Store },
+    { href: "/maintain?tab=product", label: "สินค้าคงคลัง / อะไหล่", icon: Package, show: isAdmin },
+    { href: "/maintain?tab=vendor", label: "ช่างเทคนิค", icon: UserCheck, show: isAdmin },
+    { href: "/maintain?tab=location", label: "สาขา / จุดบริการ", icon: Store, show: isAdmin },
     { href: "#", label: "รายงาน / วิเคราะห์", icon: BarChart2 },
     { href: "#", label: "การแจ้งเตือน", icon: Bell, badge: 6 },
-    { href: "/maintain", label: "ตั้งค่า", icon: Settings, show: isAdmin },
+    { 
+      href: "/maintain", 
+      label: "ตั้งค่า", 
+      icon: Settings, 
+      show: isAdmin,
+      subItems: [
+        { href: "/maintain?tab=status", label: "Status Info", icon: List },
+        { href: "/maintain?tab=vendor", label: "Vendor Info (ผู้รับเหมา)", icon: Truck },
+        { href: "/maintain?tab=user", label: "User & Access Info", icon: ShieldAlert },
+        { href: "/maintain?tab=location", label: "Location Info (สาขา)", icon: Store },
+        { href: "/maintain?tab=product", label: "Product Info (สินค้า & ทุน)", icon: Package },
+        { href: "/maintain?tab=category", label: "Category Info (หมวดหมู่)", icon: Layers },
+        { href: "/maintain?tab=symptom", label: "Symptom Info (อาการเสีย)", icon: AlertTriangle },
+        { href: "/maintain?tab=announcement", label: "ตั้งค่าประกาศ", icon: Megaphone },
+        { href: "/maintain?tab=diagnostic", label: "Diagnostic Fee Config", icon: Coins },
+        { href: "/maintain?tab=margin", label: "Margin Config", icon: Percent },
+        { href: "/maintain?tab=service_tier", label: "Service Tier Config", icon: Clock },
+      ]
+    },
   ];
 
   if (isAuthPage) {
