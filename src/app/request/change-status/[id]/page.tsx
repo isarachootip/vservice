@@ -36,6 +36,10 @@ export default function RequestChangeStatusPage({ params }: { params: Promise<{ 
     const [rollbackBy, setRollbackBy] = useState("");
     const [rollbackDt, setRollbackDt] = useState<Date | null>(null);
 
+    // GR Serial verification states
+    const [verifySerial, setVerifySerial] = useState("");
+    const [serialMismatchReason, setSerialMismatchReason] = useState("");
+
     const [loading, setLoading] = useState(true);
 
     const [status,      setStatus]      = useState<number | "">("");
@@ -132,11 +136,28 @@ export default function RequestChangeStatusPage({ params }: { params: Promise<{ 
 
 
     const onUpdateStatus = async (newStatus: number) => {
+        if (!verifySerial.trim()) {
+            alert("กรุณากรอกเลขเครื่องเพื่อตรวจสอบ (Verify Serial)");
+            return;
+        }
+
+        const isMismatch = serial.trim().toLowerCase() !== verifySerial.trim().toLowerCase();
+        if (isMismatch && !serialMismatchReason.trim()) {
+            alert("เลขเครื่องไม่ตรงกัน กรุณาระบุเหตุผลกรณีเลขเครื่องไม่ตรงกัน (Serial Mismatch Reason)");
+            return;
+        }
+
         try {
             const res = await fetch("/api/request/update-status", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ Id: id, status: newStatus, updatedUser }),
+            body: JSON.stringify({ 
+                Id: id, 
+                status: newStatus, 
+                updatedUser,
+                newSerial: verifySerial,
+                serialMismatchReason: isMismatch ? serialMismatchReason : null
+            }),
             });
 
             const data = await res.json();
@@ -283,6 +304,50 @@ export default function RequestChangeStatusPage({ params }: { params: Promise<{ 
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                </fieldset>
+
+                <fieldset className="space-y-4 bg-white border border-slate-200 rounded-2xl p-5 md:p-6 shadow-sm">
+                    <legend className="text-md font-bold text-[#c8102e] px-2">
+                        ตรวจสอบความถูกต้องสินค้า (GR Verification)
+                    </legend>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                            สแกน / กรอกเลขเครื่องเพื่อตรวจสอบ (Verify Serial) <span className="text-red-600 ml-0.5">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-[#c8102e] bg-white font-mono text-slate-800"
+                            placeholder="สแกนบาร์โค้ดเครื่อง หรือคีย์เลขเครื่อง"
+                            value={verifySerial}
+                            onChange={(e) => setVerifySerial(e.target.value)}
+                          />
+                          {verifySerial.trim() !== "" && (
+                            <div className="mt-2 text-xs font-bold">
+                              {serial.trim().toLowerCase() === verifySerial.trim().toLowerCase() ? (
+                                <span className="text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">✅ เลขเครื่องตรงกัน</span>
+                              ) : (
+                                <span className="text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">⚠️ เลขเครื่องไม่ตรงกับที่ CS บันทึก ({serial})</span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        {verifySerial.trim() !== "" && serial.trim().toLowerCase() !== verifySerial.trim().toLowerCase() && (
+                          <div className="animate-fade-in">
+                            <label className="block text-xs font-bold text-red-800 mb-1.5">
+                              เหตุผลการแก้ไขเลขเครื่อง (Serial Mismatch Reason) <span className="text-red-600 ml-0.5">*</span>
+                            </label>
+                            <textarea
+                              rows={2}
+                              className="w-full rounded-xl border border-red-300 px-3.5 py-1.5 text-xs outline-none focus:ring-2 focus:ring-red-500 bg-red-50/20 text-slate-800"
+                              placeholder="ระบุสาเหตุที่เลขเครื่องไม่ตรงกัน เช่น CS คีย์ผิด / กล่องสลับเครื่อง..."
+                              value={serialMismatchReason}
+                              onChange={(e) => setSerialMismatchReason(e.target.value)}
+                            />
+                          </div>
+                        )}
                     </div>
                 </fieldset>
                 {reason && (

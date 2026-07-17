@@ -70,6 +70,16 @@ export default function StatusPage() {
   const [err, setErr] = useState<string | null>(null);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
 
+  // Cancellation modal states
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelRequestId, setCancelRequestId] = useState<number | string | null>(null);
+  const [cancelRequestNo, setCancelRequestNo] = useState("");
+  const [cancelRequestStatus, setCancelRequestStatus] = useState<number>(0);
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancelAdminUser, setCancelAdminUser] = useState("");
+  const [cancelAdminPass, setCancelAdminPass] = useState("");
+  const [isCancelling, setIsCancelling] = useState(false);
+
   //* pagination
   const [page, setPage] = useState(1);
   const pageSize = 10;
@@ -164,9 +174,30 @@ export default function StatusPage() {
     router.push(`/request/product-vendor-to-dc-instead/${id}`);
   };
 
-  const cancelAction = async (id: number | string) => {
-    const confirmed = window.confirm("ต้องการยกเลิกใบแจ้งซ่อมนี้ใช่หรือไม่?");
-    if (!confirmed) return;
+  const openCancelModal = (r: Row) => {
+    setCancelRequestId(r.request_id);
+    setCancelRequestNo(r.request_no || "");
+    setCancelRequestStatus(r.status);
+    setCancelReason("");
+    setCancelAdminUser("");
+    setCancelAdminPass("");
+    setShowCancelModal(true);
+  };
+
+  const executeCancellation = async () => {
+    if (!cancelReason.trim()) {
+      alert("กรุณาระบุเหตุผลการยกเลิก");
+      return;
+    }
+
+    const allowedStatuses = [10, 11, 20, 201, 30];
+    const isAllowedSelf = allowedStatuses.includes(cancelRequestStatus);
+    if (!isAllowedSelf && (!cancelAdminUser.trim() || !cancelAdminPass.trim())) {
+      alert("กรุณากรอกชื่อผู้ใช้และรหัสผ่านของผู้ดูแลระบบ (Supervisor Bypass)");
+      return;
+    }
+
+    setIsCancelling(true);
     try {
       let updatedUser = "";
       const raw = localStorage.getItem("userInfo");
@@ -174,17 +205,29 @@ export default function StatusPage() {
         const u = JSON.parse(raw);
         updatedUser = u.user_name || "";
       }
+
       const res = await fetch("/api/request/cancel", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ Id: id, updatedUser }),
+        body: JSON.stringify({
+          Id: cancelRequestId,
+          updatedUser,
+          cancelReason,
+          adminUser: isAllowedSelf ? null : cancelAdminUser,
+          adminPass: isAllowedSelf ? null : cancelAdminPass,
+        }),
       });
+
       const data = await res.json();
       if (!res.ok) throw new Error(data?.message || "ยกเลิกไม่สำเร็จ");
-      alert("ยกเลิกใบแจ้งซ่อมเรียบร้อย");
+
+      alert("ยกเลิกใบแจ้งซ่อมสำเร็จ");
+      setShowCancelModal(false);
       await onSearch();
-    } catch {
-      alert("เกิดข้อผิดพลาดในการยกเลิก");
+    } catch (e: any) {
+      alert(e.message || "เกิดข้อผิดพลาดในการยกเลิก");
+    } finally {
+      setIsCancelling(false);
     }
   };
 
@@ -672,6 +715,17 @@ export default function StatusPage() {
                               <Pencil className="w-3.5 h-3.5" />
                             </Link>
                           )}
+
+                          {r.status !== 0 && r.status !== 237 && r.status !== 37 && (
+                            <button
+                              type="button"
+                              onClick={() => openCancelModal(r)}
+                              className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-rose-200 text-rose-500 hover:bg-rose-50 hover:border-rose-300 transition cursor-pointer"
+                              title="ยกเลิกใบแจ้งซ่อม"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -724,6 +778,82 @@ export default function StatusPage() {
           </div>
         )}
       </div>
+      {/* Cancellation Modal */}
+      {showCancelModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 border border-slate-100 flex flex-col space-y-4">
+            <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+              <AlertTriangle className="w-5 h-5 text-red-650" />
+              <h3 className="text-base font-black text-slate-800">
+                ยกเลิกใบแจ้งซ่อม ({cancelRequestNo})
+              </h3>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 mb-1">
+                  ระบุเหตุผลการยกเลิก <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  rows={3}
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#c8102e]"
+                  placeholder="ระบุสาเหตุที่ต้องการยกเลิกใบแจ้งซ่อมนี้..."
+                  value={cancelReason}
+                  onChange={(e) => setCancelReason(e.target.value)}
+                />
+              </div>
+
+              {/* If not in allowed statuses (10, 11, 20, 201, 30), require Admin/Supervisor bypass */}
+              {![10, 11, 20, 201, 30].includes(cancelRequestStatus) && (
+                <div className="bg-red-50 border border-red-150 rounded-xl p-3.5 space-y-2.5">
+                  <span className="text-[11px] font-black text-red-800 block">
+                    ⚠️ สถานะของใบแจ้งซ่อมปัจจุบัน จำเป็นต้องได้รับการอนุมัติโดยผู้ดูแลระบบ (Supervisor Approval)
+                  </span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <input
+                        type="text"
+                        className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs text-slate-900 bg-white outline-none focus:ring-2 focus:ring-red-500"
+                        placeholder="Username"
+                        value={cancelAdminUser}
+                        onChange={(e) => setCancelAdminUser(e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <input
+                        type="password"
+                        className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs text-slate-900 bg-white outline-none focus:ring-2 focus:ring-red-500"
+                        placeholder="Password"
+                        value={cancelAdminPass}
+                        onChange={(e) => setCancelAdminPass(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-2.5 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                className="px-4 py-2 text-xs font-bold rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 cursor-pointer"
+                onClick={() => setShowCancelModal(false)}
+                disabled={isCancelling}
+              >
+                ยกเลิก
+              </button>
+              <button
+                type="button"
+                className="px-4 py-2 text-xs font-bold rounded-xl bg-red-650 text-white hover:bg-red-700 disabled:opacity-50 flex items-center justify-center cursor-pointer shadow-sm"
+                onClick={executeCancellation}
+                disabled={isCancelling}
+              >
+                {isCancelling ? "กำลังยกเลิก..." : "ยืนยันยกเลิกใบแจ้งซ่อม"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

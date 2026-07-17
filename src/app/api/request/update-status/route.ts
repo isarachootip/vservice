@@ -7,6 +7,8 @@ type Body = {
   Id?: number | string;
   status?: number;
   updatedUser?: string;
+  newSerial?: string;
+  serialMismatchReason?: string;
 };
 
 function getClientIp(req: Request): string {
@@ -17,10 +19,6 @@ function getClientIp(req: Request): string {
   const realIp = req.headers.get("x-real-ip");
   if (realIp) {
     return realIp.trim();
-  }
-  const cfConnectingIp = req.headers.get("cf-connecting-ip");
-  if (cfConnectingIp) {
-    return cfConnectingIp.trim();
   }
   return "unknown";
 }
@@ -41,15 +39,42 @@ export async function POST(req: Request) {
 
     const res = await prisma.repair_request.findUnique({
       where: { id: idNum },
-      select: {
-        id: true,
-        request_no: true,
-        reject_flg: true,
-      },
+      include: {
+        repair_item: true
+      }
     });
 
     if (!res) {
       return NextResponse.json({ ok: false, message: "ไม่พบข้อมูลใบแจ้งซ่อม" }, { status: 404 });
+    }
+
+    let serialLogText = "";
+    // Verify serial number if supplied
+    if (body.newSerial !== undefined) {
+      const currentItem = res.repair_item[0];
+      if (currentItem) {
+        const cleanOld = (currentItem.serial_no || "").trim().toLowerCase();
+        const cleanNew = (body.newSerial || "").trim().toLowerCase();
+        if (cleanOld !== cleanNew) {
+          if (!body.serialMismatchReason || !body.serialMismatchReason.trim()) {
+            return NextResponse.json({
+              ok: false,
+              message: "กรุณาระบุเหตุผลกรณีเลขเครื่องไม่ตรงกัน (Serial Mismatch Reason Required)"
+            }, { status: 400 });
+          }
+
+          // Update serial
+          await prisma.repair_item.update({
+            where: { id: currentItem.id },
+            data: {
+              serial_no: body.newSerial,
+              updated_user: body.updatedUser
+            }
+          });
+
+          serialLogText = ` | แก้ไขเลขเครื่องจาก ${currentItem.serial_no} เป็น ${body.newSerial} (เหตุผล: ${body.serialMismatchReason})`;
+        }
+      }
     }
 
     if(res.reject_flg === "Y"){
@@ -77,7 +102,7 @@ export async function POST(req: Request) {
     }else if(body.status == 30){
       choice = "Vendor"
     }
-    const trans_log_text = "ปรับสถานะใบแจ้งซ่อม : " + res.request_no + " จัดส่งให้ " + choice;
+    const trans_log_text = "ปรับสถานะใบแจ้งซ่อม : " + res.request_no + " จัดส่งให้ " + choice + serialLogText;
     await prisma.transaction_log.create({
       data: {
         act_user_name: body.updatedUser,
