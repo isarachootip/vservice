@@ -52,6 +52,15 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
     const serialFileInputRef = useRef<HTMLInputElement | null>(null);
     const picFileInputRef = useRef<HTMLInputElement | null>(null);
 
+    //? V2.0 Config states
+    const [diagConfigs, setDiagConfigs] = useState<any[]>([]);
+    const [serviceTiers, setServiceTiers] = useState<any[]>([]);
+    
+    const [serviceTier, setServiceTier] = useState("NORMAL");
+    const [diagnosticFee, setDiagnosticFee] = useState(0);
+    const [payMethod, setPayMethod] = useState("CASH");
+    const [payRefNo, setPayRefNo] = useState("");
+
     useEffect(() => {
         fetch("/api/maintain/symptoms")
             .then(res => res.json())
@@ -61,11 +70,63 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                 }
             })
             .catch(console.error);
+
+        fetch("/api/maintain/config?type=diagnostic")
+            .then(res => res.json())
+            .then(data => {
+                if (data.ok) {
+                    setDiagConfigs(data.data || []);
+                }
+            })
+            .catch(console.error);
+
+        fetch("/api/maintain/config?type=tier")
+            .then(res => res.json())
+            .then(data => {
+                if (data.ok) {
+                    setServiceTiers(data.data || []);
+                }
+            })
+            .catch(console.error);
     }, []);
 
     //? ข้อมูลประกัน
     const [warranty, setWarranty]       = useState<Warranty>(null);
     const [warrantyNo, setWarrantyNo]   = useState("");
+
+    useEffect(() => {
+        if (warranty === "in") {
+            setDiagnosticFee(0);
+            return;
+        }
+
+        // Look up fee config
+        let baseFee = 150; // default fallback
+        const matched = diagConfigs.find(c => 
+            productType.toLowerCase().includes(c.product_type.split(" ")[0].toLowerCase()) ||
+            c.product_type.toLowerCase().includes(productType.toLowerCase())
+        );
+        if (matched) {
+            baseFee = parseFloat(matched.fee_amount);
+        } else {
+            // Find "General"
+            const gen = diagConfigs.find(c => c.product_type.includes("General"));
+            if (gen) baseFee = parseFloat(gen.fee_amount);
+        }
+
+        // Apply service tier surcharge
+        let totalFee = baseFee;
+        const tierCfg = serviceTiers.find(t => t.tier === serviceTier);
+        if (tierCfg) {
+            const surchargeVal = parseFloat(tierCfg.surcharge_value);
+            if (tierCfg.surcharge_type === "PERCENT") {
+                totalFee = baseFee + (baseFee * (surchargeVal / 100));
+            } else if (tierCfg.surcharge_type === "FLAT") {
+                totalFee = baseFee + surchargeVal;
+            }
+        }
+        setDiagnosticFee(totalFee);
+    }, [productType, warranty, serviceTier, diagConfigs, serviceTiers]);
 
     const internalFlg = internal === "Y" ? "Y" : "N";
     const [errors, setErrors] = useState<Errors>({});
@@ -288,6 +349,10 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
         }));
         //* flag check แจ้งซ่อมภายใน  
         formData.append("internalFlg", internalFlg);
+        formData.append("serviceTier", serviceTier);
+        formData.append("diagnosticFee", String(diagnosticFee));
+        formData.append("payMethod", payMethod);
+        formData.append("payRefNo", payRefNo);
         serialAttachments.forEach((file) => {
             formData.append("serialAttachments", file);
         });
@@ -328,7 +393,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                         {/* Column 1: Customer & Basic Product */}
                         <div className="space-y-3.5">
                             <h3 className="text-xs font-bold text-slate-800 border-b border-slate-100 pb-1 flex items-center gap-1.5 uppercase tracking-wide">
-                                <span className="w-1.5 h-3 bg-violet-600 rounded"></span>
+                                <span className="w-1.5 h-3 bg-[#c8102e] rounded"></span>
                                 รายละเอียดลูกค้า
                             </h3>
                             
@@ -383,7 +448,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                                     setErrors(prev => ({ ...prev, sku: undefined }));
                                                 }
                                             }}
-                                            className="w-4 h-4 rounded text-violet-600 focus:ring-violet-500 border-slate-300"
+                                            className="w-4 h-4 rounded text-[#c8102e] focus:ring-[#c8102e] border-slate-300"
                                         />
                                         <span className="text-[11px] font-semibold text-slate-700">สินค้าในระบบ</span>
                                     </label>
@@ -402,7 +467,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                             </div>
 
                             <h3 className="text-xs font-bold text-slate-800 border-b border-slate-100 pb-1 pt-1 flex items-center gap-1.5 uppercase tracking-wide">
-                                <span className="w-1.5 h-3 bg-violet-600 rounded"></span>
+                                <span className="w-1.5 h-3 bg-[#c8102e] rounded"></span>
                                 รายละเอียดสินค้า
                             </h3>
 
@@ -504,7 +569,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                         {/* Column 2: Specs, warranty, symptom */}
                         <div className="space-y-3.5">
                             <h3 className="text-xs font-bold text-slate-800 border-b border-slate-100 pb-1 flex items-center gap-1.5 uppercase tracking-wide">
-                                <span className="w-1.5 h-3 bg-violet-600 rounded"></span>
+                                <span className="w-1.5 h-3 bg-[#c8102e] rounded"></span>
                                 การรับประกัน & อาการเสีย
                             </h3>
 
@@ -569,7 +634,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                             value="in"
                                             checked={warranty === "in"}
                                             onChange={() => setWarranty("in")}
-                                            className="w-4 h-4 text-violet-600 focus:ring-violet-500 border-slate-300"
+                                            className="w-4 h-4 text-[#c8102e] focus:ring-[#c8102e] border-slate-300"
                                         />
                                         <span className="font-semibold text-slate-700">อยู่ในประกัน</span>
                                     </label>
@@ -580,7 +645,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                             value="out"
                                             checked={warranty === "out"}
                                             onChange={() => setWarranty("out")}
-                                            className="w-4 h-4 text-violet-600 focus:ring-violet-500 border-slate-300"
+                                            className="w-4 h-4 text-[#c8102e] focus:ring-[#c8102e] border-slate-300"
                                         />
                                         <span className="font-semibold text-slate-700">ไม่อยู่ในประกัน</span>
                                     </label>
@@ -711,6 +776,71 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                 </div>
                             </div>
                         </div>
+
+                        {/* V2.0 Service Center Extensions Section */}
+                        <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-5 space-y-4">
+                            <h3 className="text-xs font-bold text-slate-800 border-b border-slate-200 pb-1.5 flex items-center gap-1.5 uppercase tracking-wide">
+                                <span className="w-1.5 h-3 bg-[#c8102e] rounded"></span>
+                                ระดับบริการ & ค่าเปิดเครื่องตรวจเช็ค (Service Tier & Diagnostic Fee)
+                            </h3>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {/* Service Tier Dropdown */}
+                                <div>
+                                    <label className="block text-[11px] font-bold text-slate-500 mb-1">ระดับบริการ (Service Tier)</label>
+                                    <select
+                                        value={serviceTier}
+                                        onChange={e => setServiceTier(e.target.value)}
+                                        className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 bg-white"
+                                    >
+                                        <option value="NORMAL">NORMAL (SLA ปกติ)</option>
+                                        <option value="EXPRESS">EXPRESS (SLA ด่วนพิเศษ +50%)</option>
+                                        <option value="VIP">VIP (SLA ด่วนสุด ลัดคิว)</option>
+                                    </select>
+                                </div>
+
+                                {/* Calculated Diagnostic Fee Info */}
+                                <div>
+                                    <label className="block text-[11px] font-bold text-slate-500 mb-1">ค่าบริการเปิดเครื่อง / ตรวจเช็ค</label>
+                                    <div className="px-3 py-1.5 border border-slate-200 rounded-lg bg-white text-xs font-bold text-slate-800">
+                                        {warranty === "in" ? (
+                                            <span className="text-emerald-600 font-extrabold">ยกเว้น (อยู่ในประกัน)</span>
+                                        ) : (
+                                            <span className="text-[#c8102e] font-extrabold">{diagnosticFee.toLocaleString("th-TH", { minimumFractionDigits: 2 })} บาท</span>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Payment details if out of warranty */}
+                                {warranty === "out" && diagnosticFee > 0 && (
+                                    <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-200/60">
+                                        <div>
+                                            <label className="block text-[11px] font-bold text-slate-500 mb-1">ช่องทางการชำระเงินค่าเปิดเครื่อง</label>
+                                            <select
+                                                value={payMethod}
+                                                onChange={e => setPayMethod(e.target.value)}
+                                                className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 bg-white"
+                                            >
+                                                <option value="CASH">เงินสด (CASH)</option>
+                                                <option value="TRANSFER">โอนเงินธนาคาร (TRANSFER)</option>
+                                                <option value="QR_PROMPTPAY">QR PromptPay</option>
+                                                <option value="CREDIT_CARD">บัตรเครดิต (CREDIT CARD)</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-[11px] font-bold text-slate-500 mb-1">หมายเลขอ้างอิงสลิป / รูดบัตร (Ref No.)</label>
+                                            <input
+                                                type="text"
+                                                value={payRefNo}
+                                                onChange={e => setPayRefNo(e.target.value)}
+                                                className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 bg-white"
+                                                placeholder="ใส่เลขอ้างอิงชำระเงิน"
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
 
                     {/* Actions footer */}
@@ -724,7 +854,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                         </button>
                         <button
                             type="submit"
-                            className="px-5 py-1.5 rounded-lg text-xs font-bold bg-violet-600 hover:bg-violet-500 text-white shadow transition"
+                            className="px-5 py-1.5 rounded-lg text-xs font-bold bg-[#c8102e] hover:bg-[#b00d25] text-white shadow transition"
                             disabled={submitting}
                         >
                             {submitting ? "กำลังบันทึก..." : "บันทึกข้อมูล"}

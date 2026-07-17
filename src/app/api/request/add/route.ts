@@ -37,6 +37,10 @@ export async function POST(req: Request) {
     const serialFiles = formData.getAll("serialAttachments").filter(Boolean) as File[];
     const picFiles = formData.getAll("picAttachments").filter(Boolean) as File[];
     const internalFlg = String(formData.get("internalFlg") ?? "N");
+    const serviceTier = String(formData.get("serviceTier") ?? "NORMAL");
+    const diagnosticFee = parseFloat(String(formData.get("diagnosticFee") ?? "0"));
+    const payMethod = String(formData.get("payMethod") ?? "CASH");
+    const payRefNo = String(formData.get("payRefNo") ?? "");
 
     if (!serialFiles || serialFiles.length === 0) {
       return NextResponse.json({ ok: false, message: "กรุณาแนบไฟล์" }, { status: 400 });
@@ -111,6 +115,8 @@ export async function POST(req: Request) {
         receive_from_user_date: newReceiveFromUserDt,
         status : 10 ,
         internal_flg: internalFlg,
+        service_tier: serviceTier,
+        diagnostic_fee: diagnosticFee,
         created_user: createdUser,
         updated_user: createdUser,
         repair_item: {
@@ -146,6 +152,29 @@ export async function POST(req: Request) {
         request_id: created.id,
       }
     });
+
+    if (diagnosticFee > 0) {
+      const pPrefix = `${profile?.in_bu || "TW"}P${profile?.store_nick || ""}`;
+      const pRow = await prisma.running_doc.upsert({
+        where: { unique_running_doc_by_day: { prefix: pPrefix, yy, mm, dd } },
+        create: { prefix: pPrefix, yy, mm, dd, running_no: BigInt(1) },
+        update: { running_no: { increment: BigInt(1) } },
+      });
+      const receipt_no = `${pPrefix}${pad2(dd)}${pad2(mm)}${pad2(yy)}${pad4(pRow.running_no ?? BigInt(1))}`;
+
+      await prisma.payment_transaction.create({
+        data: {
+          request_id: created.id,
+          payment_type: "DIAGNOSTIC_FEE",
+          amount: diagnosticFee,
+          method: payMethod,
+          ref_no: payRefNo || null,
+          receipt_no: receipt_no,
+          received_by: createdUser,
+          status: "CONFIRMED"
+        }
+      });
+    }
 
     const attachmentRows: Array<{
       request_id: number;
