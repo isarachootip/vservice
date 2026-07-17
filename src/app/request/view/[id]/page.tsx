@@ -720,7 +720,7 @@ export default function RequestViewPage({ params }: { params: Promise<{ id: stri
                             : step.done
                             ? "bg-green-500 border-green-500"
                             : step.active
-                            ? "bg-blue-500 border-blue-500 animate-pulse"
+                            ? "bg-[#c8102e] border-[#c8102e] animate-pulse"
                             : "bg-white border-slate-400"
                     }`}
                 />
@@ -1603,7 +1603,7 @@ export default function RequestViewPage({ params }: { params: Promise<{ id: stri
                                                                 <a
                                                                     href={sig.file_path}
                                                                     download
-                                                                    className="text-blue-600 underline text-sm hover:text-blue-800"
+                                                                    className="text-[#c8102e] underline text-sm hover:text-[#b00d25]"
                                                                 >
                                                                     ดาวน์โหลด
                                                                 </a>
@@ -1989,7 +1989,7 @@ export default function RequestViewPage({ params }: { params: Promise<{ id: stri
                                                                 <a
                                                                     href={sig.file_path}
                                                                     download
-                                                                    className="text-blue-600 underline text-sm hover:text-blue-800"
+                                                                    className="text-[#c8102e] underline text-sm hover:text-[#b00d25]"
                                                                 >
                                                                     ดาวน์โหลด
                                                                 </a>

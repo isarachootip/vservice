@@ -1171,7 +1171,7 @@ export default function RequestEditPage({ params }: { params: Promise<{ id: stri
                     disabled={isPastStep || isFutureStep}
                     className={`px-3 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap ${
                       isCurrentStep
-                        ? "bg-blue-600 text-white"
+                        ? "bg-[#c8102e] text-white"
                         : isPastStep
                         ? "bg-slate-200 text-slate-900 cursor-not-allowed opacity-50"
                         : "bg-slate-100 text-slate-400 cursor-not-allowed"

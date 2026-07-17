@@ -44,24 +44,24 @@ body {
   .input-base {
     @apply  block w-full rounded-md border border-gray-300 bg-white
             px-3 py-2 text-sm text-gray-900 shadow-sm placeholder:text-gray-400
-            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+            focus:outline-none focus:ring-2 focus:ring-[#c8102e] focus:border-[#c8102e]
             disabled:cursor-not-allowed disabled:opacity-50;
   }
   .btn-login {
     @apply  bg-transparent 
-            hover:bg-blue-500 text-blue-700 font-semibold 
-            hover:text-white py-2 px-4 border border-blue-500 
+            hover:bg-[#c8102e] text-[#c8102e] font-semibold 
+            hover:text-white py-2 px-4 border border-[#c8102e] 
             hover:border-transparent rounded w-32;
   }
   .btn-submit {
-    @apply  bg-emerald-600 
-            hover:bg-emerald-700 active:bg-emerald-800
+    @apply  bg-[#c8102e] 
+            hover:bg-[#b00d25] active:bg-[#900a1c]
             text-white font-semibold px-6 py-2 rounded-lg
             shadow-sm hover:shadow transition-colors;
   }
   .btn-all-submit {
-    @apply  bg-indigo-500 
-            hover:bg-indigo-600 active:bg-indigo-700
+    @apply  bg-slate-700 
+            hover:bg-slate-800 active:bg-slate-900
             text-white font-semibold px-6 py-2 rounded-lg
             shadow-sm hover:shadow transition-colors;
   }
@@ -80,14 +80,14 @@ body {
   }
   .btn-action-list {
     @apply  inline-flex items-center justify-center rounded-md 
-      bg-sky-500 text-white px-3 py-1.5 text-sm font-medium
-      hover:bg-sky-600 active:bg-blue-700
+      bg-[#c8102e] text-white px-3 py-1.5 text-sm font-medium
+      hover:bg-[#b00d25] active:bg-[#900a1c]
       disabled:opacity-60 disabled:cursor-not-allowed;
   }
   .btn-action-instead-list {
     @apply  inline-flex items-center justify-center rounded-md 
-      bg-lime-500 text-white px-3 py-1.5 text-sm font-medium
-      hover:bg-lime-600 active:bg-green-700
+      bg-amber-600 text-white px-3 py-1.5 text-sm font-medium
+      hover:bg-amber-700 active:bg-amber-800
       disabled:opacity-60 disabled:cursor-not-allowed;
   }
   .btn-action-cancel {
@@ -97,14 +97,14 @@ body {
   }
   .btn-dc {
     @apply inline-flex items-center justify-center rounded-md 
-      bg-blue-500 text-white px-4 py-2 text-sm font-medium
-      hover:bg-blue-600 active:bg-blue-700 shadow-sm
+      bg-slate-700 text-white px-4 py-2 text-sm font-medium
+      hover:bg-slate-800 active:bg-slate-900 shadow-sm
       transition-colors duration-150;
   }
   .btn-vendor {
     @apply inline-flex items-center justify-center rounded-md 
-      bg-indigo-500 text-white px-4 py-2 text-sm font-medium
-      hover:bg-indigo-600 active:bg-indigo-700 shadow-sm
+      bg-[#c8102e] text-white px-4 py-2 text-sm font-medium
+      hover:bg-[#b00d25] active:bg-[#900a1c] shadow-sm
       transition-colors duration-150;
   }
   .topbar { 

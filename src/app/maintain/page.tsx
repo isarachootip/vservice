@@ -1294,7 +1294,7 @@ export default function MainTainPage() {
                         onClick={() => setTab("status")}
                         className={`pb-3 px-2 font-medium transition ${
                             tab === "status"
-                                ? "text-blue-600 border-b-2 border-blue-600"
+                                ? "text-[#c8102e] border-b-2 border-[#c8102e]"
                                 : "text-slate-600 hover:text-slate-900"
                         }`}
                     >
@@ -1304,7 +1304,7 @@ export default function MainTainPage() {
                         onClick={() => setTab("vendor")}
                         className={`pb-3 px-2 font-medium transition ${
                             tab === "vendor"
-                                ? "text-blue-600 border-b-2 border-blue-600"
+                                ? "text-[#c8102e] border-b-2 border-[#c8102e]"
                                 : "text-slate-600 hover:text-slate-900"
                         }`}
                     >
@@ -1314,7 +1314,7 @@ export default function MainTainPage() {
                         onClick={() => setTab("user")}
                         className={`pb-3 px-2 font-medium transition ${
                             tab === "user"
-                                ? "text-blue-600 border-b-2 border-blue-600"
+                                ? "text-[#c8102e] border-b-2 border-[#c8102e]"
                                 : "text-slate-600 hover:text-slate-900"
                         }`}
                     >
@@ -1324,7 +1324,7 @@ export default function MainTainPage() {
                         onClick={() => setTab("location")}
                         className={`pb-3 px-2 font-medium transition ${
                             tab === "location"
-                                ? "text-blue-600 border-b-2 border-blue-600"
+                                ? "text-[#c8102e] border-b-2 border-[#c8102e]"
                                 : "text-slate-600 hover:text-slate-900"
                         }`}
                     >
@@ -1334,7 +1334,7 @@ export default function MainTainPage() {
                         onClick={() => setTab("product")}
                         className={`pb-3 px-2 font-medium transition ${
                             tab === "product"
-                                ? "text-blue-600 border-b-2 border-blue-600"
+                                ? "text-[#c8102e] border-b-2 border-[#c8102e]"
                                 : "text-slate-600 hover:text-slate-900"
                         }`}
                     >
@@ -1344,7 +1344,7 @@ export default function MainTainPage() {
                         onClick={() => setTab("category")}
                         className={`pb-3 px-2 font-medium transition ${
                             tab === "category"
-                                ? "text-blue-600 border-b-2 border-blue-600"
+                                ? "text-[#c8102e] border-b-2 border-[#c8102e]"
                                 : "text-slate-600 hover:text-slate-900"
                         }`}
                     >
@@ -1354,7 +1354,7 @@ export default function MainTainPage() {
                         onClick={() => setTab("symptom")}
                         className={`pb-3 px-2 font-medium transition ${
                             tab === "symptom"
-                                ? "text-blue-600 border-b-2 border-blue-600"
+                                ? "text-[#c8102e] border-b-2 border-[#c8102e]"
                                 : "text-slate-600 hover:text-slate-900"
                         }`}
                     >
@@ -1364,7 +1364,7 @@ export default function MainTainPage() {
                         onClick={() => setTab("announcement")}
                         className={`pb-3 px-2 font-medium transition ${
                             tab === "announcement"
-                                ? "text-blue-600 border-b-2 border-blue-600"
+                                ? "text-[#c8102e] border-b-2 border-[#c8102e]"
                                 : "text-slate-600 hover:text-slate-900"
                         }`}
                     >
@@ -1451,7 +1451,7 @@ export default function MainTainPage() {
                                                         <div className="flex items-center justify-center gap-2">
                                                             <button
                                                                 onClick={() => openEditModal(row)}
-                                                                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition font-medium text-sm"
+                                                                className="flex items-center gap-2 px-4 py-2 bg-[#c8102e] hover:bg-[#b00d25] text-white rounded-lg transition font-medium text-sm"
                                                                 title="แก้ไข"
                                                             >
                                                                 <Pencil className="w-4 h-4" />
@@ -1499,7 +1499,7 @@ export default function MainTainPage() {
                                 placeholder="ค้นหาจาก Vendor No หรือ Vendor Name..."
                                 value={vendorSearchQ}
                                 onChange={(e) => setVendorSearchQ(e.target.value)}
-                                className="flex-1 min-w-64 px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="flex-1 min-w-64 px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#c8102e]"
                             />
                             <button
                                 onClick={downloadVendorTemplate}
@@ -1512,7 +1512,7 @@ export default function MainTainPage() {
                             <button
                                 onClick={() => document.getElementById("vendorImportInput")?.click()}
                                 disabled={vendorLoading}
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-[#c8102e] hover:bg-[#b00d25] text-white rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
                                 title="Import"
                             >
                                 <Upload className="w-4 h-4" />
@@ -2449,7 +2449,7 @@ export default function MainTainPage() {
                                     <select
                                         value={formData.path}
                                         onChange={(e) => setFormData({ ...formData, path: e.target.value })}
-                                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c8102e]"
                                     >
                                         <option value="">-- เลือก Path --</option>
                                         <option value="DC">DC</option>
@@ -2465,7 +2465,7 @@ export default function MainTainPage() {
                                     type="text"
                                     value={formData.status}
                                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c8102e]"
                                 />
                             </div>
 
@@ -2475,7 +2475,7 @@ export default function MainTainPage() {
                                     type="number"
                                     value={formData.sla}
                                     onChange={(e) => setFormData({ ...formData, sla: e.target.value })}
-                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c8102e]"
                                     placeholder="เช่น 7"
                                 />
                             </div>

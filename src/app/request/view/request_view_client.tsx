@@ -113,7 +113,7 @@ export default function RequestViewPage() {
                             <a href="/?id=2" className="text-xs px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md font-semibold transition">ตั๋ว ID 2 (Samsung)</a>
                         </div>
                         <p className="text-xs text-slate-400 pt-2 text-center">
-                            สำหรับเจ้าหน้าที่? <a href="/login" className="text-blue-600 hover:underline font-semibold">เข้าสู่ระบบที่นี่</a>
+                            สำหรับเจ้าหน้าที่? <a href="/login" className="text-[#c8102e] hover:underline font-semibold">เข้าสู่ระบบที่นี่</a>
                         </p>
                     </div>
                 </div>

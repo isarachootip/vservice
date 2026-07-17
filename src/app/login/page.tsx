@@ -75,7 +75,7 @@ export default function LoginPage() {
             <input
               type="text"
               name="username"
-              className="input-base focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-sm"
+              className="input-base focus:ring-2 focus:ring-[#c8102e] focus:border-[#c8102e] text-sm"
               required
               disabled={loading}
               placeholder="กรอกชื่อผู้ใช้งาน"
@@ -90,7 +90,7 @@ export default function LoginPage() {
               <input
                 type={showPassword ? "text" : "password"}
                 name="password"
-                className="input-base pr-10 focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-sm"
+                className="input-base pr-10 focus:ring-2 focus:ring-[#c8102e] focus:border-[#c8102e] text-sm"
                 required
                 disabled={loading}
                 placeholder="กรอกรหัสผ่าน"
@@ -117,7 +117,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-violet-600 hover:bg-violet-500 text-white font-bold py-2.5 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              className="w-full bg-[#c8102e] hover:bg-[#b00d25] text-white font-bold py-2.5 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
             >
               {loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ (Log In)"}
             </button>
