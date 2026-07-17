@@ -24,8 +24,8 @@ export type DashboardSummary = {
 };
 
 export class DashboardService {
-    static async getSummary(period: PeriodFilter): Promise<DashboardSummary> {
-        const grouped = await DashboardRepository.getStatusCounts(period);
+    static async getSummary(period: PeriodFilter, locationId?: string): Promise<DashboardSummary> {
+        const grouped = await DashboardRepository.getStatusCounts(period, locationId);
         // console.log("grouped : ",grouped)
         const countMap = new Map<number, number>();
         for (const row of grouped) {
@@ -36,8 +36,8 @@ export class DashboardService {
             statuses.reduce((sum, s) => sum + (countMap.get(s) ?? 0), 0);
 
         const [approvedRepairDone, rejectedRepairCancelled] = await Promise.all([
-            DashboardRepository.countByStatusAndApproveFlg([36, 236], "Y", period),
-            DashboardRepository.countByStatusAndApproveFlg([36, 236], "N", period),
+            DashboardRepository.countByStatusAndApproveFlg([36, 236], "Y", period, locationId),
+            DashboardRepository.countByStatusAndApproveFlg([36, 236], "N", period, locationId),
         ]);
         // console.log("groupeddRepairDone : ",approvedRepairDone)
         // console.log("groupedRepairCancelled : ",rejectedRepairCancelled)

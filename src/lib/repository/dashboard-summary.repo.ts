@@ -30,14 +30,16 @@ export class DashboardRepository {
         };
     }
 
-    static async getStatusCounts(period: PeriodFilter) {
+    static async getStatusCounts(period: PeriodFilter, locationId?: string) {
         const dateWhere = this.buildDateFilter(period);
-        console.log("period : ", period)
-        console.log("dateWhere : ",dateWhere)
+        const whereClause: any = { ...dateWhere };
+        if (locationId) {
+            whereClause.location_id = locationId;
+        }
 
         return prisma.repair_request.groupBy({
             by: ["status"],
-            where: dateWhere,
+            where: whereClause,
             _count: {
                 status: true,
             },
@@ -47,20 +49,25 @@ export class DashboardRepository {
     static async countByStatusAndApproveFlg(
         statuses: number[],
         approveFlg: "Y" | "N",
-        period: PeriodFilter
+        period: PeriodFilter,
+        locationId?: string
     ) {
-    const dateWhere = this.buildDateFilter(period);
-
-        return prisma.repair_request.count({
-            where: {
-                ...dateWhere,
-                status: { in: statuses },
-                quotation: {
-                    some: {
-                        user_approve_flg: approveFlg,
-                    },
+        const dateWhere = this.buildDateFilter(period);
+        const whereClause: any = {
+            ...dateWhere,
+            status: { in: statuses },
+            quotation: {
+                some: {
+                    user_approve_flg: approveFlg,
                 },
             },
+        };
+        if (locationId) {
+            whereClause.location_id = locationId;
+        }
+
+        return prisma.repair_request.count({
+            where: whereClause,
         });
     }
 }

@@ -13,9 +13,10 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const rawPeriod = searchParams.get("period");
-    // console.log("[period] : ",rawPeriod)
+    const locationId = searchParams.get("locationId") || undefined;
+    // console.log("[period] : ",rawPeriod, "[locationId] : ",locationId)
     const period: PeriodFilter = isValidPeriod(rawPeriod) ? rawPeriod : "all";
-    const data = await DashboardService.getSummary(period);
+    const data = await DashboardService.getSummary(period, locationId);
     return NextResponse.json(
       { ok: true, data },
       { status: 200 }

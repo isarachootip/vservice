@@ -89,11 +89,44 @@ export default function DashBoardPage() {
   const [statuses, setStatuses] = useState<StatusDef[]>([]);
   const [period, setPeriod] = useState<PeriodFilter>("all");
   const [lastUpdated, setLastUpdated] = useState("10:30");
+  const [selectedLocation, setSelectedLocation] = useState<string>("");
+  const [locations, setLocations] = useState<any[]>([]);
+
+  // Load user default location & locations list on mount
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("userInfo");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed.location_id) {
+          setSelectedLocation(parsed.location_id);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to read user location:", e);
+    }
+
+    const fetchLocs = async () => {
+      try {
+        const res = await fetch("/api/maintain/locations", { cache: "no-store" });
+        const json = await res.json();
+        if (json.ok) {
+          setLocations(json.locations || []);
+        }
+      } catch (err) {
+        console.error("Failed to fetch locations:", err);
+      }
+    };
+    fetchLocs();
+  }, []);
 
   useEffect(() => {
     const fetchSummary = async () => {
       try {
-        const res = await fetch(`/api/dashboard/summary?period=${period}`, {
+        const url = `/api/dashboard/summary?period=${period}${
+          selectedLocation ? `&locationId=${selectedLocation}` : ""
+        }`;
+        const res = await fetch(url, {
           cache: "no-store",
         });
         const json = await res.json();
@@ -126,7 +159,20 @@ export default function DashBoardPage() {
     };
 
     init();
-  }, [period]);
+  }, [period, selectedLocation]);
+
+  // Thai date formatting for the Date picker button
+  const getTodayThai = () => {
+    const thaiMonths = [
+      "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
+      "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
+    ];
+    const d = new Date();
+    const day = d.getDate();
+    const month = thaiMonths[d.getMonth()];
+    const year = d.getFullYear() + 543;
+    return `${day} ${month} ${year}`;
+  };
 
   // Sparkline data matching the trend in mockup
   const activeJobsSparkline = [22, 23, 20, 24, 22, 21, 23, 20, 18, 22, 21, 19];
@@ -194,15 +240,26 @@ export default function DashBoardPage() {
         {/* Filters and Refresh button */}
         <div className="flex flex-wrap items-center gap-3">
           {/* Branch Dropdown */}
-          <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200 shadow-sm text-xs font-semibold text-slate-700">
+          <div className="flex items-center gap-2 bg-white px-2.5 py-1.5 rounded-xl border border-slate-200 shadow-sm text-xs font-semibold text-slate-700">
             <MapPin className="w-3.5 h-3.5 text-slate-400" />
-            <span>ทุกสาขา (All Branches)</span>
+            <select
+              value={selectedLocation}
+              onChange={(e) => setSelectedLocation(e.target.value)}
+              className="bg-transparent border-none outline-none pr-6 cursor-pointer font-semibold text-slate-700 py-0.5"
+            >
+              <option value="">ทุกสาขา (All Branches)</option>
+              {locations.map((loc) => (
+                <option key={loc.id} value={loc.id}>
+                  {loc.name} ({loc.id})
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Date Picker */}
           <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200 shadow-sm text-xs font-semibold text-slate-700">
             <Calendar className="w-3.5 h-3.5 text-slate-400" />
-            <span>14 พฤษภาคม 2567</span>
+            <span>{getTodayThai()}</span>
           </div>
 
           {/* Refresh Timestamp */}
