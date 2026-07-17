@@ -112,6 +112,7 @@ model repair_request {
   repair_item                     repair_item[]
   transaction_log                 transaction_log[]
   payment_transaction             payment_transaction[]
+  customer_chat                   customer_chat?
 }
 
 model store {
@@ -473,4 +474,24 @@ model chat_message {
 
   room         chat_room  @relation(fields: [room_id], references: [id], onDelete: Cascade)
   sender       users      @relation(fields: [sender_id], references: [user_id], onDelete: Cascade)
+}
+
+model customer_chat {
+  id            Int                     @id @default(autoincrement())
+  request_id    Int                     @unique
+  created_at    DateTime                @default(now()) @db.Timestamp(6)
+  messages      customer_chat_message[]
+
+  request       repair_request          @relation(fields: [request_id], references: [id], onDelete: Cascade)
+}
+
+model customer_chat_message {
+  id            Int           @id @default(autoincrement())
+  chat_id       Int
+  sender_type   String        @db.VarChar(50) // "AGENT" or "CUSTOMER" (LINE / WEB)
+  sender_name   String        @db.VarChar(100)
+  message       String        @db.Text
+  created_at    DateTime      @default(now()) @db.Timestamp(6)
+
+  chat          customer_chat @relation(fields: [chat_id], references: [id], onDelete: Cascade)
 }
