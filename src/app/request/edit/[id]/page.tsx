@@ -275,7 +275,7 @@ export default function RequestEditPage({ params }: { params: Promise<{ id: stri
     const [pathSelectedBy, setPathSelectedBy] = useState<string>("");
 
     //? class list (commodity)
-    const [classList, setClassList] = useState<string[]>([]);
+    const [classList, setClassList] = useState<{ name: string, name_th: string | null }[]>([]);
     const [classLoading, setClassLoading] = useState(false);
     const [classError, setClassError] = useState<string | null>(null);
 
@@ -1390,8 +1390,8 @@ export default function RequestEditPage({ params }: { params: Promise<{ id: stri
                             >
                                 <option value="">-- เลือกประเภทสินค้า --</option>
                                 {classList.map((c) => (
-                                    <option key={c} value={c}>
-                                        {c}
+                                    <option key={c.name} value={c.name}>
+                                        {c.name_th ? `${c.name} / ${c.name_th}` : c.name}
                                     </option>
                                 ))}
                             </select>

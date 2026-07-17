@@ -43,7 +43,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { name, updatedUser } = body;
+    const { name, name_th, active_flg, updatedUser } = body;
 
     if (!name) {
       return NextResponse.json({ ok: false, message: "กรุณาระบุชื่อหมวดหมู่" }, { status: 400 });
@@ -60,6 +60,8 @@ export async function POST(req: Request) {
     const newCategory = await prisma.repair_category.create({
       data: {
         name: name.trim(),
+        name_th: name_th ? name_th.trim() : null,
+        active_flg: active_flg || "Y",
         created_user: updatedUser || "admin",
         updated_user: updatedUser || "admin",
       },
@@ -78,7 +80,7 @@ export async function POST(req: Request) {
 export async function PUT(req: Request) {
   try {
     const body = await req.json();
-    const { id, name, updatedUser } = body;
+    const { id, name, name_th, active_flg, updatedUser } = body;
 
     if (!id || !name) {
       return NextResponse.json({ ok: false, message: "ข้อมูลไม่ครบถ้วน" }, { status: 400 });
@@ -103,10 +105,30 @@ export async function PUT(req: Request) {
       return NextResponse.json({ ok: false, message: "มีชื่อหมวดหมู่นี้อยู่ในระบบแล้ว" }, { status: 400 });
     }
 
+    // Validation: if changing status to inactive ('N'), check if there are SKUs in commodity table
+    if (active_flg === "N" && existing.active_flg !== "N") {
+      const skuCount = await prisma.commodity.count({
+        where: {
+          class_name: {
+            equals: existing.name.trim(),
+            mode: "insensitive"
+          }
+        }
+      });
+      if (skuCount > 0) {
+        return NextResponse.json({
+          ok: false,
+          message: `ไม่สามารถปิดใช้งานหมวดหมู่นี้ได้ เนื่องจากมีสินค้า (SKU) จำนวน ${skuCount} รายการใช้งานหมวดหมู่นี้อยู่`
+        }, { status: 400 });
+      }
+    }
+
     await prisma.repair_category.update({
       where: { id: Number(id) },
       data: {
         name: name.trim(),
+        name_th: name_th ? name_th.trim() : null,
+        active_flg: active_flg || "Y",
         updated_user: updatedUser || "admin",
         updated_date: new Date(),
       },
@@ -129,6 +151,31 @@ export async function DELETE(req: Request) {
 
     if (!id) {
       return NextResponse.json({ ok: false, message: "ไม่พบ ID ที่ต้องการลบ" }, { status: 400 });
+    }
+
+    const existing = await prisma.repair_category.findUnique({
+      where: { id: Number(id) },
+    });
+
+    if (!existing) {
+      return NextResponse.json({ ok: false, message: "ไม่พบหมวดหมู่ที่ต้องการลบ" }, { status: 404 });
+    }
+
+    // Validation: check if there are SKUs in commodity table before deleting
+    const skuCount = await prisma.commodity.count({
+      where: {
+        class_name: {
+          equals: existing.name.trim(),
+          mode: "insensitive"
+        }
+      }
+    });
+
+    if (skuCount > 0) {
+      return NextResponse.json({
+        ok: false,
+        message: `ไม่สามารถลบหมวดหมู่นี้ได้ เนื่องจากมีสินค้า (SKU) จำนวน ${skuCount} รายการใช้งานหมวดหมู่นี้อยู่`
+      }, { status: 400 });
     }
 
     await prisma.repair_category.delete({

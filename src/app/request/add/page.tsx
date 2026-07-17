@@ -134,7 +134,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
     const [submitting, setSubmitting] = useState(false);
 
     //? class list (commodity)
-    const [classList, setClassList] = useState<string[]>([]);
+    const [classList, setClassList] = useState<{ name: string, name_th: string | null }[]>([]);
     const [classLoading, setClassLoading] = useState(false);
     const [classError, setClassError] = useState<string | null>(null);
 
@@ -591,11 +591,11 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                             disabled={!brand}
                                         >
                                             <option value="">-- เลือกประเภท --</option>
-                                            {classList.map((c) => (
-                                                <option key={c} value={c}>
-                                                    {c}
-                                                </option>
-                                            ))}
+                                             {classList.map((c) => (
+                                                 <option key={c.name} value={c.name}>
+                                                     {c.name_th ? `${c.name} / ${c.name_th}` : c.name}
+                                                 </option>
+                                             ))}
                                         </select>
                                     ) : (
                                         <input

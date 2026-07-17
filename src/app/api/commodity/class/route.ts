@@ -16,16 +16,26 @@ export async function GET(req: Request) {
           AND TRIM(c.class_name) <> ''
           AND c.class_name IS NOT NULL
           AND TRIM(c.sku_status_name) = 'Active'
-        ORDER BY TRIM(c.class_name)
       `;
-      const data = rows.map(r => r.class_name);
+      const classNames = rows.map(r => r.class_name.trim());
+
+      const activeCategories = await prisma.repair_category.findMany({
+        where: {
+          name: { in: classNames },
+          active_flg: "Y"
+        },
+        orderBy: { name: "asc" }
+      });
+
+      const data = activeCategories.map(r => ({ name: r.name, name_th: r.name_th }));
       return NextResponse.json({ ok: true, data });
     }
 
     const rows = await prisma.repair_category.findMany({
+      where: { active_flg: "Y" },
       orderBy: { name: "asc" },
     });
-    const data = rows.map(r => r.name);
+    const data = rows.map(r => ({ name: r.name, name_th: r.name_th }));
     
     return NextResponse.json({ ok: true, data });
   } catch (err) {

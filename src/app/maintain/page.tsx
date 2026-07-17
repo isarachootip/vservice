@@ -81,7 +81,7 @@ function MaintainContent() {
     const [categoryError, setCategoryError] = useState<string | null>(null);
     const [showCategoryModal, setShowCategoryModal] = useState(false);
     const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
-    const [categoryFormData, setCategoryFormData] = useState({ name: "" });
+    const [categoryFormData, setCategoryFormData] = useState({ name: "", name_th: "", active_flg: "Y" });
     const [categoryFormError, setCategoryFormError] = useState<string | null>(null);
     const [isSavingCategory, setIsSavingCategory] = useState(false);
 
@@ -685,14 +685,18 @@ function MaintainContent() {
 
     const openAddCategoryModal = () => {
         setEditingCategoryId(null);
-        setCategoryFormData({ name: "" });
+        setCategoryFormData({ name: "", name_th: "", active_flg: "Y" });
         setCategoryFormError(null);
         setShowCategoryModal(true);
     };
 
     const openEditCategoryModal = (cat: any) => {
         setEditingCategoryId(cat.id);
-        setCategoryFormData({ name: cat.name });
+        setCategoryFormData({ 
+            name: cat.name, 
+            name_th: cat.name_th || "", 
+            active_flg: cat.active_flg || "Y" 
+        });
         setCategoryFormError(null);
         setShowCategoryModal(true);
     };
@@ -711,6 +715,8 @@ function MaintainContent() {
             const body = {
                 id: editingCategoryId,
                 name: categoryFormData.name,
+                name_th: categoryFormData.name_th,
+                active_flg: categoryFormData.active_flg,
                 updatedUser,
             };
 
@@ -2289,28 +2295,38 @@ function MaintainContent() {
                                     <thead className="bg-slate-50 border-b border-slate-200">
                                         <tr>
                                             <th className="text-center px-6 py-3 font-semibold text-slate-900 w-16">ลำดับ</th>
-                                            <th className="text-left px-6 py-3 font-semibold text-slate-900">ชื่อหมวดหมู่</th>
+                                            <th className="text-left px-6 py-3 font-semibold text-slate-900">ชื่อหมวดหมู่ (EN)</th>
+                                            <th className="text-left px-6 py-3 font-semibold text-slate-900">ชื่อหมวดหมู่ (TH)</th>
+                                            <th className="text-center px-6 py-3 font-semibold text-slate-900 w-28">สถานะ</th>
                                             <th className="text-center px-6 py-3 font-semibold text-slate-900 w-32">การจัดการ</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {categoryLoading ? (
                                             <tr>
-                                                <td colSpan={3} className="px-6 py-6 text-center text-slate-500">
+                                                <td colSpan={5} className="px-6 py-6 text-center text-slate-500">
                                                     กำลังโหลดข้อมูล...
                                                 </td>
                                             </tr>
                                         ) : categoriesList.length === 0 ? (
                                             <tr>
-                                                <td colSpan={3} className="px-6 py-6 text-center text-slate-500">
+                                                <td colSpan={5} className="px-6 py-6 text-center text-slate-500">
                                                     ไม่พบข้อมูลหมวดหมู่
                                                 </td>
                                             </tr>
                                         ) : (
                                             categoriesList.map((row, idx) => (
-                                                <tr key={row.id} className="border-t border-slate-100 hover:bg-slate-50">
+                                                <tr key={row.id} className="border-t border-slate-100 hover:bg-slate-55">
                                                     <td className="px-6 py-4 text-slate-900 text-center">{idx + 1}</td>
                                                     <td className="px-6 py-4 text-slate-900 font-semibold">{row.name}</td>
+                                                    <td className="px-6 py-4 text-slate-900 font-semibold">{row.name_th || "-"}</td>
+                                                    <td className="px-6 py-4 text-center">
+                                                        <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                                                            row.active_flg === "Y" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                                                        }`}>
+                                                            {row.active_flg === "Y" ? "เปิดใช้งาน" : "ปิดใช้งาน"}
+                                                        </span>
+                                                    </td>
                                                     <td className="px-6 py-4 text-center">
                                                         <div className="flex items-center justify-center gap-2">
                                                             <button
@@ -3115,14 +3131,35 @@ function MaintainContent() {
 
                         <div className="space-y-4 mb-6">
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-1">ชื่อหมวดหมู่ <span className="text-red-500">*</span></label>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1">ชื่อหมวดหมู่ (EN) <span className="text-red-500">*</span></label>
                                 <input
                                     type="text"
                                     value={categoryFormData.name}
-                                    onChange={(e) => setCategoryFormData({ name: e.target.value })}
-                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 text-slate-900"
-                                    placeholder="เช่น เครื่องซักผ้า, ทีวี, เครื่องใช้ไฟฟ้า..."
+                                    onChange={(e) => setCategoryFormData(prev => ({ ...prev, name: e.target.value }))}
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 text-slate-900 bg-white"
+                                    placeholder="เช่น Washing Machine, TV..."
                                 />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1">ชื่อหมวดหมู่ (TH)</label>
+                                <input
+                                    type="text"
+                                    value={categoryFormData.name_th}
+                                    onChange={(e) => setCategoryFormData(prev => ({ ...prev, name_th: e.target.value }))}
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 text-slate-900 bg-white"
+                                    placeholder="เช่น เครื่องซักผ้า, ทีวี..."
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1">สถานะการใช้งาน</label>
+                                <select
+                                    value={categoryFormData.active_flg}
+                                    onChange={(e) => setCategoryFormData(prev => ({ ...prev, active_flg: e.target.value }))}
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 text-slate-900 bg-white"
+                                >
+                                    <option value="Y">เปิดใช้งาน (Active)</option>
+                                    <option value="N">ปิดใช้งาน (Disabled)</option>
+                                </select>
                             </div>
                         </div>
 
