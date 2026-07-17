@@ -248,6 +248,10 @@ function MaintainContent() {
     const [announcementsError, setAnnouncementsError] = useState<string | null>(null);
     const [isSavingAnnouncement, setIsSavingAnnouncement] = useState(false);
 
+    const [lineAccessToken, setLineAccessToken] = useState("");
+    const [lineChannelSecret, setLineChannelSecret] = useState("");
+    const [isSavingLineConfig, setIsSavingLineConfig] = useState(false);
+
     const [newAnnMsg, setNewAnnMsg] = useState("");
     const [newAnnSeverity, setNewAnnSeverity] = useState("warning");
     const [newAnnStartDate, setNewAnnStartDate] = useState("");
@@ -300,6 +304,54 @@ function MaintainContent() {
         }
         return () => { alive = false; };
     }, []);
+
+    const fetchLineConfig = useCallback(async () => {
+        try {
+            const res = await fetch("/api/maintain/config?type=system", { cache: "no-store" });
+            const json = await res.json();
+            if (json.ok && Array.isArray(json.data)) {
+                const tokenItem = json.data.find((item: any) => item.config_key === "LINE_CHANNEL_ACCESS_TOKEN");
+                const secretItem = json.data.find((item: any) => item.config_key === "LINE_CHANNEL_SECRET");
+                if (tokenItem) setLineAccessToken(tokenItem.config_value);
+                if (secretItem) setLineChannelSecret(secretItem.config_value);
+            }
+        } catch (err) {
+            console.error("Failed to fetch LINE config:", err);
+        }
+    }, []);
+
+    const handleSaveLineConfig = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            setIsSavingLineConfig(true);
+            const res = await fetch("/api/maintain/config", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    type: "system",
+                    action: "upsert",
+                    data: [
+                        { config_key: "LINE_CHANNEL_ACCESS_TOKEN", config_value: lineAccessToken },
+                        { config_key: "LINE_CHANNEL_SECRET", config_value: lineChannelSecret }
+                    ]
+                })
+            });
+            const data = await res.json();
+            if (!data.ok) throw new Error(data.message || "บันทึกไม่สำเร็จ");
+            alert("บันทึกการตั้งค่า LINE OA Integration สำเร็จ");
+        } catch (e) {
+            alert((e as Error).message);
+        } finally {
+            setIsSavingLineConfig(false);
+        }
+    };
+
+    useEffect(() => {
+        if (tab === "announcement") {
+            fetchAnnouncements();
+            fetchLineConfig();
+        }
+    }, [tab, fetchAnnouncements, fetchLineConfig]);
 
     const handleSaveAnnouncement = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -2587,6 +2639,53 @@ function MaintainContent() {
                                     className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition shadow disabled:opacity-50"
                                 >
                                     {isSavingAnnouncement ? "กำลังบันทึก..." : "บันทึก / เพิ่มประกาศ"}
+                                </button>
+                            </form>
+                        </div>
+
+                        {/* LINE OA Integration Card */}
+                        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+                            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                                <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
+                                    💬 LINE OA Integration
+                                </h3>
+                            </div>
+
+                            <form onSubmit={handleSaveLineConfig} className="space-y-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-600 mb-1.5 flex items-center gap-1">
+                                        <span>LINE_CHANNEL_ACCESS_TOKEN</span>
+                                        <span className="text-[10px] bg-red-50 text-red-600 border border-red-200 px-1 rounded font-extrabold flex items-center gap-0.5">🔒 Secret</span>
+                                    </label>
+                                    <input
+                                        type="password"
+                                        value={lineAccessToken}
+                                        onChange={(e) => setLineAccessToken(e.target.value)}
+                                        placeholder="ป้อน Line Channel Access Token..."
+                                        className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white text-xs font-semibold text-slate-800"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-600 mb-1.5 flex items-center gap-1">
+                                        <span>LINE_CHANNEL_SECRET</span>
+                                        <span className="text-[10px] bg-red-50 text-red-600 border border-red-200 px-1 rounded font-extrabold flex items-center gap-0.5">🔒 Secret</span>
+                                    </label>
+                                    <input
+                                        type="password"
+                                        value={lineChannelSecret}
+                                        onChange={(e) => setLineChannelSecret(e.target.value)}
+                                        placeholder="ป้อน Line Channel Secret..."
+                                        className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white text-xs font-semibold text-slate-800"
+                                    />
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    disabled={isSavingLineConfig}
+                                    className="px-5 py-2.5 bg-violet-650 bg-violet-650 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-xs font-bold transition shadow disabled:opacity-50 flex items-center gap-1 cursor-pointer"
+                                >
+                                    {isSavingLineConfig ? "กำลังบันทึก..." : "บันทึกการตั้งค่า LINE"}
                                 </button>
                             </form>
                         </div>

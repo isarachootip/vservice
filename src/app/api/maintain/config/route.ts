@@ -29,6 +29,13 @@ export async function GET(req: Request) {
       return NextResponse.json({ ok: true, data });
     }
 
+    if (type === "system") {
+      const data = await prisma.system_config.findMany({
+        orderBy: { config_key: "asc" },
+      });
+      return NextResponse.json({ ok: true, data });
+    }
+
     return NextResponse.json({ ok: false, message: "Invalid type" }, { status: 400 });
   } catch (error) {
     console.error("GET config error:", error);
@@ -42,6 +49,21 @@ export async function POST(req: Request) {
 
     if (!type || !action || !data) {
       return NextResponse.json({ ok: false, message: "Missing required fields" }, { status: 400 });
+    }
+
+    if (type === "system") {
+      if (action === "upsert") {
+        const items = Array.isArray(data) ? data : [data];
+        for (const item of items) {
+          if (!item.config_key) continue;
+          await prisma.system_config.upsert({
+            where: { config_key: item.config_key },
+            update: { config_value: String(item.config_value || ""), updated_at: new Date() },
+            create: { config_key: item.config_key, config_value: String(item.config_value || "") }
+          });
+        }
+        return NextResponse.json({ ok: true });
+      }
     }
 
     if (type === "diagnostic") {
