@@ -240,7 +240,7 @@ export default function RequestViewPage({ params }: { params: Promise<{ id: stri
         dcReceiveVenName.trim() !== "");
     const steps = buildStepsFromStatus(statusNums);
     const [loading, setLoading] = useState(true);
-    const [openStepKey, setOpenStepKey] = useState<string | null>("10");;
+    const [openStepKey, setOpenStepKey] = useState<string | null>(null);
 
     //* CSS
     const labelCell = "w-56 pr-4 text-right align-top whitespace-nowrap";
@@ -410,13 +410,6 @@ export default function RequestViewPage({ params }: { params: Promise<{ id: stri
         })();
         return () => { alive = false; };
     }, [id]);
-
-    useEffect(() => {
-        const activeStep = steps.find(s => s.active);
-        if (activeStep) {
-            setOpenStepKey(activeStep.key);
-        }
-    }, [statusNums]);
 
     if (loading) {
         return <section className="max-w-4xl mx-auto p-6 text-center text-slate-500">กำลังโหลดข้อมูล...</section>;

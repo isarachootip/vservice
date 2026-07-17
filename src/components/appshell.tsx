@@ -18,6 +18,8 @@ import {
   LogOut,
   HelpCircle,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Menu,
   X
 } from "lucide-react";
@@ -38,6 +40,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const [activeAnnouncements, setActiveAnnouncements] = useState<any[]>([]);
   const [closedAnnouncements, setClosedAnnouncements] = useState<Record<number, boolean>>({});
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   useEffect(() => {
     setMobileOpen(false);
@@ -128,6 +131,20 @@ export default function AppShell({ children }: { children: ReactNode }) {
     return "User";
   }, [user]);
 
+  const menuItems = [
+    { href: "/dashboard", label: "หน้าหลัก", icon: Home },
+    { href: "/status", label: "งานซ่อมทั้งหมด", icon: ClipboardList },
+    { href: "/request/add", label: "รับเครื่อง / สร้างงาน", icon: Wrench, show: canAddRequest },
+    { href: "#", label: "ลูกค้า", icon: Users },
+    { href: "/quotation", label: "ใบเสนอราคา", icon: FileText, badge: 8 },
+    { href: "#", label: "สินค้าคงคลัง / อะไหล่", icon: Package },
+    { href: "#", label: "ช่างเทคนิค", icon: UserCheck },
+    { href: "#", label: "สาขา / จุดบริการ", icon: Store },
+    { href: "#", label: "รายงาน / วิเคราะห์", icon: BarChart2 },
+    { href: "#", label: "การแจ้งเตือน", icon: Bell, badge: 6 },
+    { href: "/maintain", label: "ตั้งค่า", icon: Settings, show: isAdmin },
+  ];
+
   if (isAuthPage) {
     return <>{children}</>;
   }
@@ -167,13 +184,14 @@ export default function AppShell({ children }: { children: ReactNode }) {
 
       {/* Red/White themed sidebar */}
       <aside className={`
-        fixed inset-y-0 left-0 w-64 bg-white border-r border-slate-200 text-slate-700 flex flex-col justify-between shrink-0 z-50 shadow-xl lg:shadow-sm
-        transition-transform duration-300 transform lg:translate-x-0 lg:static lg:h-screen lg:z-20
-        ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
+        fixed inset-y-0 left-0 bg-white border-r border-slate-200 text-slate-700 flex flex-col justify-between shrink-0 z-50 shadow-xl lg:shadow-sm
+        transition-all duration-300 transform lg:translate-x-0 lg:static lg:h-screen lg:z-20
+        ${mobileOpen ? "translate-x-0 w-64" : "-translate-x-full"}
+        ${collapsed ? "lg:w-16" : "lg:w-64"}
       `}>
         <div className="flex flex-col h-full overflow-y-auto scrollbar-hide">
           {/* Sidebar Top Header Logo (Thai Watsadu Brand Replica) */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-white">
+          <div className={`flex items-center justify-between border-b border-slate-100 bg-white px-5 py-4 ${collapsed ? "lg:px-2 lg:justify-center" : ""}`}>
             <div className="flex items-center gap-1.5">
               {/* Red House Box */}
               <div className="w-11 h-11 bg-[#c8102e] rounded flex flex-col items-center justify-center p-0.5 relative shrink-0 shadow-sm">
@@ -184,11 +202,22 @@ export default function AppShell({ children }: { children: ReactNode }) {
                 <span className="text-[#c8102e] font-extrabold text-[15px] z-10 select-none relative" style={{ top: '3.5px' }}>ไท</span>
               </div>
               {/* Black "วัสดุ" and subtext */}
-              <div className="flex flex-col select-none">
-                <span className="text-[#121212] font-black text-xl tracking-tight leading-none">วัสดุ</span>
-                <span className="text-[#555] text-[9px] font-bold tracking-wider leading-none mt-1">SERVICE CENTER</span>
-              </div>
+              {(!collapsed || mobileOpen) && (
+                <div className="flex flex-col select-none animate-fadeIn">
+                  <span className="text-[#121212] font-black text-xl tracking-tight leading-none">วัสดุ</span>
+                  <span className="text-[#555] text-[9px] font-bold tracking-wider leading-none mt-1">SERVICE CENTER</span>
+                </div>
+              )}
             </div>
+
+            {/* Toggle Button for Desktop */}
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              className="hidden lg:flex p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition cursor-pointer"
+              title={collapsed ? "ขยายเมนู" : "ย่อเมนู"}
+            >
+              {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+            </button>
 
             {/* Close Button on Mobile Drawer */}
             <button
@@ -203,168 +232,71 @@ export default function AppShell({ children }: { children: ReactNode }) {
           <div className="p-3">
             {/* Navigation Links */}
             <nav className="flex flex-col gap-1">
-              <Link
-                href="/dashboard"
-                className={`flex items-center justify-between px-3 py-2 text-sm font-semibold rounded-lg transition-all duration-150 ${
-                  pathname === "/dashboard"
-                    ? "bg-[#c8102e] text-white shadow-sm"
-                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <Home className={`w-4.5 h-4.5 ${pathname === "/dashboard" ? "text-white" : "text-slate-400"}`} />
-                  <span>หน้าหลัก</span>
-                </div>
-              </Link>
-
-              <Link
-                href="/status"
-                className={`flex items-center justify-between px-3 py-2 text-sm font-semibold rounded-lg transition-all duration-150 ${
-                  pathname === "/status"
-                    ? "bg-[#c8102e] text-white shadow-sm"
-                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <ClipboardList className={`w-4.5 h-4.5 ${pathname === "/status" ? "text-white" : "text-slate-400"}`} />
-                  <span>งานซ่อมทั้งหมด</span>
-                </div>
-              </Link>
-
-              {canAddRequest && (
-                <Link
-                  href="/request/add"
-                  className={`flex items-center justify-between px-3 py-2 text-sm font-semibold rounded-lg transition-all duration-150 ${
-                    pathname === "/request/add"
-                      ? "bg-[#c8102e] text-white shadow-sm"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <Wrench className={`w-4.5 h-4.5 ${pathname === "/request/add" ? "text-white" : "text-slate-400"}`} />
-                    <span>รับเครื่อง / สร้างงาน</span>
-                  </div>
-                </Link>
-              )}
-
-              <Link
-                href="#"
-                className="flex items-center justify-between px-3 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all duration-150"
-              >
-                <div className="flex items-center gap-3">
-                  <Users className="w-4.5 h-4.5 text-slate-400" />
-                  <span>ลูกค้า</span>
-                </div>
-              </Link>
-
-              <Link
-                href="/quotation"
-                className="flex items-center justify-between px-3 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all duration-150"
-              >
-                <div className="flex items-center gap-3">
-                  <FileText className="w-4.5 h-4.5 text-slate-400" />
-                  <span>ใบเสนอราคา</span>
-                </div>
-                <span className="bg-[#c8102e] text-white text-[10px] font-bold px-2 py-0.5 rounded-full min-w-5 text-center">
-                  8
-                </span>
-              </Link>
-
-              <Link
-                href="#"
-                className="flex items-center justify-between px-3 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all duration-150"
-              >
-                <div className="flex items-center gap-3">
-                  <Package className="w-4.5 h-4.5 text-slate-400" />
-                  <span>สินค้าคงคลัง / อะไหล่</span>
-                </div>
-              </Link>
-
-              <Link
-                href="#"
-                className="flex items-center justify-between px-3 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all duration-150"
-              >
-                <div className="flex items-center gap-3">
-                  <UserCheck className="w-4.5 h-4.5 text-slate-400" />
-                  <span>ช่างเทคนิค</span>
-                </div>
-              </Link>
-
-              <Link
-                href="#"
-                className="flex items-center justify-between px-3 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all duration-150"
-              >
-                <div className="flex items-center gap-3">
-                  <Store className="w-4.5 h-4.5 text-slate-400" />
-                  <span>สาขา / จุดบริการ</span>
-                </div>
-              </Link>
-
-              <Link
-                href="#"
-                className="flex items-center justify-between px-3 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all duration-150"
-              >
-                <div className="flex items-center gap-3">
-                  <BarChart2 className="w-4.5 h-4.5 text-slate-400" />
-                  <span>รายงาน / วิเคราะห์</span>
-                </div>
-              </Link>
-
-              <Link
-                href="#"
-                className="flex items-center justify-between px-3 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all duration-150"
-              >
-                <div className="flex items-center gap-3">
-                  <Bell className="w-4.5 h-4.5 text-slate-400" />
-                  <span>การแจ้งเตือน</span>
-                </div>
-                <span className="bg-[#c8102e] text-white text-[10px] font-bold px-2 py-0.5 rounded-full min-w-5 text-center">
-                  6
-                </span>
-              </Link>
-
-              {isAdmin && (
-                <Link
-                  href="/maintain"
-                  className={`flex items-center justify-between px-3 py-2 text-sm font-semibold rounded-lg transition-all duration-150 ${
-                    pathname === "/maintain"
-                      ? "bg-[#c8102e] text-white shadow-sm"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <Settings className={`w-4.5 h-4.5 ${pathname === "/maintain" ? "text-white" : "text-slate-400"}`} />
-                    <span>ตั้งค่า</span>
-                  </div>
-                </Link>
-              )}
+              {menuItems
+                .filter((item) => item.show !== false)
+                .map((item, idx) => {
+                  const Icon = item.icon;
+                  const isActive = pathname === item.href;
+                  return (
+                    <Link
+                      key={idx}
+                      href={item.href}
+                      title={collapsed ? item.label : undefined}
+                      className={`flex items-center transition-all duration-150 py-2 text-sm font-semibold rounded-lg ${
+                        collapsed ? "lg:justify-center lg:px-2" : "justify-between px-3"
+                      } ${
+                        isActive
+                          ? "bg-[#c8102e] text-white shadow-sm"
+                          : "text-slate-600 hover:text-slate-900 hover:bg-slate-105"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon className={`w-4.5 h-4.5 shrink-0 ${isActive ? "text-white" : "text-slate-400"}`} />
+                        {(!collapsed || mobileOpen) && (
+                          <span className="animate-fadeIn">{item.label}</span>
+                        )}
+                      </div>
+                      {(!collapsed || mobileOpen) && item.badge !== undefined && (
+                        <span className="bg-[#c8102e] text-white text-[10px] font-bold px-2 py-0.5 rounded-full min-w-5 text-center">
+                          {item.badge}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
             </nav>
 
             {/* CALL CENTER Banner Card */}
-            <div className="mt-4 mx-1.5 p-3 bg-slate-50 border border-slate-200/60 rounded-2xl flex flex-col items-center text-center relative overflow-hidden shadow-sm">
-              <span className="text-[10px] font-extrabold text-[#777] tracking-wider">CALL CENTER</span>
-              <span className="text-[#c8102e] text-2xl font-black mt-0.5">1308</span>
-              <span className="text-[9px] text-slate-400 font-semibold mt-1">บริการทุกวัน 07.00 - 20.00 น.</span>
-              
-              <div className="mt-2 w-28 h-28 relative overflow-hidden flex items-center justify-center">
-                <img 
-                  src="/images/mascot_twd.png" 
-                  alt="Thai Watsadu Mascot" 
-                  className="w-full h-full object-contain filter drop-shadow-sm hover:scale-105 transition-transform duration-300"
-                />
+            {/* CALL CENTER Banner Card */}
+            {(!collapsed || mobileOpen) && (
+              <div className="mt-4 mx-1.5 p-3 bg-slate-50 border border-slate-200/60 rounded-2xl flex flex-col items-center text-center relative overflow-hidden shadow-sm animate-fadeIn">
+                <span className="text-[10px] font-extrabold text-[#777] tracking-wider">CALL CENTER</span>
+                <span className="text-[#c8102e] text-2xl font-black mt-0.5">1308</span>
+                <span className="text-[9px] text-slate-400 font-semibold mt-1">บริการทุกวัน 07.00 - 20.00 น.</span>
+                
+                <div className="mt-2 w-28 h-28 relative overflow-hidden flex items-center justify-center">
+                  <img 
+                    src="/images/mascot_twd.png" 
+                    alt="Thai Watsadu Mascot" 
+                    className="w-full h-full object-contain filter drop-shadow-sm hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 
         {/* Footer profile info & Logout */}
-        <div className="p-3 border-t border-slate-100 bg-slate-50 flex flex-col gap-2">
+        <div className={`p-3 border-t border-slate-100 bg-slate-50 flex flex-col gap-2 ${collapsed ? "lg:items-center" : ""}`}>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2 text-sm font-semibold text-slate-600 hover:text-[#c8102e] hover:bg-red-50 rounded-lg transition duration-150"
+            title={collapsed ? "Logout" : undefined}
+            className={`w-full flex items-center text-slate-600 hover:text-[#c8102e] hover:bg-red-50 rounded-lg transition duration-150 py-2 text-sm font-semibold ${
+              collapsed ? "lg:justify-center lg:px-0" : "gap-3 px-3"
+            }`}
           >
-            <LogOut className="w-4 h-4 text-slate-400" />
-            <span>Logout</span>
+            <LogOut className="w-4 h-4 text-slate-400 shrink-0" />
+            {(!collapsed || mobileOpen) && <span className="animate-fadeIn">Logout</span>}
           </button>
         </div>
       </aside>
