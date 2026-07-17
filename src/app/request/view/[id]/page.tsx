@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ShieldCheck, ShieldX, BadgeCheck, BadgeX, ChevronsDown, CircleCheck, CircleX, File, Image} from "lucide-react";
+import { ShieldCheck, ShieldX, BadgeCheck, BadgeX, ChevronsDown, CircleCheck, CircleX, File, Image, Pencil} from "lucide-react";
 import Link from "next/link";
 
 type Warranty = "in" | "out" | null;
@@ -847,7 +847,18 @@ export default function RequestViewPage({ params }: { params: Promise<{ id: stri
         <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-6 md:p-8 shadow-sm">
             
             <form className="relative space-y-8" onSubmit={(e) => e.preventDefault()}>
-                <div className="mb-6 flex gap-3 justify-end">
+                <div className="mb-6 flex gap-3 justify-end flex-wrap">
+                {(statusNums === 23 || statusNums === 31) && (
+                    <Link
+                        href={`/quotation/add/${id}`}
+                        className="inline-flex items-center gap-2 rounded-lg
+                                    bg-[#c8102e] px-4 py-2 text-sm font-semibold text-white
+                                    hover:bg-[#b00d25] transition"
+                    >
+                        <Pencil className="w-3.5 h-3.5" />
+                        สร้างใบเสนอราคา (Create Quotation)
+                    </Link>
+                )}
                 <Link
                     href={getPrintPath(statusNums, String(id))}
                     target="_blank"

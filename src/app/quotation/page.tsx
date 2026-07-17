@@ -101,7 +101,7 @@ export default function QuotationListPage() {
   return (
     <main className="space-y-6">
       {/* Top Navigation Row */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-3">
           <button
             onClick={() => router.push("/dashboard")}
@@ -119,6 +119,13 @@ export default function QuotationListPage() {
             </p>
           </div>
         </div>
+
+        <button
+          onClick={() => router.push("/status")}
+          className="inline-flex items-center gap-2 rounded-lg bg-[#c8102e] hover:bg-[#b00d25] px-4 py-2 text-xs font-bold text-white transition shadow-sm cursor-pointer"
+        >
+          สร้างใบเสนอราคาใหม่ (Create New)
+        </button>
       </div>
 
       {/* Main List Box */}
