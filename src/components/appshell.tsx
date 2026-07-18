@@ -32,7 +32,8 @@ import {
   Coins,
   Percent,
   Clock,
-  MessageSquare
+  MessageSquare,
+  Image
 } from "lucide-react";
 
 
@@ -291,6 +292,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
         { href: "/maintain?tab=diagnostic", label: "Diagnostic Fee Config", icon: Coins },
         { href: "/maintain?tab=margin", label: "Margin Config", icon: Percent },
         { href: "/maintain?tab=service_tier", label: "Service Tier Config", icon: Clock },
+        { href: "/maintain?tab=example_images", label: "ตั้งค่ารูปภาพตัวอย่าง", icon: Image },
       ]
     },
   ];

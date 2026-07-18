@@ -111,6 +111,10 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
     const [payMethod, setPayMethod] = useState("CASH");
     const [payRefNo, setPayRefNo] = useState("");
 
+    //? รูปภาพตัวอย่างสำหรับช่วยเหลือผู้ใช้
+    const [exampleImages, setExampleImages] = useState<any>(null);
+    const [exampleModal, setExampleModal] = useState<{ isOpen: boolean; title: string; imageUrl: string; desc: string } | null>(null);
+
     useEffect(() => {
         fetch("/api/maintain/symptoms")
             .then(res => res.json())
@@ -135,6 +139,15 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
             .then(data => {
                 if (data.ok) {
                     setServiceTiers(data.data || []);
+                }
+            })
+            .catch(console.error);
+
+        fetch("/api/maintain/example-images")
+            .then(res => res.json())
+            .then(data => {
+                if (data.ok) {
+                    setExampleImages(data.data);
                 }
             })
             .catch(console.error);
@@ -287,6 +300,16 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
             controller.abort();
         };
     }, [brand, productType]);
+
+    // Auto select SKU if there's only one item in skuList matching selected brand and class
+    useEffect(() => {
+        if (skuFlg && brand && productType && skuList.length === 1 && !sku) {
+            const singleItem = skuList[0];
+            setSku(Number(singleItem.sku));
+            setBarcode(singleItem.bar_code ?? "");
+            setModel(singleItem.sku_name ?? "");
+        }
+    }, [skuList, brand, productType, skuFlg, sku]);
 
     useEffect(() => {
         if (!skuFlg) {
@@ -479,10 +502,30 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
         setFile: (f: File | null) => void,
         ref: React.RefObject<HTMLInputElement | null>
     ) => {
+        const slotConfig = exampleImages?.[slotId];
+        const hasExample = slotConfig?.url;
+
         return (
             <div className="flex flex-col bg-white border border-slate-200 rounded-xl p-3 shadow-sm hover:shadow-md transition">
-                <span className="text-[11px] font-bold text-slate-700 mb-2 flex items-center justify-between">
-                    <span>{title}</span>
+                <span className="text-[11px] font-bold text-slate-700 mb-2 flex items-center justify-between flex-wrap gap-1">
+                    <span className="flex items-center gap-1">
+                        <span>{title}</span>
+                        {hasExample && (
+                            <button
+                                type="button"
+                                onClick={() => setExampleModal({
+                                    isOpen: true,
+                                    title: title,
+                                    imageUrl: slotConfig.url,
+                                    desc: slotConfig.desc || "ไม่มีคำอธิบายเพิ่มเติม"
+                                })}
+                                className="text-[10px] bg-slate-100 hover:bg-slate-250 text-slate-700 border border-slate-200 rounded px-1.5 py-0.5 flex items-center gap-0.5 cursor-pointer ml-1 transition duration-150"
+                                title="ดูรูปภาพตัวอย่าง"
+                            >
+                                💡 ดูตัวอย่าง
+                            </button>
+                        )}
+                    </span>
                     {isRequired && <span className="text-red-500 font-extrabold">* จำเป็น</span>}
                 </span>
                 
@@ -713,17 +756,56 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
                                     <label htmlFor="sku" className="block text-[11px] font-semibold text-slate-500 mb-1">SKU<Req /></label>
-                                    <input
-                                        id="sku"
-                                        type="number"
-                                        className={inputClass(!!errors.sku)}
-                                        value={sku}
-                                        onChange={(e) =>
-                                            setSku(e.target.value === "" ? "" : Number(e.target.value))
-                                        }
-                                        disabled={!skuFlg}
-                                        placeholder="ระบุรหัส SKU"
-                                    />
+                                                                    {skuFlg && brand && productType ? (
+                                        <select
+                                            id="sku"
+                                            className="input-base text-xs py-1"
+                                            value={sku ? String(sku) : ""}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                if (!val) {
+                                                    setSku("");
+                                                    setBarcode("");
+                                                    setModel("");
+                                                    return;
+                                                }
+                                                const found = skuList.find(item => String(item.sku) === val);
+                                                if (found) {
+                                                    setSku(Number(found.sku));
+                                                    setBarcode(found.bar_code ?? "");
+                                                    setModel(found.sku_name ?? "");
+                                                }
+                                            }}
+                                        >
+                                            {skuListLoading ? (
+                                                <option value="">-- กำลังโหลดรายการ SKU... --</option>
+                                            ) : skuList.length === 0 ? (
+                                                <option value="">-- ไม่พบสินค้าในกลุ่มนี้ --</option>
+                                            ) : (
+                                                <>
+                                                    <option value="">-- เลือก SKU --</option>
+                                                    {skuList.map((item) => (
+                                                        <option key={item.sku} value={String(item.sku)}>
+                                                            [{item.sku}] {item.sku_name}
+                                                        </option>
+                                                    ))}
+                                                </>
+                                            )}
+                                        </select>
+                                    ) : (
+                                        <input
+                                            id="sku"
+                                            type="number"
+                                            className={inputClass(!!errors.sku)}
+                                            value={sku}
+                                            onChange={(e) =>
+                                                setSku(e.target.value === "" ? "" : Number(e.target.value))
+                                            }
+                                            disabled={!skuFlg}
+                                            placeholder="ระบุรหัส SKU"
+                                            autoComplete="off"
+                                        />
+                                    )}
                                     {errors.sku && <p className="text-red-600 text-[10px] mt-0.5">{errors.sku}</p>}
                                     {skuLoading && <p className="text-[10px] text-slate-400 mt-0.5">กำลังค้นหา...</p>}
                                     {skuError && <p className="text-[10px] text-red-600 mt-0.5">{skuError}</p>}
@@ -1012,6 +1094,53 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                     </div>
                 </form>
             </div>
+
+            {exampleModal && exampleModal.isOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-slate-100 relative">
+                        <button
+                            type="button"
+                            onClick={() => setExampleModal(null)}
+                            className="absolute top-4 right-4 p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition"
+                            title="ปิด"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                        
+                        <div className="border-b border-slate-100 pb-2">
+                            <h3 className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                                <span className="w-1.5 h-3 bg-[#c8102e] rounded"></span>
+                                รูปตัวอย่างสำหรับ: {exampleModal.title}
+                            </h3>
+                        </div>
+
+                        <div className="w-full aspect-video rounded-xl border border-slate-200 bg-slate-50 overflow-hidden flex items-center justify-center">
+                            <img
+                                src={exampleModal.imageUrl}
+                                alt={exampleModal.title}
+                                className="w-full h-full object-contain"
+                            />
+                        </div>
+
+                        <div className="bg-slate-50 border border-slate-100 rounded-xl p-3">
+                            <h4 className="text-[11px] font-bold text-slate-500 mb-1">คำแนะนำในการถ่ายภาพ:</h4>
+                            <p className="text-xs font-semibold text-slate-700 whitespace-pre-line leading-relaxed">
+                                {exampleModal.desc}
+                            </p>
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={() => setExampleModal(null)}
+                            className="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition shadow-sm"
+                        >
+                            ตกลง เข้าใจแล้ว
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

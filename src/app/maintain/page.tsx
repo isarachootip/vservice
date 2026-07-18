@@ -26,7 +26,7 @@ type VendorInfo = {
 };
 
 function MaintainContent() {
-    const [tab, setTab] = useState<"status" | "vendor" | "user" | "location" | "product" | "symptom" | "announcement" | "category" | "diagnostic" | "margin" | "service_tier">("status");
+    const [tab, setTab] = useState<"status" | "vendor" | "user" | "location" | "product" | "symptom" | "announcement" | "category" | "diagnostic" | "margin" | "service_tier" | "example_images">("status");
     
     const searchParams = useSearchParams();
     const urlTab = searchParams.get("tab");
@@ -96,6 +96,23 @@ function MaintainContent() {
     const [symptomFormError, setSymptomFormError] = useState<string | null>(null);
     const [isSavingSymptom, setIsSavingSymptom] = useState(false);
     const [selectedSymptomCategory, setSelectedSymptomCategory] = useState<string>("");
+
+    //* Example Images state
+    const [exampleImages, setExampleImages] = useState<{
+        slot1: { url: string; desc: string };
+        slot2: { url: string; desc: string };
+        slot3: { url: string; desc: string };
+        slot4: { url: string; desc: string };
+    }>({
+        slot1: { url: "", desc: "" },
+        slot2: { url: "", desc: "" },
+        slot3: { url: "", desc: "" },
+        slot4: { url: "", desc: "" },
+    });
+    const [exampleLoading, setExampleLoading] = useState(false);
+    const [exampleError, setExampleError] = useState<string | null>(null);
+    const [exampleSuccessMessage, setExampleSuccessMessage] = useState<string | null>(null);
+    const [exampleSavingSlot, setExampleSavingSlot] = useState<string | null>(null);
 
     //* Location Info state
     const [locationLoading, setLocationLoading] = useState(false);
@@ -456,12 +473,102 @@ function MaintainContent() {
         }
     }, []);
 
+    const fetchExampleImages = useCallback(async () => {
+        try {
+            setExampleLoading(true);
+            setExampleError(null);
+            const res = await fetch("/api/maintain/example-images");
+            const data = await res.json();
+            if (data.ok) setExampleImages(data.data);
+            else throw new Error(data.message);
+        } catch (e) {
+            setExampleError((e as Error).message);
+        } finally {
+            setExampleLoading(false);
+        }
+    }, []);
+
+    const handleSaveExampleSlot = async (slot: "slot1" | "slot2" | "slot3" | "slot4", file: File | null, desc: string) => {
+        try {
+            setExampleSavingSlot(slot);
+            setExampleError(null);
+            setExampleSuccessMessage(null);
+
+            const formData = new FormData();
+            formData.append("slot", slot);
+            formData.append("desc", desc);
+            if (file) {
+                formData.append("file", file);
+            }
+
+            const res = await fetch("/api/maintain/example-images", {
+                method: "POST",
+                body: formData,
+            });
+            const data = await res.json();
+            if (data.ok) {
+                setExampleSuccessMessage(`บันทึกข้อมูลของ ${slot === "slot1" ? "1. ภาพด้านบน" : slot === "slot2" ? "2. ภาพด้านข้าง" : slot === "slot3" ? "3. ภาพด้านบน" : "4. ภาพ Serial"} เรียบร้อยแล้ว`);
+                setExampleImages(prev => ({
+                    ...prev,
+                    [slot]: {
+                        url: data.imageUrl || prev[slot].url,
+                        desc: desc
+                    }
+                }));
+                setTimeout(() => setExampleSuccessMessage(null), 3000);
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (e) {
+            setExampleError((e as Error).message);
+        } finally {
+            setExampleSavingSlot(null);
+        }
+    };
+
+    const handleDeleteExampleSlot = async (slot: "slot1" | "slot2" | "slot3" | "slot4") => {
+        if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการลบรูปภาพตัวอย่างนี้?")) return;
+        try {
+            setExampleSavingSlot(slot);
+            setExampleError(null);
+            setExampleSuccessMessage(null);
+
+            const formData = new FormData();
+            formData.append("slot", slot);
+            formData.append("action", "delete");
+
+            const res = await fetch("/api/maintain/example-images", {
+                method: "POST",
+                body: formData,
+            });
+            const data = await res.json();
+            if (data.ok) {
+                setExampleSuccessMessage(`ลบรูปภาพของ ${slot === "slot1" ? "1. ภาพด้านบน" : slot === "slot2" ? "2. ภาพด้านข้าง" : slot === "slot3" ? "3. ภาพด้านบน" : "4. ภาพ Serial"} เรียบร้อยแล้ว`);
+                setExampleImages(prev => ({
+                    ...prev,
+                    [slot]: {
+                        url: "",
+                        desc: ""
+                    }
+                }));
+                setTimeout(() => setExampleSuccessMessage(null), 3000);
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (e) {
+            setExampleError((e as Error).message);
+        } finally {
+            setExampleSavingSlot(null);
+        }
+    };
+
     // Tab hooks
     useEffect(() => {
         if (tab === "diagnostic") fetchDiagnosticFees();
         if (tab === "margin") fetchMargins();
         if (tab === "service_tier") fetchServiceTiers();
-    }, [tab, fetchDiagnosticFees, fetchMargins, fetchServiceTiers]);
+        if (tab === "example_images") fetchExampleImages();
+    }, [tab, fetchDiagnosticFees, fetchMargins, fetchServiceTiers, fetchExampleImages]);
 
     // Save and Delete Handlers
     const handleSaveDiag = async (e: React.FormEvent) => {
@@ -2888,6 +2995,60 @@ function MaintainContent() {
                         </div>
                     </div>
                 )}
+
+                {tab === "example_images" && (
+                    <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm space-y-6">
+                        <div>
+                            <h2 className="text-lg font-bold text-slate-800">📷 ตั้งค่ารูปภาพตัวอย่างสำหรับงานแจ้งซ่อม (Example Photos Config)</h2>
+                            <p className="text-xs text-slate-500 font-semibold mt-0.5">
+                                อัปโหลดรูปภาพตัวอย่างและป้อนคำแนะนำเพื่อช่วยแนะนำผู้ใช้งานในการถ่ายภาพใบแจ้งซ่อม
+                            </p>
+                        </div>
+
+                        {exampleSuccessMessage && (
+                            <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-lg animate-fadeIn">
+                                ✓ {exampleSuccessMessage}
+                            </div>
+                        )}
+                        {exampleError && (
+                            <div className="p-3 bg-red-50 border border-red-200 text-red-800 text-xs font-bold rounded-lg animate-fadeIn">
+                                ✗ {exampleError}
+                            </div>
+                        )}
+
+                        {exampleLoading ? (
+                            <div className="text-center py-12 text-slate-400 text-sm font-semibold animate-pulse">
+                                กำลังโหลดข้อมูลรูปภาพตัวอย่าง...
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {[
+                                    { id: "slot1" as const, title: "1. ภาพด้านบน", isRequired: true, descPlaceholder: "แนะนำให้ถ่ายมุมตรงจากด้านบนของเครื่อง เพื่อตรวจสอบสภาพภายนอก" },
+                                    { id: "slot2" as const, title: "2. ภาพด้านข้าง", isRequired: false, descPlaceholder: "แนะนำให้ถ่ายด้านข้างของเครื่องเพื่อให้เห็นส่วนโค้งและพอร์ตการเชื่อมต่อ" },
+                                    { id: "slot3" as const, title: "3. ภาพด้านบน (หรือด้านอื่น)", isRequired: false, descPlaceholder: "แนะนำให้ถ่ายชิ้นส่วนอะไหล่หรือด้านอื่นๆ เพิ่มเติม" },
+                                    { id: "slot4" as const, title: "4. ภาพ Serial", isRequired: true, descPlaceholder: "แนะนำให้ถ่ายป้ายสติกเกอร์ Serial Number ซูมให้เห็นตัวอักษรและบาร์โค้ดชัดเจน" },
+                                ].map((slotConfig) => {
+                                    const slot = slotConfig.id;
+                                    const currentData = exampleImages[slot] || { url: "", desc: "" };
+                                    return (
+                                        <SlotConfigCard
+                                            key={slot}
+                                            slot={slot}
+                                            title={slotConfig.title}
+                                            isRequired={slotConfig.isRequired}
+                                            descPlaceholder={slotConfig.descPlaceholder}
+                                            url={currentData.url}
+                                            desc={currentData.desc}
+                                            isSaving={exampleSavingSlot === slot}
+                                            onSave={handleSaveExampleSlot}
+                                            onDelete={handleDeleteExampleSlot}
+                                        />
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+                )}
                 </div>
             </div>
 
@@ -3873,6 +4034,106 @@ function MaintainContent() {
         </main>
     );
 }
+
+interface SlotConfigCardProps {
+    slot: "slot1" | "slot2" | "slot3" | "slot4";
+    title: string;
+    isRequired: boolean;
+    descPlaceholder: string;
+    url: string;
+    desc: string;
+    isSaving: boolean;
+    onSave: (slot: "slot1" | "slot2" | "slot3" | "slot4", file: File | null, desc: string) => Promise<void>;
+    onDelete: (slot: "slot1" | "slot2" | "slot3" | "slot4") => Promise<void>;
+}
+
+const SlotConfigCard = ({ slot, title, isRequired, descPlaceholder, url, desc, isSaving, onSave, onDelete }: SlotConfigCardProps) => {
+    const [localDesc, setLocalDesc] = useState(desc);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState(url);
+
+    useEffect(() => {
+        setLocalDesc(desc);
+        setPreviewUrl(url);
+        setSelectedFile(null);
+    }, [url, desc]);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setSelectedFile(file);
+            setPreviewUrl(URL.createObjectURL(file));
+        }
+    };
+
+    return (
+        <div className="flex flex-col bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:shadow-md transition duration-200 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <span className="w-1.5 h-3 bg-[#c8102e] rounded"></span>
+                    {title}
+                    {isRequired && <span className="text-[10px] bg-red-50 text-red-650 border border-red-200 px-1.5 py-0.5 rounded font-extrabold">* จำเป็น</span>}
+                </span>
+                {url && (
+                    <button
+                        type="button"
+                        onClick={() => onDelete(slot)}
+                        className="text-[10px] font-bold text-rose-600 hover:text-rose-800 transition cursor-pointer"
+                    >
+                        ลบรูปตัวอย่าง
+                    </button>
+                )}
+            </div>
+
+            {/* Preview Box */}
+            <div className="relative w-full aspect-video rounded-lg overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center">
+                {previewUrl ? (
+                    <img src={previewUrl} alt={title} className="w-full h-full object-contain" />
+                ) : (
+                    <div className="text-center p-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-slate-400 mx-auto mb-1">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
+                        </svg>
+                        <span className="text-[10px] text-slate-400 font-bold">ยังไม่ได้ตั้งค่ารูปภาพตัวอย่าง</span>
+                    </div>
+                )}
+            </div>
+
+            {/* Inputs */}
+            <div className="space-y-3">
+                <div>
+                    <label className="block text-[10px] font-bold text-slate-500 mb-1">เลือกไฟล์รูปภาพตัวอย่าง</label>
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="w-full text-[10px] text-slate-650 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-slate-100 file:text-slate-800 hover:file:bg-slate-200 cursor-pointer"
+                    />
+                </div>
+                <div>
+                    <label className="block text-[10px] font-bold text-slate-500 mb-1">คำแนะนำ / คำอธิบายประกอบรูปภาพ</label>
+                    <textarea
+                        value={localDesc}
+                        onChange={(e) => setLocalDesc(e.target.value)}
+                        placeholder={descPlaceholder}
+                        rows={2}
+                        className="w-full px-2 py-1 border border-slate-350 rounded text-[11px] font-semibold text-slate-700 bg-white"
+                    />
+                </div>
+            </div>
+
+            <button
+                type="button"
+                disabled={isSaving}
+                onClick={() => onSave(slot, selectedFile, localDesc)}
+                className="w-full py-1.5 bg-[#c8102e] hover:bg-[#b00d25] text-white rounded text-xs font-bold transition shadow-sm disabled:opacity-50 flex items-center justify-center gap-1.5"
+            >
+                {isSaving ? "กำลังบันทึก..." : "บันทึกช่องนี้"}
+            </button>
+        </div>
+    );
+};
 
 export default function MainTainPage() {
     return (
