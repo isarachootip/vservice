@@ -268,7 +268,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
     { href: "/dashboard", label: "หน้าหลัก", icon: Home },
     { href: "/status", label: "งานซ่อมทั้งหมด", icon: ClipboardList },
     { href: "/request/add", label: "รับเครื่อง / สร้างงาน", icon: Wrench, show: canAddRequest },
-    { href: "#", label: "ลูกค้า", icon: Users },
+    { href: "/customer", label: "ลูกค้า", icon: Users },
     { href: "/quotation", label: "ใบเสนอราคา", icon: FileText, badge: 8 },
     { href: "/chat", label: "ห้องสนทนาทีมงาน", icon: MessageSquare },
     { href: "/chat/customer", label: "แชตกับลูกค้า (LINE)", icon: MessageSquare },
