@@ -7,6 +7,28 @@ import fs from "fs/promises";
 
 export const runtime = "nodejs";
 
+function formatAddressDetail(detail: string): string {
+  if (!detail) return "";
+  const trimmed = detail.trim();
+  if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+    try {
+      const p = JSON.parse(trimmed);
+      const parts = [];
+      if (p.number) parts.push(p.number);
+      if (p.soi) parts.push(`ซ.${p.soi}`);
+      if (p.road) parts.push(`ถ.${p.road}`);
+      if (p.subdistrict) parts.push(`ต./แขวง ${p.subdistrict}`);
+      if (p.district) parts.push(`อ./เขต ${p.district}`);
+      if (p.province) parts.push(`จ.${p.province}`);
+      if (p.zipcode) parts.push(p.zipcode);
+      return parts.join(" ");
+    } catch {
+      return detail;
+    }
+  }
+  return detail;
+}
+
 type QuotationItem = {
   quotationId?: number | string | null;
   quotation_no?: string;  
@@ -189,7 +211,7 @@ export async function POST(req: Request) {
     await prisma.$transaction(async (tx) => {
       const requestBaseUpdate: Prisma.repair_requestUpdateInput = {
         customer_name: fullCustomerName,
-        address: body.customer?.address ?? existing.address,
+        address: formatAddressDetail(body.customer?.address ?? existing.address),
         phone: body.customer?.phone ?? existing.phone,
         updated_user: updatedUser,
         status,

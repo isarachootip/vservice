@@ -63,14 +63,63 @@ export default function CustomerManagementPage() {
   const [customerRequests, setCustomerRequests] = useState<RepairRequest[]>([]);
   const [loadingRequests, setLoadingRequests] = useState(false);
 
+  // Address split helpers
+  const parseAddressDetail = (detail: string) => {
+    const defaults = { number: "", soi: "", road: "", subdistrict: "", district: "", province: "", zipcode: "" };
+    if (!detail) return defaults;
+    const trimmed = detail.trim();
+    if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+      try {
+        return { ...defaults, ...JSON.parse(trimmed) };
+      } catch {}
+    }
+    return { ...defaults, number: detail };
+  };
+
+  const formatAddressDetail = (detail: string): string => {
+    if (!detail) return "";
+    const trimmed = detail.trim();
+    if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+      try {
+        const p = JSON.parse(trimmed);
+        const parts = [];
+        if (p.number) parts.push(p.number);
+        if (p.soi) parts.push(`ซ.${p.soi}`);
+        if (p.road) parts.push(`ถ.${p.road}`);
+        if (p.subdistrict) parts.push(`ต./แขวง ${p.subdistrict}`);
+        if (p.district) parts.push(`อ./เขต ${p.district}`);
+        if (p.province) parts.push(`จ.${p.province}`);
+        if (p.zipcode) parts.push(p.zipcode);
+        return parts.join(" ");
+      } catch {
+        return detail;
+      }
+    }
+    return detail;
+  };
+
   // Form State
   const [formId, setFormId] = useState<number | null>(null);
   const [formName, setFormName] = useState("");
   const [formPhone, setFormPhone] = useState("");
-  const [formAddresses, setFormAddresses] = useState<Address[]>([
-    { address_type: "SHIPPING", address_detail: "" },
-    { address_type: "BILLING", address_detail: "" }
-  ]);
+  const [shippingFields, setShippingFields] = useState({
+    number: "",
+    soi: "",
+    road: "",
+    subdistrict: "",
+    district: "",
+    province: "",
+    zipcode: ""
+  });
+  const [billingFields, setBillingFields] = useState({
+    number: "",
+    soi: "",
+    road: "",
+    subdistrict: "",
+    district: "",
+    province: "",
+    zipcode: ""
+  });
   const [formError, setFormError] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -133,10 +182,8 @@ export default function CustomerManagementPage() {
     setFormId(null);
     setFormName("");
     setFormPhone("");
-    setFormAddresses([
-      { address_type: "SHIPPING", address_detail: "" },
-      { address_type: "BILLING", address_detail: "" }
-    ]);
+    setShippingFields({ number: "", soi: "", road: "", subdistrict: "", district: "", province: "", zipcode: "" });
+    setBillingFields({ number: "", soi: "", road: "", subdistrict: "", district: "", province: "", zipcode: "" });
     setFormError("");
     setIsFormOpen(true);
   };
@@ -149,10 +196,8 @@ export default function CustomerManagementPage() {
     const shipping = customer.addresses.find(a => a.address_type === "SHIPPING")?.address_detail || "";
     const billing = customer.addresses.find(a => a.address_type === "BILLING")?.address_detail || "";
 
-    setFormAddresses([
-      { address_type: "SHIPPING", address_detail: shipping },
-      { address_type: "BILLING", address_detail: billing }
-    ]);
+    setShippingFields(parseAddressDetail(shipping));
+    setBillingFields(parseAddressDetail(billing));
     setFormError("");
     setIsFormOpen(true);
   };
@@ -185,10 +230,16 @@ export default function CustomerManagementPage() {
     setSaving(true);
     setFormError("");
     try {
+      const hasShipping = Object.values(shippingFields).some(val => val.trim() !== "");
+      const hasBilling = Object.values(billingFields).some(val => val.trim() !== "");
+
       const payload = {
         name: formName,
         phone: formPhone,
-        addresses: formAddresses.filter(a => a.address_detail.trim() !== "")
+        addresses: [
+          ...(hasShipping ? [{ address_type: "SHIPPING", address_detail: JSON.stringify(shippingFields) }] : []),
+          ...(hasBilling ? [{ address_type: "BILLING", address_detail: JSON.stringify(billingFields) }] : [])
+        ]
       };
 
       const url = formId ? `/api/customer/${formId}` : "/api/customer";
@@ -340,8 +391,8 @@ export default function CustomerManagementPage() {
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs">
                 {customers.map((c) => {
-                  const shipping = c.addresses.find(a => a.address_type === "SHIPPING")?.address_detail;
-                  const billing = c.addresses.find(a => a.address_type === "BILLING")?.address_detail;
+                  const shipping = formatAddressDetail(c.addresses.find(a => a.address_type === "SHIPPING")?.address_detail || "");
+                  const billing = formatAddressDetail(c.addresses.find(a => a.address_type === "BILLING")?.address_detail || "");
 
                   return (
                     <tr key={c.id} className="hover:bg-slate-50/50 transition-colors">
@@ -496,47 +547,170 @@ export default function CustomerManagementPage() {
                   </h4>
                   
                   {/* Shipping Address */}
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-wider">
+                  <div className="space-y-2">
+                    <label className="block text-[10.5px] font-black text-sky-700 uppercase tracking-wider">
                       ที่อยู่สำหรับจัดส่งสินค้า
                     </label>
-                    <textarea
-                      placeholder="ระบุบ้านเลขที่, ถนน, ตำบล, อำเภอ, จังหวัด"
-                      className="textarea textarea-bordered w-full rounded-xl text-xs h-16 py-1.5 resize-none leading-relaxed"
-                      value={formAddresses.find(a => a.address_type === "SHIPPING")?.address_detail || ""}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setFormAddresses(prev => prev.map(a => a.address_type === "SHIPPING" ? { ...a, address_detail: val } : a));
-                      }}
-                    />
+                    <div className="grid grid-cols-2 gap-2 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
+                      <div>
+                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">บ้านเลขที่/อาคาร</label>
+                        <input
+                          type="text"
+                          placeholder="เช่น 123/45 หมู่ 5"
+                          className="input input-xs input-bordered w-full rounded-lg text-xs"
+                          value={shippingFields.number}
+                          onChange={e => setShippingFields(prev => ({ ...prev, number: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">ซอย</label>
+                        <input
+                          type="text"
+                          placeholder="เช่น ซอยสุขุมวิท 10"
+                          className="input input-xs input-bordered w-full rounded-lg text-xs"
+                          value={shippingFields.soi}
+                          onChange={e => setShippingFields(prev => ({ ...prev, soi: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">ถนน</label>
+                        <input
+                          type="text"
+                          placeholder="เช่น ถนนสุขุมวิท"
+                          className="input input-xs input-bordered w-full rounded-lg text-xs"
+                          value={shippingFields.road}
+                          onChange={e => setShippingFields(prev => ({ ...prev, road: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">แขวง/ตำบล</label>
+                        <input
+                          type="text"
+                          placeholder="เช่น คลองเตย"
+                          className="input input-xs input-bordered w-full rounded-lg text-xs"
+                          value={shippingFields.subdistrict}
+                          onChange={e => setShippingFields(prev => ({ ...prev, subdistrict: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">เขต/อำเภอ</label>
+                        <input
+                          type="text"
+                          placeholder="เช่น คลองเตย"
+                          className="input input-xs input-bordered w-full rounded-lg text-xs"
+                          value={shippingFields.district}
+                          onChange={e => setShippingFields(prev => ({ ...prev, district: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">จังหวัด</label>
+                        <input
+                          type="text"
+                          placeholder="เช่น กรุงเทพมหานคร"
+                          className="input input-xs input-bordered w-full rounded-lg text-xs"
+                          value={shippingFields.province}
+                          onChange={e => setShippingFields(prev => ({ ...prev, province: e.target.value }))}
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">รหัสไปรษณีย์</label>
+                        <input
+                          type="text"
+                          placeholder="เช่น 10110"
+                          className="input input-xs input-bordered w-full rounded-lg text-xs"
+                          value={shippingFields.zipcode}
+                          onChange={e => setShippingFields(prev => ({ ...prev, zipcode: e.target.value }))}
+                        />
+                      </div>
+                    </div>
                   </div>
 
                   {/* Billing Address */}
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-[10.5px] font-black text-purple-750 uppercase tracking-wider">
                         ที่อยู่ออกใบกำกับภาษี
                       </label>
                       <button
                         type="button"
-                        onClick={() => {
-                          const shipping = formAddresses.find(a => a.address_type === "SHIPPING")?.address_detail || "";
-                          setFormAddresses(prev => prev.map(a => a.address_type === "BILLING" ? { ...a, address_detail: shipping } : a));
-                        }}
+                        onClick={() => setBillingFields({ ...shippingFields })}
                         className="text-[10px] font-black text-[#c8102e] hover:underline"
                       >
                         คัดลอกจากที่อยู่จัดส่ง
                       </button>
                     </div>
-                    <textarea
-                      placeholder="ระบุบ้านเลขที่, ชื่อบริษัท/ร้านค้า, เลขผู้เสียภาษี (ถ้ามี)"
-                      className="textarea textarea-bordered w-full rounded-xl text-xs h-16 py-1.5 resize-none leading-relaxed"
-                      value={formAddresses.find(a => a.address_type === "BILLING")?.address_detail || ""}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setFormAddresses(prev => prev.map(a => a.address_type === "BILLING" ? { ...a, address_detail: val } : a));
-                      }}
-                    />
+                    <div className="grid grid-cols-2 gap-2 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
+                      <div>
+                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">บ้านเลขที่/อาคาร</label>
+                        <input
+                          type="text"
+                          placeholder="เช่น 123/45 หมู่ 5"
+                          className="input input-xs input-bordered w-full rounded-lg text-xs"
+                          value={billingFields.number}
+                          onChange={e => setBillingFields(prev => ({ ...prev, number: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">ซอย</label>
+                        <input
+                          type="text"
+                          placeholder="เช่น ซอยสุขุมวิท 10"
+                          className="input input-xs input-bordered w-full rounded-lg text-xs"
+                          value={billingFields.soi}
+                          onChange={e => setBillingFields(prev => ({ ...prev, soi: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">ถนน</label>
+                        <input
+                          type="text"
+                          placeholder="เช่น ถนนสุขุมวิท"
+                          className="input input-xs input-bordered w-full rounded-lg text-xs"
+                          value={billingFields.road}
+                          onChange={e => setBillingFields(prev => ({ ...prev, road: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">แขวง/ตำบล</label>
+                        <input
+                          type="text"
+                          placeholder="เช่น คลองเตย"
+                          className="input input-xs input-bordered w-full rounded-lg text-xs"
+                          value={billingFields.subdistrict}
+                          onChange={e => setBillingFields(prev => ({ ...prev, subdistrict: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">เขต/อำเภอ</label>
+                        <input
+                          type="text"
+                          placeholder="เช่น คลองเตย"
+                          className="input input-xs input-bordered w-full rounded-lg text-xs"
+                          value={billingFields.district}
+                          onChange={e => setBillingFields(prev => ({ ...prev, district: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">จังหวัด</label>
+                        <input
+                          type="text"
+                          placeholder="เช่น กรุงเทพมหานคร"
+                          className="input input-xs input-bordered w-full rounded-lg text-xs"
+                          value={billingFields.province}
+                          onChange={e => setBillingFields(prev => ({ ...prev, province: e.target.value }))}
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">รหัสไปรษณีย์</label>
+                        <input
+                          type="text"
+                          placeholder="เช่น 10110"
+                          className="input input-xs input-bordered w-full rounded-lg text-xs"
+                          value={billingFields.zipcode}
+                          onChange={e => setBillingFields(prev => ({ ...prev, zipcode: e.target.value }))}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -598,7 +772,7 @@ export default function CustomerManagementPage() {
                     <span>ที่อยู่จัดส่งสินค้า (Shipping Address)</span>
                   </div>
                   <p className="text-xs text-slate-600 font-medium leading-relaxed bg-slate-50 p-2.5 rounded-lg border border-slate-100 min-h-16">
-                    {selectedCustomer.addresses.find(a => a.address_type === "SHIPPING")?.address_detail || (
+                    {formatAddressDetail(selectedCustomer.addresses.find(a => a.address_type === "SHIPPING")?.address_detail || "") || (
                       <span className="text-slate-400 italic">ไม่มีข้อมูลที่อยู่จัดส่ง</span>
                     )}
                   </p>
@@ -611,7 +785,7 @@ export default function CustomerManagementPage() {
                     <span>ที่อยู่ออกใบกำกับภาษี (Billing Address)</span>
                   </div>
                   <p className="text-xs text-slate-600 font-medium leading-relaxed bg-slate-50 p-2.5 rounded-lg border border-slate-100 min-h-16">
-                    {selectedCustomer.addresses.find(a => a.address_type === "BILLING")?.address_detail || (
+                    {formatAddressDetail(selectedCustomer.addresses.find(a => a.address_type === "BILLING")?.address_detail || "") || (
                       <span className="text-slate-400 italic">ไม่มีข้อมูลที่อยู่ออกใบกำกับภาษี</span>
                     )}
                   </p>

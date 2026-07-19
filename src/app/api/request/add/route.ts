@@ -25,6 +25,28 @@ function getClientIp(req: Request): string {
   return "unknown";
 }
 
+function formatAddressDetail(detail: string): string {
+  if (!detail) return "";
+  const trimmed = detail.trim();
+  if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+    try {
+      const p = JSON.parse(trimmed);
+      const parts = [];
+      if (p.number) parts.push(p.number);
+      if (p.soi) parts.push(`ซ.${p.soi}`);
+      if (p.road) parts.push(`ถ.${p.road}`);
+      if (p.subdistrict) parts.push(`ต./แขวง ${p.subdistrict}`);
+      if (p.district) parts.push(`อ./เขต ${p.district}`);
+      if (p.province) parts.push(`จ.${p.province}`);
+      if (p.zipcode) parts.push(p.zipcode);
+      return parts.join(" ");
+    } catch {
+      return detail;
+    }
+  }
+  return detail;
+}
+
 export async function POST(req: Request) {
   try {
     const ip = getClientIp(req);
@@ -176,7 +198,7 @@ export async function POST(req: Request) {
         request_no: request_no,
         customer_id: dbCustomer.id,
         customer_name: fullCustomerName,
-        address: finalShippingAddress,
+        address: formatAddressDetail(finalShippingAddress),
         phone,
         store_code: storeCode,
         location_id: profile?.location_id || null,
