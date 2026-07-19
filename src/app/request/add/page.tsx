@@ -191,7 +191,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
             })
             .catch(console.error);
 
-        fetch("/api/maintain/example-images")
+        fetch("/api/maintain/example-images?flow=create_repair")
             .then(res => res.json())
             .then(data => {
                 if (data.ok) {

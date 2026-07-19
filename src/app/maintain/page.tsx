@@ -113,6 +113,7 @@ function MaintainContent() {
     const [exampleError, setExampleError] = useState<string | null>(null);
     const [exampleSuccessMessage, setExampleSuccessMessage] = useState<string | null>(null);
     const [exampleSavingSlot, setExampleSavingSlot] = useState<string | null>(null);
+    const [exampleFlow, setExampleFlow] = useState<"create_repair" | "cs_to_gr" | "dc_to_vendor">("create_repair");
 
     //* Location Info state
     const [locationLoading, setLocationLoading] = useState(false);
@@ -473,11 +474,11 @@ function MaintainContent() {
         }
     }, []);
 
-    const fetchExampleImages = useCallback(async () => {
+    const fetchExampleImages = useCallback(async (flowName = exampleFlow) => {
         try {
             setExampleLoading(true);
             setExampleError(null);
-            const res = await fetch("/api/maintain/example-images");
+            const res = await fetch(`/api/maintain/example-images?flow=${flowName}`);
             const data = await res.json();
             if (data.ok) setExampleImages(data.data);
             else throw new Error(data.message);
@@ -486,7 +487,7 @@ function MaintainContent() {
         } finally {
             setExampleLoading(false);
         }
-    }, []);
+    }, [exampleFlow]);
 
     const handleSaveExampleSlot = async (slot: "slot1" | "slot2" | "slot3" | "slot4", file: File | null, desc: string) => {
         try {
@@ -497,6 +498,7 @@ function MaintainContent() {
             const formData = new FormData();
             formData.append("slot", slot);
             formData.append("desc", desc);
+            formData.append("flow", exampleFlow);
             if (file) {
                 formData.append("file", file);
             }
@@ -507,7 +509,7 @@ function MaintainContent() {
             });
             const data = await res.json();
             if (data.ok) {
-                setExampleSuccessMessage(`บันทึกข้อมูลของ ${slot === "slot1" ? "1. ภาพด้านบน" : slot === "slot2" ? "2. ภาพด้านข้าง" : slot === "slot3" ? "3. ภาพด้านบน" : "4. ภาพ Serial"} เรียบร้อยแล้ว`);
+                setExampleSuccessMessage(`บันทึกข้อมูลเรียบร้อยแล้ว`);
                 setExampleImages(prev => ({
                     ...prev,
                     [slot]: {
@@ -515,7 +517,7 @@ function MaintainContent() {
                         desc: desc
                     }
                 }));
-                setTimeout(() => setExampleSuccessMessage(null), 3000);
+                setTimeout(() => setExampleSuccessMessage(null), 3050);
             } else {
                 throw new Error(data.message);
             }
@@ -536,6 +538,7 @@ function MaintainContent() {
             const formData = new FormData();
             formData.append("slot", slot);
             formData.append("action", "delete");
+            formData.append("flow", exampleFlow);
 
             const res = await fetch("/api/maintain/example-images", {
                 method: "POST",
@@ -543,7 +546,7 @@ function MaintainContent() {
             });
             const data = await res.json();
             if (data.ok) {
-                setExampleSuccessMessage(`ลบรูปภาพของ ${slot === "slot1" ? "1. ภาพด้านบน" : slot === "slot2" ? "2. ภาพด้านข้าง" : slot === "slot3" ? "3. ภาพด้านบน" : "4. ภาพ Serial"} เรียบร้อยแล้ว`);
+                setExampleSuccessMessage(`ลบรูปภาพตัวอย่างเรียบร้อยแล้ว`);
                 setExampleImages(prev => ({
                     ...prev,
                     [slot]: {
@@ -551,7 +554,7 @@ function MaintainContent() {
                         desc: ""
                     }
                 }));
-                setTimeout(() => setExampleSuccessMessage(null), 3000);
+                setTimeout(() => setExampleSuccessMessage(null), 3050);
             } else {
                 throw new Error(data.message);
             }
@@ -567,8 +570,8 @@ function MaintainContent() {
         if (tab === "diagnostic") fetchDiagnosticFees();
         if (tab === "margin") fetchMargins();
         if (tab === "service_tier") fetchServiceTiers();
-        if (tab === "example_images") fetchExampleImages();
-    }, [tab, fetchDiagnosticFees, fetchMargins, fetchServiceTiers, fetchExampleImages]);
+        if (tab === "example_images") fetchExampleImages(exampleFlow);
+    }, [tab, exampleFlow, fetchDiagnosticFees, fetchMargins, fetchServiceTiers, fetchExampleImages]);
 
     // Save and Delete Handlers
     const handleSaveDiag = async (e: React.FormEvent) => {
@@ -2997,12 +3000,50 @@ function MaintainContent() {
                 )}
 
                 {tab === "example_images" && (
-                    <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm space-y-6">
-                        <div>
-                            <h2 className="text-lg font-bold text-slate-800">📷 ตั้งค่ารูปภาพตัวอย่างสำหรับงานแจ้งซ่อม (Example Photos Config)</h2>
-                            <p className="text-xs text-slate-500 font-semibold mt-0.5">
-                                อัปโหลดรูปภาพตัวอย่างและป้อนคำแนะนำเพื่อช่วยแนะนำผู้ใช้งานในการถ่ายภาพใบแจ้งซ่อม
-                            </p>
+                    <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm space-y-6 animate-fadeIn">
+                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                            <div>
+                                <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                    📷 ตั้งค่ารูปภาพตัวอย่างสำหรับงานแจ้งซ่อม (Example Photos Config)
+                                </h2>
+                                <p className="text-xs text-slate-500 font-semibold mt-0.5">
+                                    อัปโหลดรูปภาพตัวอย่างและป้อนคำแนะนำเพื่อช่วยแนะนำผู้ใช้งานในการถ่ายภาพใบแจ้งซ่อมแยกตามขั้นตอน
+                                </p>
+                            </div>
+                            
+                            {/* Flow Selector */}
+                            <div className="flex bg-slate-100 p-1 rounded-xl gap-1 shrink-0 border border-slate-200 text-xs">
+                                <button
+                                    onClick={() => setExampleFlow("create_repair")}
+                                    className={`px-3 py-1.5 rounded-lg font-bold transition-all duration-150 cursor-pointer ${
+                                        exampleFlow === "create_repair"
+                                            ? "bg-white text-[#c8102e] shadow-sm"
+                                            : "text-slate-500 hover:text-slate-800"
+                                    }`}
+                                >
+                                    1. ออกใบแจ้งซ่อม/ออกใบกำกับ
+                                </button>
+                                <button
+                                    onClick={() => setExampleFlow("cs_to_gr")}
+                                    className={`px-3 py-1.5 rounded-lg font-bold transition-all duration-150 cursor-pointer ${
+                                        exampleFlow === "cs_to_gr"
+                                            ? "bg-white text-[#c8102e] shadow-sm"
+                                            : "text-slate-500 hover:text-slate-800"
+                                    }`}
+                                >
+                                    2. ส่งมอบให้ GR
+                                </button>
+                                <button
+                                    onClick={() => setExampleFlow("dc_to_vendor")}
+                                    className={`px-3 py-1.5 rounded-lg font-bold transition-all duration-150 cursor-pointer ${
+                                        exampleFlow === "dc_to_vendor"
+                                            ? "bg-white text-[#c8102e] shadow-sm"
+                                            : "text-slate-500 hover:text-slate-800"
+                                    }`}
+                                >
+                                    3. ส่งมอบช่าง
+                                </button>
+                            </div>
                         </div>
 
                         {exampleSuccessMessage && (
@@ -3022,17 +3063,27 @@ function MaintainContent() {
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {[
+                                {(exampleFlow === "create_repair" ? [
                                     { id: "slot1" as const, title: "1. ภาพด้านบน", isRequired: true, descPlaceholder: "แนะนำให้ถ่ายมุมตรงจากด้านบนของเครื่อง เพื่อตรวจสอบสภาพภายนอก" },
                                     { id: "slot2" as const, title: "2. ภาพด้านข้าง", isRequired: false, descPlaceholder: "แนะนำให้ถ่ายด้านข้างของเครื่องเพื่อให้เห็นส่วนโค้งและพอร์ตการเชื่อมต่อ" },
                                     { id: "slot3" as const, title: "3. ภาพด้านบน (หรือด้านอื่น)", isRequired: false, descPlaceholder: "แนะนำให้ถ่ายชิ้นส่วนอะไหล่หรือด้านอื่นๆ เพิ่มเติม" },
                                     { id: "slot4" as const, title: "4. ภาพ Serial", isRequired: true, descPlaceholder: "แนะนำให้ถ่ายป้ายสติกเกอร์ Serial Number ซูมให้เห็นตัวอักษรและบาร์โค้ดชัดเจน" },
-                                ].map((slotConfig) => {
+                                ] : exampleFlow === "cs_to_gr" ? [
+                                    { id: "slot1" as const, title: "1. ภาพถ่ายตัวเครื่องประกอบ", isRequired: true, descPlaceholder: "แนะนำให้ถ่ายภาพมุมกว้างของตัวเครื่องที่จัดเตรียมไว้สำหรับส่งคืน GR" },
+                                    { id: "slot2" as const, title: "2. ภาพถ่ายเอกสารส่งมอบ (GR)", isRequired: true, descPlaceholder: "แนะนำให้ถ่ายหน้าเอกสารนำส่งคืน (GR) ที่ระบุรายละเอียดสินค้าครบถ้วนชัดเจน" },
+                                    { id: "slot3" as const, title: "3. ภาพถ่ายป้าย Serial", isRequired: false, descPlaceholder: "ภาพป้ายซีเรียลนัมเบอร์ของตัวเครื่องที่จะส่งมอบคืน GR" },
+                                    { id: "slot4" as const, title: "4. ภาพสภาพภายนอกเพิ่มเติม", isRequired: false, descPlaceholder: "ภาพสภาพภายนอก รอยตำหนิ หรือสภาพกล่องส่งคืนเพิ่มเติม" },
+                                ] : [
+                                    { id: "slot1" as const, title: "1. ภาพถ่ายตัวเครื่องส่งมอบช่าง", isRequired: true, descPlaceholder: "ภาพถ่ายเครื่องส่งมอบช่างหรือภาพชิ้นส่วนที่เสียเพื่อระบุยืนยัน" },
+                                    { id: "slot2" as const, title: "2. ภาพถ่ายเอกสารส่งมอบช่าง", isRequired: true, descPlaceholder: "ภาพถ่ายใบรับเครื่องซ่อม/ใบส่งของที่ส่งมอบให้ผู้รับเหมาหรือช่างซ่อม" },
+                                    { id: "slot3" as const, title: "3. ภาพถ่ายป้าย Serial", isRequired: false, descPlaceholder: "ภาพป้ายซีเรียลนัมเบอร์ของตัวเครื่องที่ส่งมอบให้ช่างเพื่อเปรียบเทียบภายหลัง" },
+                                    { id: "slot4" as const, title: "4. ภาพสภาพภายนอกเพิ่มเติม", isRequired: false, descPlaceholder: "ภาพความเสียหายภายนอก รอยบุบ แตกหัก หรือรายละเอียดชิ้นส่วนเพิ่มเติม" },
+                                ]).map((slotConfig) => {
                                     const slot = slotConfig.id;
                                     const currentData = exampleImages[slot] || { url: "", desc: "" };
                                     return (
                                         <SlotConfigCard
-                                            key={slot}
+                                            key={`${exampleFlow}-${slot}`}
                                             slot={slot}
                                             title={slotConfig.title}
                                             isRequired={slotConfig.isRequired}

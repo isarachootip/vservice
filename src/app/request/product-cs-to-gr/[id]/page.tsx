@@ -1,7 +1,7 @@
 "use client";
 
 import { use, useEffect, useState, useRef } from "react";
-import { ShieldCheck, ShieldX } from "lucide-react";
+import { ShieldCheck, ShieldX, X } from "lucide-react";
 import { DatePicker } from "react-datepicker";
 import { useRouter } from "next/navigation";
 
@@ -48,6 +48,24 @@ export default function ProductCsToGrPage({ params }: { params: Promise<{ id: st
     const [sendDate, setSendDate] = useState<Date | null>(null);
     const [attachments, setAttachments] = useState<File[]>([]);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+    // Example Images states
+    const [exampleImages, setExampleImages] = useState<any>(null);
+    const [exampleModal, setExampleModal] = useState({
+        isOpen: false,
+        title: "",
+        imageUrl: "",
+        desc: ""
+    });
+
+    useEffect(() => {
+        fetch("/api/maintain/example-images?flow=cs_to_gr")
+            .then(res => res.json())
+            .then(data => {
+                if (data.ok) setExampleImages(data.data);
+            })
+            .catch(console.error);
+    }, []);
 
     const Req = () => <span className="text-red-600 ml-0.5">*</span>;
     const inputClass = (hasError?: boolean) =>
@@ -325,8 +343,24 @@ export default function ProductCsToGrPage({ params }: { params: Promise<{ id: st
                                         {errors.receiverTel && <p className="text-red-600 text-sm mt-1">{errors.receiverTel}</p>}
                                 </div>
                                 <div>
-                                    <label className="form-label">
-                                        ไฟล์แนบ<Req/>
+                                    <label className="form-label flex items-center justify-between">
+                                        <span>ไฟล์แนบ<Req/></span>
+                                        {exampleImages && Object.values(exampleImages).some((img: any) => img?.url) && (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setExampleModal({
+                                                        isOpen: true,
+                                                        title: "ตัวอย่างรูปถ่ายการส่งมอบให้ GR",
+                                                        imageUrl: "",
+                                                        desc: ""
+                                                    });
+                                                }}
+                                                className="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded px-1.5 py-0.5 flex items-center gap-0.5 cursor-pointer transition duration-150 font-bold"
+                                            >
+                                                💡 ดูตัวอย่างการถ่ายภาพ
+                                            </button>
+                                        )}
                                     </label>
                                     <input
                                         ref={fileInputRef}
@@ -392,6 +426,59 @@ export default function ProductCsToGrPage({ params }: { params: Promise<{ id: st
                     </div>
                 </form>
             </div>
+
+            {/* Example Images Modal */}
+            {exampleModal.isOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-2xl w-full max-w-4xl shadow-xl overflow-hidden animate-zoomIn flex flex-col border border-slate-200 h-[80vh]">
+                        <div className="bg-slate-800 text-white px-5 py-4 flex items-center justify-between shadow-sm">
+                            <span className="font-bold text-sm flex items-center gap-1.5">
+                                📷 {exampleModal.title}
+                            </span>
+                            <button 
+                                onClick={() => setExampleModal(prev => ({ ...prev, isOpen: false }))} 
+                                className="text-slate-400 hover:text-white transition-colors cursor-pointer"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="p-5 flex-1 overflow-y-auto bg-slate-50 space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {["slot1", "slot2", "slot3", "slot4"].map((slot) => {
+                                    const img = exampleImages?.[slot];
+                                    if (!img || !img.url) return null;
+                                    
+                                    let slotTitle = "";
+                                    if (slot === "slot1") slotTitle = "1. ภาพถ่ายตัวเครื่องประกอบ";
+                                    else if (slot === "slot2") slotTitle = "2. ภาพถ่ายเอกสารส่งมอบ (GR)";
+                                    else if (slot === "slot3") slotTitle = "3. ภาพถ่ายป้าย Serial";
+                                    else slotTitle = "4. ภาพสภาพภายนอกเพิ่มเติม";
+
+                                    return (
+                                        <div key={slot} className="bg-white border border-slate-200 rounded-xl p-3 shadow-sm flex flex-col space-y-2">
+                                            <span className="text-[11px] font-bold text-slate-800 border-b border-slate-100 pb-1">{slotTitle}</span>
+                                            <div className="aspect-video relative rounded-lg overflow-hidden border border-slate-100 bg-slate-50 flex items-center justify-center">
+                                                <img src={img.url} alt={slotTitle} className="w-full h-full object-contain" />
+                                            </div>
+                                            <p className="text-[11px] text-slate-500 font-semibold leading-relaxed bg-slate-50 p-2 rounded border border-slate-100 min-h-[40px]">
+                                                {img.desc || "ไม่มีคำอธิบายประกอบ"}
+                                            </p>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                        <div className="bg-white border-t border-slate-100 px-5 py-3 flex justify-end">
+                            <button
+                                onClick={() => setExampleModal(prev => ({ ...prev, isOpen: false }))}
+                                className="btn btn-sm btn-ghost rounded-xl font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-1"
+                            >
+                                ปิดหน้าต่าง
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </section>
     );
 }

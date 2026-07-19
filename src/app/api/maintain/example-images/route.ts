@@ -5,12 +5,27 @@ import path from "path";
 
 export const runtime = "nodejs";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const { searchParams } = new URL(req.url);
+    const flow = (searchParams.get("flow") || "create_repair").trim();
+
+    if (!["create_repair", "cs_to_gr", "dc_to_vendor"].includes(flow)) {
+      return NextResponse.json({ ok: false, message: "Invalid flow parameter" }, { status: 400 });
+    }
+
     const keys = [
-      "example_image_slot1", "example_image_slot2", "example_image_slot3", "example_image_slot4",
-      "example_desc_slot1", "example_desc_slot2", "example_desc_slot3", "example_desc_slot4"
+      `${flow}_image_slot1`, `${flow}_image_slot2`, `${flow}_image_slot3`, `${flow}_image_slot4`,
+      `${flow}_desc_slot1`, `${flow}_desc_slot2`, `${flow}_desc_slot3`, `${flow}_desc_slot4`
     ];
+
+    // If flow is create_repair, load legacy keys for fallback
+    if (flow === "create_repair") {
+      keys.push(
+        "example_image_slot1", "example_image_slot2", "example_image_slot3", "example_image_slot4",
+        "example_desc_slot1", "example_desc_slot2", "example_desc_slot3", "example_desc_slot4"
+      );
+    }
 
     const configs = await prisma.system_config.findMany({
       where: { config_key: { in: keys } },
@@ -24,14 +39,27 @@ export async function GET() {
     };
 
     for (const c of configs) {
-      if (c.config_key === "example_image_slot1") result.slot1.url = c.config_value;
-      if (c.config_key === "example_desc_slot1") result.slot1.desc = c.config_value;
-      if (c.config_key === "example_image_slot2") result.slot2.url = c.config_value;
-      if (c.config_key === "example_desc_slot2") result.slot2.desc = c.config_value;
-      if (c.config_key === "example_image_slot3") result.slot3.url = c.config_value;
-      if (c.config_key === "example_desc_slot3") result.slot3.desc = c.config_value;
-      if (c.config_key === "example_image_slot4") result.slot4.url = c.config_value;
-      if (c.config_key === "example_desc_slot4") result.slot4.desc = c.config_value;
+      if (c.config_key === `${flow}_image_slot1`) result.slot1.url = c.config_value;
+      if (c.config_key === `${flow}_desc_slot1`) result.slot1.desc = c.config_value;
+      if (c.config_key === `${flow}_image_slot2`) result.slot2.url = c.config_value;
+      if (c.config_key === `${flow}_desc_slot2`) result.slot2.desc = c.config_value;
+      if (c.config_key === `${flow}_image_slot3`) result.slot3.url = c.config_value;
+      if (c.config_key === `${flow}_desc_slot3`) result.slot3.desc = c.config_value;
+      if (c.config_key === `${flow}_image_slot4`) result.slot4.url = c.config_value;
+      if (c.config_key === `${flow}_desc_slot4`) result.slot4.desc = c.config_value;
+    }
+
+    // Fallback to legacy keys if flow is create_repair and specific keys are empty
+    if (flow === "create_repair") {
+      const getVal = (key: string) => configs.find(c => c.config_key === key)?.config_value || "";
+      if (!result.slot1.url) result.slot1.url = getVal("example_image_slot1");
+      if (!result.slot1.desc) result.slot1.desc = getVal("example_desc_slot1");
+      if (!result.slot2.url) result.slot2.url = getVal("example_image_slot2");
+      if (!result.slot2.desc) result.slot2.desc = getVal("example_desc_slot2");
+      if (!result.slot3.url) result.slot3.url = getVal("example_image_slot3");
+      if (!result.slot3.desc) result.slot3.desc = getVal("example_desc_slot3");
+      if (!result.slot4.url) result.slot4.url = getVal("example_image_slot4");
+      if (!result.slot4.desc) result.slot4.desc = getVal("example_desc_slot4");
     }
 
     return NextResponse.json({ ok: true, data: result });
@@ -47,13 +75,18 @@ export async function POST(req: Request) {
     const slot = String(formData.get("slot") ?? "").trim();
     const action = String(formData.get("action") ?? "").trim();
     const desc = String(formData.get("desc") ?? "");
+    const flow = String(formData.get("flow") ?? "create_repair").trim();
 
     if (!slot || !["slot1", "slot2", "slot3", "slot4"].includes(slot)) {
       return NextResponse.json({ ok: false, message: "Invalid slot parameter" }, { status: 400 });
     }
 
-    const imgKey = `example_image_${slot}`;
-    const descKey = `example_desc_${slot}`;
+    if (!flow || !["create_repair", "cs_to_gr", "dc_to_vendor"].includes(flow)) {
+      return NextResponse.json({ ok: false, message: "Invalid flow parameter" }, { status: 400 });
+    }
+
+    const imgKey = `${flow}_image_${slot}`;
+    const descKey = `${flow}_desc_${slot}`;
 
     // Handle delete action
     if (action === "delete") {
@@ -71,7 +104,26 @@ export async function POST(req: Request) {
         }
       }
 
-      // Upsert database config values to empty string
+      // Legacy fallback delete
+      if (flow === "create_repair") {
+        const legacyKey = `example_image_${slot}`;
+        const legacyExist = await prisma.system_config.findUnique({
+          where: { config_key: legacyKey }
+        });
+        if (legacyExist && legacyExist.config_value) {
+          try {
+            const oldFilePath = path.join(process.cwd(), "public", legacyExist.config_value);
+            await fs.unlink(oldFilePath);
+          } catch {}
+          await prisma.system_config.upsert({
+            where: { config_key: legacyKey },
+            update: { config_value: "", updated_at: new Date() },
+            create: { config_key: legacyKey, config_value: "" }
+          });
+        }
+      }
+
+      // Update database config values to empty string for flow-specific key
       await prisma.system_config.upsert({
         where: { config_key: imgKey },
         update: { config_value: "", updated_at: new Date() },
@@ -96,7 +148,6 @@ export async function POST(req: Request) {
       const uploadDir = path.join(process.cwd(), "public", "uploads", "config");
       await fs.mkdir(uploadDir, { recursive: true });
 
-      // Get file extension
       const originalName = file.name;
       let extension = path.extname(originalName);
       if (!extension) {
@@ -106,7 +157,7 @@ export async function POST(req: Request) {
         else extension = ".png";
       }
 
-      const fileName = `example_${slot}_${Date.now()}${extension}`;
+      const fileName = `example_${flow}_${slot}_${Date.now()}${extension}`;
       const absPath = path.join(uploadDir, fileName);
 
       const bytes = Buffer.from(await file.arrayBuffer());
