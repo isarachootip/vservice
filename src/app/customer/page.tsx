@@ -498,7 +498,7 @@ export default function CustomerManagementPage() {
       {/* Customer Form Modal (Create/Edit) */}
       {isFormOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg shadow-xl overflow-hidden animate-zoomIn flex flex-col border border-slate-100">
+          <div className="bg-white rounded-2xl w-full max-w-3xl shadow-xl overflow-hidden animate-zoomIn flex flex-col border border-slate-100">
             <div className="bg-[#c8102e] text-white px-5 py-4 flex items-center justify-between">
               <h3 className="font-bold text-sm flex items-center gap-1.5">
                 <User className="w-4 h-4" />
@@ -516,7 +516,7 @@ export default function CustomerManagementPage() {
                 </div>
               )}
 
-              <div className="grid grid-cols-1 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[11px] font-bold text-slate-500 mb-1">ชื่อ-นามสกุลจริง *</label>
                   <input
@@ -551,7 +551,7 @@ export default function CustomerManagementPage() {
                     <label className="block text-[10.5px] font-black text-sky-700 uppercase tracking-wider">
                       ที่อยู่สำหรับจัดส่งสินค้า
                     </label>
-                    <div className="grid grid-cols-2 gap-2 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
                       <div>
                         <label className="block text-[9px] font-bold text-slate-400 mb-0.5">บ้านเลขที่/อาคาร</label>
                         <input
@@ -612,7 +612,7 @@ export default function CustomerManagementPage() {
                           onChange={e => setShippingFields(prev => ({ ...prev, province: e.target.value }))}
                         />
                       </div>
-                      <div className="col-span-2">
+                      <div>
                         <label className="block text-[9px] font-bold text-slate-400 mb-0.5">รหัสไปรษณีย์</label>
                         <input
                           type="text"
@@ -639,7 +639,7 @@ export default function CustomerManagementPage() {
                         คัดลอกจากที่อยู่จัดส่ง
                       </button>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
                       <div>
                         <label className="block text-[9px] font-bold text-slate-400 mb-0.5">บ้านเลขที่/อาคาร</label>
                         <input
@@ -700,7 +700,7 @@ export default function CustomerManagementPage() {
                           onChange={e => setBillingFields(prev => ({ ...prev, province: e.target.value }))}
                         />
                       </div>
-                      <div className="col-span-2">
+                      <div>
                         <label className="block text-[9px] font-bold text-slate-400 mb-0.5">รหัสไปรษณีย์</label>
                         <input
                           type="text"
