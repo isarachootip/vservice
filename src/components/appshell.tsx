@@ -46,6 +46,7 @@ type UserData = {
   role?: string;
   permissions?: string[];
   store_code?: string | null;
+  location_name?: string | null;
 };
 
 
@@ -433,7 +434,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
             <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
               <span className="text-[#c8102e] font-black">VService</span>
               <span className="text-slate-300 font-normal">|</span>
-              <span className="text-slate-500 font-bold text-[11px] tracking-wide uppercase">Thai Watsadu Service Center</span>
+              <span className="text-slate-500 font-bold text-[11px] tracking-wide uppercase">Thai Watsadu Service Center {user?.location_name ? `(${user.location_name})` : user?.store_code ? `(สาขา ${user.store_code})` : ""}</span>
             </h2>
           </div>
           

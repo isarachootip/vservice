@@ -13,6 +13,7 @@ export type UserRowWithPermissionsList = {
   store_nick: string;
   in_bu: string;
   location_id?: string | null;
+  location_name?: string | null;
 };
 
 export class UserService {
@@ -99,6 +100,7 @@ export class UserService {
 
         profile.in_bu = in_bu;
         profile.store_nick = store_nick;
+        profile.location_name = loc.name;
       }
     }
 
