@@ -406,7 +406,7 @@ export default function ProductCsToGrPage({ params }: { params: Promise<{ id: st
                                                         title="คลิกดูตัวอย่างรูปภาพ"
                                                     >
                                                         <div className="w-10 h-10 rounded overflow-hidden bg-slate-50 shrink-0 border border-slate-100">
-                                                            <img src={img.url} alt={slotTitle} className="w-full h-full object-cover" />
+                                                            <img src={img.url} alt={slotTitle} className="w-full h-full object-contain bg-white" />
                                                         </div>
                                                         <div className="min-w-0 flex flex-col justify-center">
                                                             <span className="text-[10px] font-bold text-slate-800 truncate">{slotTitle}</span>

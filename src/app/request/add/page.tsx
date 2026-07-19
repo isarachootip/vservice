@@ -645,7 +645,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                             className="relative aspect-video rounded-lg overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center cursor-pointer group/example"
                             title="คลิกเพื่อดูรูปขยาย"
                         >
-                            <img src={slotConfig.url} alt="ตัวอย่าง" className="w-full h-full object-cover" />
+                            <img src={slotConfig.url} alt="ตัวอย่าง" className="w-full h-full object-contain bg-white" />
                             <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center opacity-0 group-hover/example:opacity-100 transition duration-150 text-[9px] text-white font-bold">
                                 ดูภาพขยาย
                             </div>
