@@ -121,79 +121,107 @@ export default function FAQPage() {
       {activeTab === "manual" && (
         <div className="space-y-8 animate-fadeIn">
           {/* Workflow overview diagram */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-4">
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-6">
             <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
-              <UserCheck className="w-4 h-4 text-violet-500" />
-              กระบวนการไหลของงานแจ้งซ่อมหลัก (Primary Workflow)
+              <UserCheck className="w-5 h-5 text-violet-500" />
+              กระบวนการไหลของงานแจ้งซ่อมหลัก (6 ขั้นตอนการส่งมอบและซ่อม)
             </h3>
             
             {/* Visual Workflow Steps */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 pt-2">
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-2 relative">
-                <div className="w-6 h-6 rounded-full bg-violet-600 text-white text-xs font-bold flex items-center justify-center">1</div>
-                <h4 className="text-xs font-bold text-slate-800">CS: เปิดใบแจ้งซ่อม</h4>
-                <p className="text-[10px] text-slate-500">ลงทะเบียนข้อมูลลูกค้า, รายละเอียดสินค้า (SKU) และระบุอาการเสียหายที่พบ</p>
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-3 pt-2">
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1.5 relative">
+                <div className="w-5 h-5 rounded-full bg-violet-600 text-white text-[10px] font-bold flex items-center justify-center">1</div>
+                <h4 className="text-[11px] font-bold text-slate-800">CS: เปิดใบแจ้งซ่อม</h4>
+                <p className="text-[9px] text-slate-500 leading-tight">ลงทะเบียนข้อมูลลูกค้า & สินค้า แนบรูปภาพตัวอย่างตามมาตรฐาน (ขนาด &le; 800KB)</p>
                 <div className="hidden md:block absolute top-1/2 -right-2 transform -translate-y-1/2 z-10 bg-white rounded-full p-0.5 shadow border border-slate-100">
                   <ChevronRight className="w-3 h-3 text-slate-400" />
                 </div>
               </div>
 
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-2 relative">
-                <div className="w-6 h-6 rounded-full bg-violet-600 text-white text-xs font-bold flex items-center justify-center">2</div>
-                <h4 className="text-xs font-bold text-slate-800">GR: รับ/จัดส่งเครื่อง</h4>
-                <p className="text-[10px] text-slate-500">รับสินค้าซ่อมจากพนักงาน CS ตรวจเช็คข้อมูล แล้วส่งมอบตรงไปยัง Vendor</p>
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1.5 relative">
+                <div className="w-5 h-5 rounded-full bg-violet-600 text-white text-[10px] font-bold flex items-center justify-center">2</div>
+                <h4 className="text-[11px] font-bold text-slate-800">GR: รับ/จัดส่งเครื่อง</h4>
+                <p className="text-[9px] text-slate-500 leading-tight">ตรวจสอบสินค้าซ่อม แนบหลักฐานเอกสารและภาพถ่ายส่งมอบ (ขนาด &le; 800KB)</p>
                 <div className="hidden md:block absolute top-1/2 -right-2 transform -translate-y-1/2 z-10 bg-white rounded-full p-0.5 shadow border border-slate-100">
                   <ChevronRight className="w-3 h-3 text-slate-400" />
                 </div>
               </div>
 
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-2 relative">
-                <div className="w-6 h-6 rounded-full bg-violet-600 text-white text-xs font-bold flex items-center justify-center">3</div>
-                <h4 className="text-xs font-bold text-slate-800">Vendor: เสนอราคา</h4>
-                <p className="text-[10px] text-slate-500">ช่างของ Vendor ตรวจเช็คเครื่อง ประเมินค่าบริการ อัปโหลดใบเสนอราคาเข้าระบบ</p>
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1.5 relative">
+                <div className="w-5 h-5 rounded-full bg-violet-600 text-white text-[10px] font-bold flex items-center justify-center">3</div>
+                <h4 className="text-[11px] font-bold text-slate-800">DC: ส่งมอบให้ช่าง</h4>
+                <p className="text-[9px] text-slate-500 leading-tight">DC บันทึกการส่งมอบสินค้าให้ช่างภายนอก (Vendor) พร้อมแนบรูปถ่ายอ้างอิง</p>
                 <div className="hidden md:block absolute top-1/2 -right-2 transform -translate-y-1/2 z-10 bg-white rounded-full p-0.5 shadow border border-slate-100">
                   <ChevronRight className="w-3 h-3 text-slate-400" />
                 </div>
               </div>
 
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-2">
-                <div className="w-6 h-6 rounded-full bg-violet-600 text-white text-xs font-bold flex items-center justify-center">4</div>
-                <h4 className="text-xs font-bold text-slate-800">CS: อนุมัติการซ่อม</h4>
-                <p className="text-[10px] text-slate-500">ประสานงานกับลูกค้า หากลูกค้าตอบรับ CS ทำการกดยืนยันใบเสนอราคาเพื่อให้ Vendor ลงมือซ่อม</p>
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1.5 relative">
+                <div className="w-5 h-5 rounded-full bg-violet-600 text-white text-[10px] font-bold flex items-center justify-center">4</div>
+                <h4 className="text-[11px] font-bold text-slate-800">Vendor: เสนอราคา</h4>
+                <p className="text-[9px] text-slate-500 leading-tight">ช่างของ Vendor ตรวจเช็คเครื่อง ประเมินค่าซ่อม อัปโหลดเอกสารเสนอราคาเข้าระบบ</p>
+                <div className="hidden md:block absolute top-1/2 -right-2 transform -translate-y-1/2 z-10 bg-white rounded-full p-0.5 shadow border border-slate-100">
+                  <ChevronRight className="w-3 h-3 text-slate-400" />
+                </div>
+              </div>
+
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1.5 relative">
+                <div className="w-5 h-5 rounded-full bg-violet-600 text-white text-[10px] font-bold flex items-center justify-center">5</div>
+                <h4 className="text-[11px] font-bold text-slate-800">CS: ลูกค้าอนุมัติซ่อม</h4>
+                <p className="text-[9px] text-slate-500 leading-tight">CS ประสานงานยืนยันราคากับลูกค้า หากอนุมัติจะกดยืนยันใบเสนอราคาให้ช่างดำเนินการ</p>
+                <div className="hidden md:block absolute top-1/2 -right-2 transform -translate-y-1/2 z-10 bg-white rounded-full p-0.5 shadow border border-slate-100">
+                  <ChevronRight className="w-3 h-3 text-slate-400" />
+                </div>
+              </div>
+
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1.5">
+                <div className="w-5 h-5 rounded-full bg-violet-600 text-white text-[10px] font-bold flex items-center justify-center">6</div>
+                <h4 className="text-[11px] font-bold text-slate-800">Return: ส่งมอบคืนเครื่อง</h4>
+                <p className="text-[9px] text-slate-500 leading-tight">ช่างซ่อมเสร็จส่งเครื่องคืน DC, คลังส่งคืน CS เพื่อติดต่อมอบเครื่องคืนมือลูกค้า</p>
               </div>
             </div>
           </div>
 
-          {/* Role details */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
-                  <FileText className="w-5 h-5" />
-                </div>
-                <h3 className="text-base font-bold text-slate-800">คำแนะนำสำหรับ CS (Customer Service)</h3>
-              </div>
-              <ul className="space-y-3 text-xs text-slate-600 list-disc list-inside">
-                <li>เมื่อสร้างใบแจ้งซ่อมใหม่ ให้พยายามเลือกสินค้าจากรหัส SKU ระบบเพื่อดึงข้อมูลต้นทุนและราคาที่ถูกต้อง</li>
-                <li>หากเป็นสินค้านอกระบบสต็อกหลัก ให้เอาเครื่องหมายถูกออกเพื่อกรอกข้อมูลแบรนด์/รุ่นของสินค้าเอง</li>
-                <li>ระบุอาการเสียชำรุดที่พบเบื้องต้นอย่างละเอียด และเลือกประเภทอาการเสียจากระบบให้ตรงกับลักษณะงาน</li>
-                <li>ในช่องแนบไฟล์รูปถ่าย ให้คลิกปุ่ม <span className="text-violet-650 font-bold">💡 ดูตัวอย่าง</span> ข้างๆ ชื่อหัวข้ออัปโหลด เพื่อตรวจสอบมุมกล้องและรายละเอียดที่ต้องมีบนภาพ เช่น ภาพ Serial ต้องเห็นตัวอักษรชัดเจน</li>
-                <li>ติดตามสถานะงานอย่างต่อเนื่อง เมื่อสถานะเปลี่ยนเป็น <span className="text-violet-600 font-bold">รอเสนอราคา</span> และ <span className="text-violet-600 font-bold">รออนุมัติราคา</span> ให้ติดต่อเสนองานซ่อมแก่ลูกค้าโดยเร็ว</li>
-              </ul>
-            </div>
+          {/* Detailed workflow cards */}
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-6">
+            <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
+              <FileText className="w-5 h-5 text-violet-500" />
+              รายละเอียดคุณสมบัติและขั้นตอนของระบบ (System Handover Features)
+            </h3>
 
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
-                  <ShieldCheck className="w-5 h-5" />
-                </div>
-                <h3 className="text-base font-bold text-slate-800">สิทธิ์และความมั่นคงปลอดภัย</h3>
+            <div className="space-y-4">
+              <div className="border-l-4 border-violet-500 pl-4 py-1.5">
+                <h4 className="text-sm font-bold text-slate-800">1. การจัดการฐานข้อมูลลูกค้าอัตโนมัติ (Automated Customer Management)</h4>
+                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                  ระบบจะตรวจสอบฐานข้อมูลลูกค้าอ้างอิงจาก <strong>"เบอร์โทรศัพท์"</strong> โดยอัตโนมัติขณะที่บันทึกข้อมูลใบแจ้งซ่อมใหม่ หากไม่พบข้อมูลลูกค้า ระบบจะทำการสร้างโปรไฟล์ลูกค้าให้ทันที รวมถึงรองรับการผูกข้อมูลที่อยู่ได้หลายรูปแบบ เช่น ที่อยู่สำหรับออกใบกำกับภาษี หรือที่อยู่สำหรับการจัดส่งสินค้าข้ามสาขา
+                </p>
               </div>
-              <ul className="space-y-3 text-xs text-slate-600 list-disc list-inside">
-                <li>บัญชีระดับพนักงานจะถูกกรองการเข้าถึงข้อมูลตามสาขาที่ท่านระบุในข้อมูลผู้ใช้ตั้งแต่การลงทะเบียน</li>
-                <li>หากท่านมีสิทธิ์ข้ามสาขา หรือเป็นสาขา DC/แอนมินกลาง สามารถใช้ตัวเลือกกรองสาขาด้านบนของตารางติดตามเพื่อเรียกดูข้อมูลได้</li>
-                <li>ห้ามใช้งานรหัสผู้ใช้งานหรือแชร์บัญชีล็อกอินร่วมกันในแต่ละสาขา เพื่อการตรวจสอบประวัติย้อนหลังที่ถูกต้องในระบบ</li>
-              </ul>
+
+              <div className="border-l-4 border-violet-500 pl-4 py-1.5">
+                <h4 className="text-sm font-bold text-slate-800">2. ระบบแสดงรูปภาพตัวอย่างในการปฏิบัติงาน (Visual Guidelines Workflow)</h4>
+                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                  มีรูปภาพไกด์ไลน์ตัวอย่างการถ่ายภาพแสดงบนหน้าปฏิบัติงานจริง เพื่อคอยนำทางพนักงานถ่ายภาพประกอบได้อย่างเป็นมาตรฐาน โดยรูปภาพจะแสดงขนาดพอเหมาะ (300x300 พิกเซล) และสามารถกดเพื่อดูภาพขยายขนาดเต็มพร้อมคำอธิบายของแต่ละช่องได้ทันที:
+                </p>
+                <ul className="list-disc list-inside text-xs text-slate-600 mt-2 pl-2 space-y-1">
+                  <li><strong>หน้าแจ้งซ่อมใหม่ (CS: Create Repair)</strong>: แสดงรูปไกด์ไลน์ 4 ช่องประกอบการอัปโหลดรูปเครื่อง ป้าย Serial และสภาพชำรุด</li>
+                  <li><strong>หน้าส่งมอบให้ GR (CS to GR)</strong>: แสดงตัวอย่างรูปถ่ายประกอบ เช่น ภาพตัวเครื่องประกอบ, ภาพถ่ายใบนำส่ง GR, ภาพป้าย Serial</li>
+                  <li><strong>หน้าส่งมอบให้ช่างซ่อม (DC to Vendor)</strong>: แสดงตัวอย่างรูปถ่ายประกอบการลงบันทึกส่งมอบช่างซ่อม</li>
+                </ul>
+              </div>
+
+              <div className="border-l-4 border-violet-500 pl-4 py-1.5">
+                <h4 className="text-sm font-bold text-slate-800">3. ข้อจำกัดและตรวจสอบความปลอดภัยของไฟล์แนบ (Upload Constraints Validation)</h4>
+                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                  เพื่อประสิทธิภาพในการประมวลผลและการจัดเก็บข้อมูลบนคลาวด์ ระบบมีการตรวจสอบและบล็อกการอัปโหลดไฟล์ที่มีขนาดเกิน <strong>800 KB</strong> หรือมีขนาดสเกลภาพสูงเกินความเหมาะสมในทุก ๆ จุดที่มีการอัปโหลดในระบบ รวมถึงหน้าการสร้างใบแจ้งซ่อม, หน้าส่งมอบให้ GR และหน้าส่งมอบให้ช่างซ่อม เพื่อควบคุมขนาดไฟล์และรักษาคุณภาพของใบเสนอราคาและเอกสารในระบบ
+                </p>
+              </div>
+
+              <div className="border-l-4 border-violet-500 pl-4 py-1.5">
+                <h4 className="text-sm font-bold text-slate-800">4. สิทธิ์การตรวจสอบและการควบคุมข้ามสาขา (Access & Location Isolation)</h4>
+                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                  เพื่อความปลอดภัยและเป็นส่วนตัวของข้อมูลสาขา พนักงานระดับทั่วไป (CS / GR / DC) จะสามารถเข้าถึงและประมวลผลเอกสารเฉพาะของสาขาตัวเองเท่านั้น โดยระบบจะทำการปิดกั้นไม่ให้เลือกดูข้ามสาขา เฉพาะผู้ใช้สิทธิ์ระดับ Admin เท่านั้นที่จะมีเมนูตั้งค่ารูปภาพตัวอย่างและสามารถตรวจสอบใบแจ้งซ่อมข้ามสาขาทั้งหมดได้
+                </p>
+              </div>
             </div>
           </div>
         </div>

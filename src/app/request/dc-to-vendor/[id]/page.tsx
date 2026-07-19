@@ -459,7 +459,7 @@ export default function RequestDCDetailExtPage({ params }: { params: Promise<{ i
                                     }}
                                     className="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded px-1.5 py-0.5 flex items-center gap-0.5 cursor-pointer transition duration-150 font-bold"
                                 >
-                                    💡 ดูตัวอย่างการถ่ายภาพ
+                                    💡 ดูคำแนะนำทั้งหมด
                                 </button>
                             )}
                         </label>
@@ -471,10 +471,54 @@ export default function RequestDCDetailExtPage({ params }: { params: Promise<{ i
                             accept=".jpg,.jpeg,.png,.pdf"
                             className={`${inputClass(!!errors.attachments)} w-60`}
                             onChange={(e) => {
-                            const files = Array.from(e.target.files ?? []);
+                                const files = Array.from(e.target.files ?? []);
+                                const oversized = files.some(f => f.size > 800 * 1024);
+                                if (oversized) {
+                                    alert("พบไฟล์ที่มีขนาดเกิน 800 KB กรุณาเลือกไฟล์ใหม่ที่มีขนาดไม่เกิน 800 KB ครับ");
+                                    if (fileInputRef.current) fileInputRef.current.value = "";
+                                    return;
+                                }
                                 setAttachments(files);
                             }}
                         />
+
+                        {/* Inline Example Thumbnails */}
+                        {exampleImages && Object.values(exampleImages).some((img: any) => img?.url) && (
+                            <div className="mt-2 flex gap-3 flex-wrap">
+                                {["slot1", "slot2", "slot3", "slot4"].map((slot) => {
+                                    const img = exampleImages?.[slot];
+                                    if (!img || !img.url) return null;
+                                    
+                                    let slotTitle = "";
+                                    if (slot === "slot1") slotTitle = "เครื่องส่งมอบช่าง";
+                                    else if (slot === "slot2") slotTitle = "เอกสารส่งมอบช่าง";
+                                    else if (slot === "slot3") slotTitle = "ป้าย Serial";
+                                    else slotTitle = "สภาพภายนอก";
+
+                                    return (
+                                        <div 
+                                            key={slot}
+                                            onClick={() => setExampleModal({
+                                                isOpen: true,
+                                                title: `ภาพตัวอย่าง: ${slotTitle}`,
+                                                imageUrl: img.url,
+                                                desc: img.desc || ""
+                                            })}
+                                            className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg p-1.5 shadow-sm hover:shadow hover:border-[#c8102e]/60 transition cursor-pointer max-w-[200px]"
+                                            title="คลิกดูตัวอย่างรูปภาพ"
+                                        >
+                                            <div className="w-10 h-10 rounded overflow-hidden bg-slate-50 shrink-0 border border-slate-100">
+                                                <img src={img.url} alt={slotTitle} className="w-full h-full object-cover" />
+                                            </div>
+                                            <div className="min-w-0 flex flex-col justify-center">
+                                                <span className="text-[10px] font-bold text-slate-800 truncate">{slotTitle}</span>
+                                                <span className="text-[8px] text-slate-400 font-semibold leading-tight font-sans">คลิกดูตัวอย่าง</span>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
 
                         {errors.attachments && (
                             <p className="text-red-600 text-sm mt-1">{errors.attachments}</p>
@@ -533,10 +577,10 @@ export default function RequestDCDetailExtPage({ params }: { params: Promise<{ i
 
         {/* Example Images Modal */}
         {exampleModal.isOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fadeIn">
                 <div className="bg-white rounded-2xl w-full max-w-4xl shadow-xl overflow-hidden animate-zoomIn flex flex-col border border-slate-200 h-[80vh]">
                     <div className="bg-slate-800 text-white px-5 py-4 flex items-center justify-between shadow-sm">
-                        <span className="font-bold text-sm flex items-center gap-1.5">
+                        <span className="font-bold text-sm flex items-center gap-1.5 font-sans">
                             📷 {exampleModal.title}
                         </span>
                         <button 
@@ -547,35 +591,48 @@ export default function RequestDCDetailExtPage({ params }: { params: Promise<{ i
                         </button>
                     </div>
                     <div className="p-5 flex-1 overflow-y-auto bg-slate-50 space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {["slot1", "slot2", "slot3", "slot4"].map((slot) => {
-                                const img = exampleImages?.[slot];
-                                if (!img || !img.url) return null;
-                                
-                                let slotTitle = "";
-                                if (slot === "slot1") slotTitle = "1. ภาพถ่ายตัวเครื่องส่งมอบช่าง";
-                                else if (slot === "slot2") slotTitle = "2. ภาพถ่ายเอกสารส่งมอบช่าง";
-                                else if (slot === "slot3") slotTitle = "3. ภาพถ่ายป้าย Serial";
-                                else slotTitle = "4. ภาพสภาพภายนอกเพิ่มเติม";
+                        {exampleModal.imageUrl ? (
+                            <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col items-center justify-center space-y-4 max-w-2xl mx-auto">
+                                <div className="w-full aspect-video relative rounded-lg overflow-hidden border border-slate-100 bg-slate-50 flex items-center justify-center">
+                                    <img src={exampleModal.imageUrl} alt={exampleModal.title} className="w-full h-full object-contain" />
+                                </div>
+                                <div className="w-full bg-slate-50 p-3 rounded-lg border border-slate-100 min-h-[60px]">
+                                    <p className="text-xs text-slate-600 font-semibold leading-relaxed">
+                                        💡 {exampleModal.desc || "ไม่มีคำอธิบายเพิ่มเติม"}
+                                    </p>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {["slot1", "slot2", "slot3", "slot4"].map((slot) => {
+                                    const img = exampleImages?.[slot];
+                                    if (!img || !img.url) return null;
+                                    
+                                    let slotTitle = "";
+                                    if (slot === "slot1") slotTitle = "1. ภาพถ่ายตัวเครื่องส่งมอบช่าง";
+                                    else if (slot === "slot2") slotTitle = "2. ภาพถ่ายเอกสารส่งมอบช่าง";
+                                    else if (slot === "slot3") slotTitle = "3. ภาพถ่ายป้าย Serial";
+                                    else slotTitle = "4. ภาพสภาพภายนอกเพิ่มเติม";
 
-                                return (
-                                    <div key={slot} className="bg-white border border-slate-200 rounded-xl p-3 shadow-sm flex flex-col space-y-2">
-                                        <span className="text-[11px] font-bold text-slate-800 border-b border-slate-100 pb-1">{slotTitle}</span>
-                                        <div className="aspect-video relative rounded-lg overflow-hidden border border-slate-100 bg-slate-50 flex items-center justify-center">
-                                            <img src={img.url} alt={slotTitle} className="w-full h-full object-contain" />
+                                    return (
+                                        <div key={slot} className="bg-white border border-slate-200 rounded-xl p-3 shadow-sm flex flex-col space-y-2">
+                                            <span className="text-[11px] font-bold text-slate-800 border-b border-slate-100 pb-1">{slotTitle}</span>
+                                            <div className="aspect-video relative rounded-lg overflow-hidden border border-slate-100 bg-slate-50 flex items-center justify-center">
+                                                <img src={img.url} alt={slotTitle} className="w-full h-full object-contain" />
+                                            </div>
+                                            <p className="text-[11px] text-slate-500 font-semibold leading-relaxed bg-slate-50 p-2 rounded border border-slate-100 min-h-[40px]">
+                                                {img.desc || "ไม่มีคำอธิบายประกอบ"}
+                                            </p>
                                         </div>
-                                        <p className="text-[11px] text-slate-500 font-semibold leading-relaxed bg-slate-50 p-2 rounded border border-slate-100 min-h-[40px]">
-                                            {img.desc || "ไม่มีคำอธิบายประกอบ"}
-                                        </p>
-                                    </div>
-                                );
-                            })}
-                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
                     <div className="bg-white border-t border-slate-100 px-5 py-3 flex justify-end">
                         <button
                             onClick={() => setExampleModal(prev => ({ ...prev, isOpen: false }))}
-                            className="btn btn-sm btn-ghost rounded-xl font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-1"
+                            className="btn btn-sm btn-ghost rounded-xl font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-1 cursor-pointer"
                         >
                             ปิดหน้าต่าง
                         </button>

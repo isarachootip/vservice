@@ -558,24 +558,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
         return (
             <div className="flex flex-col bg-white border border-slate-200 rounded-xl p-3 shadow-sm hover:shadow-md transition">
                 <span className="text-[11px] font-bold text-slate-700 mb-2 flex items-center justify-between flex-wrap gap-1">
-                    <span className="flex items-center gap-1">
-                        <span>{title}</span>
-                        {hasExample && (
-                            <button
-                                type="button"
-                                onClick={() => setExampleModal({
-                                    isOpen: true,
-                                    title: title,
-                                    imageUrl: slotConfig.url,
-                                    desc: slotConfig.desc || "ไม่มีคำอธิบายเพิ่มเติม"
-                                })}
-                                className="text-[10px] bg-slate-100 hover:bg-slate-250 text-slate-700 border border-slate-200 rounded px-1.5 py-0.5 flex items-center gap-0.5 cursor-pointer ml-1 transition duration-150"
-                                title="ดูรูปภาพตัวอย่าง"
-                            >
-                                💡 ดูตัวอย่าง
-                            </button>
-                        )}
-                    </span>
+                    <span>{title}</span>
                     {isRequired && <span className="text-red-500 font-extrabold">* จำเป็น</span>}
                 </span>
                 
@@ -587,63 +570,99 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                     onChange={(e) => {
                         const selectedFile = e.target.files?.[0];
                         if (selectedFile) {
+                            if (selectedFile.size > 800 * 1024) {
+                                alert("ขนาดไฟล์รูปภาพต้องไม่เกิน 800 KB ครับ");
+                                return;
+                            }
                             setFile(selectedFile);
                         }
                     }}
                 />
 
-                {previewUrl ? (
-                    <div className="relative w-full aspect-video rounded-lg overflow-hidden border border-slate-100 bg-slate-50 group">
-                        {file && file.type === "application/pdf" ? (
-                            <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 font-bold text-xs p-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-red-500 mb-1">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-                                </svg>
-                                <span className="truncate max-w-full text-[10px]">{file.name}</span>
+                <div className={hasExample ? "grid grid-cols-2 gap-2" : "w-full"}>
+                    {/* Left Column: Example Thumbnail */}
+                    {hasExample && (
+                        <div 
+                            onClick={() => setExampleModal({
+                                isOpen: true,
+                                title: title,
+                                imageUrl: slotConfig.url,
+                                desc: slotConfig.desc || "ไม่มีคำอธิบายเพิ่มเติม"
+                            })}
+                            className="relative aspect-video rounded-lg overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center cursor-pointer group/example"
+                            title="คลิกเพื่อดูรูปขยาย"
+                        >
+                            <img src={slotConfig.url} alt="ตัวอย่าง" className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center opacity-0 group-hover/example:opacity-100 transition duration-150 text-[9px] text-white font-bold">
+                                ดูภาพขยาย
                             </div>
-                        ) : (
-                            <img
-                                src={previewUrl}
-                                alt={title}
-                                className="w-full h-full object-contain"
-                            />
-                        )}
-                        <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-200 gap-2">
-                            <button
-                                type="button"
-                                onClick={() => ref.current?.click()}
-                                className="px-2 py-1 bg-white text-slate-800 rounded hover:bg-slate-100 shadow text-[10px] font-bold"
-                            >
-                                เปลี่ยนรูป
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setFile(null);
-                                    if (ref.current) ref.current.value = "";
-                                }}
-                                className="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700 shadow text-[10px] font-bold"
-                            >
-                                ลบ
-                            </button>
+                            <span className="absolute bottom-1 left-1 bg-black bg-opacity-60 text-white text-[8px] px-1 rounded font-bold">
+                                ตัวอย่าง
+                            </span>
                         </div>
-                    </div>
-                ) : (
-                    <div
-                        onClick={() => ref.current?.click()}
-                        className="w-full aspect-video rounded-lg border-2 border-dashed border-slate-300 hover:border-slate-400 bg-slate-50 hover:bg-slate-100/50 flex flex-col items-center justify-center cursor-pointer transition p-2 text-center"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-slate-400 mb-1">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
-                        </svg>
-                        <span className="text-[10px] font-bold text-slate-600">คลิกเพื่ออัปโหลด</span>
-                        <span className="text-[8px] text-slate-400 mt-0.5">JPG, PNG หรือ PDF</span>
-                    </div>
+                    )}
+
+                    {/* Right Column: Upload Box or Preview */}
+                    {previewUrl ? (
+                        <div className="relative aspect-video rounded-lg overflow-hidden border border-slate-100 bg-slate-50 group">
+                            {file && file.type === "application/pdf" ? (
+                                <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 font-bold text-xs p-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-red-500 mb-1">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                                    </svg>
+                                    <span className="truncate max-w-full text-[10px]">{file.name}</span>
+                                </div>
+                            ) : (
+                                <img
+                                    src={previewUrl}
+                                    alt={title}
+                                    className="w-full h-full object-cover"
+                                />
+                            )}
+                            <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-200 gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => ref.current?.click()}
+                                    className="px-2 py-1 bg-white text-slate-800 rounded hover:bg-slate-100 shadow text-[10px] font-bold cursor-pointer"
+                                >
+                                    เปลี่ยนรูป
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setFile(null);
+                                        if (ref.current) ref.current.value = "";
+                                    }}
+                                    className="px-2 py-1 bg-red-650 text-white rounded hover:bg-red-700 shadow text-[10px] font-bold cursor-pointer"
+                                >
+                                    ลบ
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div
+                            onClick={() => ref.current?.click()}
+                            className="aspect-video rounded-lg border-2 border-dashed border-slate-300 hover:border-slate-400 bg-slate-50 hover:bg-slate-100/50 flex flex-col items-center justify-center cursor-pointer transition p-2 text-center"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-slate-400 mb-1">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
+                            </svg>
+                            <span className="text-[10px] font-bold text-slate-600">อัปโหลด</span>
+                        </div>
+                    )}
+                </div>
+
+                {hasExample && slotConfig.desc && (
+                    <p className="text-[9px] text-slate-500 mt-2 leading-tight italic truncate" title={slotConfig.desc}>
+                        💡 {slotConfig.desc}
+                    </p>
                 )}
             </div>
         );
     };
+
+    
 
     return (
         <div className="w-full max-w-5xl mx-auto h-[calc(100vh-140px)] flex flex-col justify-between select-none">
