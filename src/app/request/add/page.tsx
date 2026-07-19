@@ -50,7 +50,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
         zipcode: ""
     });
 
-    const parseAddressDetail = (detail) => {
+    const parseAddressDetail = (detail: string) => {
         const defaults = { number: "", soi: "", road: "", subdistrict: "", district: "", province: "", zipcode: "" };
         if (!detail) return defaults;
         const trimmed = detail.trim();
@@ -62,7 +62,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
         return { ...defaults, number: detail };
     };
 
-    const formatAddressDetail = (detail) => {
+    const formatAddressDetail = (detail: string) => {
         if (!detail) return "";
         const trimmed = detail.trim();
         if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
