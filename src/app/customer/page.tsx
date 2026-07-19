@@ -551,7 +551,7 @@ export default function CustomerManagementPage() {
                     <label className="block text-[10.5px] font-black text-sky-700 uppercase tracking-wider">
                       ที่อยู่สำหรับจัดส่งสินค้า
                     </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
                       <div>
                         <label className="block text-[11px] font-bold text-slate-500 mb-0.5">บ้านเลขที่/อาคาร</label>
                         <input
@@ -572,7 +572,7 @@ export default function CustomerManagementPage() {
                           onChange={e => setShippingFields(prev => ({ ...prev, soi: e.target.value }))}
                         />
                       </div>
-                      <div>
+                      <div className="sm:col-span-2">
                         <label className="block text-[11px] font-bold text-slate-500 mb-0.5">ถนน</label>
                         <input
                           type="text"
@@ -639,7 +639,7 @@ export default function CustomerManagementPage() {
                         คัดลอกจากที่อยู่จัดส่ง
                       </button>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
                       <div>
                         <label className="block text-[11px] font-bold text-slate-500 mb-0.5">บ้านเลขที่/อาคาร</label>
                         <input
@@ -660,7 +660,7 @@ export default function CustomerManagementPage() {
                           onChange={e => setBillingFields(prev => ({ ...prev, soi: e.target.value }))}
                         />
                       </div>
-                      <div>
+                      <div className="sm:col-span-2">
                         <label className="block text-[11px] font-bold text-slate-500 mb-0.5">ถนน</label>
                         <input
                           type="text"
