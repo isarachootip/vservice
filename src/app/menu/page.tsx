@@ -108,8 +108,8 @@ export default function MenuPage() {
       bgColor: "bg-pink-50",
     },
     {
-      title: "คู่มือ & คำถามที่พบบ่อย (Manual & FAQ)",
-      desc: "ศูนย์ช่วยเหลือรวบรวมขั้นตอน Workflow Manual ในการเดินระบบ และคำถามที่พบบ่อย (FAQs)",
+      title: "คลังความรู้ & คู่มือระบบ (Knowledge & Manual)",
+      desc: "รวบรวมขั้นตอนการทำงาน (Workflow) ทั้ง 6 ขั้นตอน และคุณสมบัติเด่นของระบบ พร้อมคำถามที่พบบ่อย (FAQs)",
       href: "/faq",
       icon: BookOpen,
       color: "text-violet-600",
