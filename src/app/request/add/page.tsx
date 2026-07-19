@@ -802,71 +802,71 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                 <label className="block text-[11px] font-black text-sky-750 uppercase tracking-wider">ที่อยู่จัดส่งสินค้า</label>
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
                                     <div>
-                                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">บ้านเลขที่/อาคาร</label>
+                                        <label className="block text-[11px] font-bold text-slate-500 mb-0.5">บ้านเลขที่/อาคาร</label>
                                         <input
                                             type="text"
                                             placeholder="เช่น 123/45 หมู่ 5"
-                                            className="input-base text-xs py-1"
+                                            className="input-base text-sm"
                                             value={shippingFields.number}
                                             onChange={e => setShippingFields(prev => ({ ...prev, number: e.target.value }))}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">ซอย</label>
+                                        <label className="block text-[11px] font-bold text-slate-500 mb-0.5">ซอย</label>
                                         <input
                                             type="text"
                                             placeholder="เช่น ซอยสุขุมวิท 10"
-                                            className="input-base text-xs py-1"
+                                            className="input-base text-sm"
                                             value={shippingFields.soi}
                                             onChange={e => setShippingFields(prev => ({ ...prev, soi: e.target.value }))}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">ถนน</label>
+                                        <label className="block text-[11px] font-bold text-slate-500 mb-0.5">ถนน</label>
                                         <input
                                             type="text"
                                             placeholder="เช่น ถนนสุขุมวิท"
-                                            className="input-base text-xs py-1"
+                                            className="input-base text-sm"
                                             value={shippingFields.road}
                                             onChange={e => setShippingFields(prev => ({ ...prev, road: e.target.value }))}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">แขวง/ตำบล</label>
+                                        <label className="block text-[11px] font-bold text-slate-500 mb-0.5">แขวง/ตำบล</label>
                                         <input
                                             type="text"
                                             placeholder="เช่น คลองเตย"
-                                            className="input-base text-xs py-1"
+                                            className="input-base text-sm"
                                             value={shippingFields.subdistrict}
                                             onChange={e => setShippingFields(prev => ({ ...prev, subdistrict: e.target.value }))}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">เขต/อำเภอ</label>
+                                        <label className="block text-[11px] font-bold text-slate-500 mb-0.5">เขต/อำเภอ</label>
                                         <input
                                             type="text"
                                             placeholder="เช่น คลองเตย"
-                                            className="input-base text-xs py-1"
+                                            className="input-base text-sm"
                                             value={shippingFields.district}
                                             onChange={e => setShippingFields(prev => ({ ...prev, district: e.target.value }))}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">จังหวัด</label>
+                                        <label className="block text-[11px] font-bold text-slate-500 mb-0.5">จังหวัด</label>
                                         <input
                                             type="text"
                                             placeholder="เช่น กรุงเทพมหานคร"
-                                            className="input-base text-xs py-1"
+                                            className="input-base text-sm"
                                             value={shippingFields.province}
                                             onChange={e => setShippingFields(prev => ({ ...prev, province: e.target.value }))}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">รหัสไปรษณีย์</label>
+                                        <label className="block text-[11px] font-bold text-slate-500 mb-0.5">รหัสไปรษณีย์</label>
                                         <input
                                             type="text"
                                             placeholder="เช่น 10110"
-                                            className="input-base text-xs py-1"
+                                            className="input-base text-sm"
                                             value={shippingFields.zipcode}
                                             onChange={e => setShippingFields(prev => ({ ...prev, zipcode: e.target.value }))}
                                         />
@@ -901,71 +901,71 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                         </div>
                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
                                             <div>
-                                                <label className="block text-[9px] font-bold text-slate-400 mb-0.5">บ้านเลขที่/อาคาร</label>
+                                                <label className="block text-[11px] font-bold text-slate-500 mb-0.5">บ้านเลขที่/อาคาร</label>
                                                 <input
                                                     type="text"
                                                     placeholder="เช่น 123/45 หมู่ 5"
-                                                    className="input-base text-xs py-1"
+                                                    className="input-base text-sm"
                                                     value={billingFields.number}
                                                     onChange={e => setBillingFields(prev => ({ ...prev, number: e.target.value }))}
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-[9px] font-bold text-slate-400 mb-0.5">ซอย</label>
+                                                <label className="block text-[11px] font-bold text-slate-500 mb-0.5">ซอย</label>
                                                 <input
                                                     type="text"
                                                     placeholder="เช่น ซอยสุขุมวิท 10"
-                                                    className="input-base text-xs py-1"
+                                                    className="input-base text-sm"
                                                     value={billingFields.soi}
                                                     onChange={e => setBillingFields(prev => ({ ...prev, soi: e.target.value }))}
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-[9px] font-bold text-slate-400 mb-0.5">ถนน</label>
+                                                <label className="block text-[11px] font-bold text-slate-500 mb-0.5">ถนน</label>
                                                 <input
                                                     type="text"
                                                     placeholder="เช่น ถนนสุขุมวิท"
-                                                    className="input-base text-xs py-1"
+                                                    className="input-base text-sm"
                                                     value={billingFields.road}
                                                     onChange={e => setBillingFields(prev => ({ ...prev, road: e.target.value }))}
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-[9px] font-bold text-slate-400 mb-0.5">แขวง/ตำบล</label>
+                                                <label className="block text-[11px] font-bold text-slate-500 mb-0.5">แขวง/ตำบล</label>
                                                 <input
                                                     type="text"
                                                     placeholder="เช่น คลองเตย"
-                                                    className="input-base text-xs py-1"
+                                                    className="input-base text-sm"
                                                     value={billingFields.subdistrict}
                                                     onChange={e => setBillingFields(prev => ({ ...prev, subdistrict: e.target.value }))}
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-[9px] font-bold text-slate-400 mb-0.5">เขต/อำเภอ</label>
+                                                <label className="block text-[11px] font-bold text-slate-500 mb-0.5">เขต/อำเภอ</label>
                                                 <input
                                                     type="text"
                                                     placeholder="เช่น คลองเตย"
-                                                    className="input-base text-xs py-1"
+                                                    className="input-base text-sm"
                                                     value={billingFields.district}
                                                     onChange={e => setBillingFields(prev => ({ ...prev, district: e.target.value }))}
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-[9px] font-bold text-slate-400 mb-0.5">จังหวัด</label>
+                                                <label className="block text-[11px] font-bold text-slate-500 mb-0.5">จังหวัด</label>
                                                 <input
                                                     type="text"
                                                     placeholder="เช่น กรุงเทพมหานคร"
-                                                    className="input-base text-xs py-1"
+                                                    className="input-base text-sm"
                                                     value={billingFields.province}
                                                     onChange={e => setBillingFields(prev => ({ ...prev, province: e.target.value }))}
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-[9px] font-bold text-slate-400 mb-0.5">รหัสไปรษณีย์</label>
+                                                <label className="block text-[11px] font-bold text-slate-500 mb-0.5">รหัสไปรษณีย์</label>
                                                 <input
                                                     type="text"
                                                     placeholder="เช่น 10110"
-                                                    className="input-base text-xs py-1"
+                                                    className="input-base text-sm"
                                                     value={billingFields.zipcode}
                                                     onChange={e => setBillingFields(prev => ({ ...prev, zipcode: e.target.value }))}
                                                 />
@@ -985,7 +985,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                     <label className="block text-[11px] font-semibold text-slate-500 mb-1">ยี่ห้อ<Req /></label>
                                     {skuFlg ? (
                                         <select
-                                            className="input-base text-xs py-1"
+                                            className="input-base text-sm"
                                             value={brand}
                                             onChange={(e) => {
                                                 const v = e.target.value;
@@ -1020,7 +1020,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                     <label className="block text-[11px] font-semibold text-slate-500 mb-1">ประเภทสินค้า<Req /></label>
                                     {skuFlg ? (
                                         <select
-                                            className="input-base text-xs py-1"
+                                            className="input-base text-sm"
                                             value={productType}
                                             onChange={(e) => {
                                                 const v = e.target.value;
@@ -1058,7 +1058,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                                                     {skuFlg && brand && productType ? (
                                         <select
                                             id="sku"
-                                            className="input-base text-xs py-1"
+                                            className="input-base text-sm"
                                             value={sku ? String(sku) : ""}
                                             onChange={(e) => {
                                                 const val = e.target.value;
@@ -1137,7 +1137,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                     {skuFlg ? (
                                         <select
                                             id="model"
-                                            className="input-base text-xs py-1"
+                                            className="input-base text-sm"
                                             value={sku && barcode && model ? `${sku}|${barcode}|${model}` : ""}
                                             onChange={(e) => {
                                                 const val = e.target.value;
@@ -1170,7 +1170,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                     ) : (
                                         <input
                                             id="model"
-                                            className="input-base text-xs py-1"
+                                            className="input-base text-sm"
                                             value={model}
                                             onChange={e => setModel(e.target.value)}
                                             placeholder="ระบุรุ่นสินค้า"
@@ -1181,7 +1181,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                     <label htmlFor="serial" className="block text-[11px] font-semibold text-slate-500 mb-1">Serial Number (เลขเครื่อง)</label>
                                     <input
                                         id="serial"
-                                        className="input-base text-xs py-1"
+                                        className="input-base text-sm"
                                         value={serial}
                                         onChange={e => setSerial(e.target.value)}
                                         placeholder="ระบุเลข Serial"

@@ -523,7 +523,7 @@ export default function CustomerManagementPage() {
                     type="text"
                     required
                     placeholder="เช่น สมชาย รักดี"
-                    className="input input-sm input-bordered w-full rounded-xl text-xs"
+                    className="input input-sm input-bordered w-full rounded-xl text-sm"
                     value={formName}
                     onChange={e => setFormName(e.target.value)}
                   />
@@ -534,7 +534,7 @@ export default function CustomerManagementPage() {
                     type="text"
                     required
                     placeholder="เช่น 0812345678"
-                    className="input input-sm input-bordered w-full rounded-xl text-xs"
+                    className="input input-sm input-bordered w-full rounded-xl text-sm"
                     value={formPhone}
                     onChange={e => setFormPhone(e.target.value)}
                   />
@@ -553,71 +553,71 @@ export default function CustomerManagementPage() {
                     </label>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
                       <div>
-                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">บ้านเลขที่/อาคาร</label>
+                        <label className="block text-[11px] font-bold text-slate-500 mb-0.5">บ้านเลขที่/อาคาร</label>
                         <input
                           type="text"
                           placeholder="เช่น 123/45 หมู่ 5"
-                          className="input input-xs input-bordered w-full rounded-lg text-xs"
+                          className="input input-sm input-bordered w-full rounded-lg text-sm"
                           value={shippingFields.number}
                           onChange={e => setShippingFields(prev => ({ ...prev, number: e.target.value }))}
                         />
                       </div>
                       <div>
-                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">ซอย</label>
+                        <label className="block text-[11px] font-bold text-slate-500 mb-0.5">ซอย</label>
                         <input
                           type="text"
                           placeholder="เช่น ซอยสุขุมวิท 10"
-                          className="input input-xs input-bordered w-full rounded-lg text-xs"
+                          className="input input-sm input-bordered w-full rounded-lg text-sm"
                           value={shippingFields.soi}
                           onChange={e => setShippingFields(prev => ({ ...prev, soi: e.target.value }))}
                         />
                       </div>
                       <div>
-                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">ถนน</label>
+                        <label className="block text-[11px] font-bold text-slate-500 mb-0.5">ถนน</label>
                         <input
                           type="text"
                           placeholder="เช่น ถนนสุขุมวิท"
-                          className="input input-xs input-bordered w-full rounded-lg text-xs"
+                          className="input input-sm input-bordered w-full rounded-lg text-sm"
                           value={shippingFields.road}
                           onChange={e => setShippingFields(prev => ({ ...prev, road: e.target.value }))}
                         />
                       </div>
                       <div>
-                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">แขวง/ตำบล</label>
+                        <label className="block text-[11px] font-bold text-slate-500 mb-0.5">แขวง/ตำบล</label>
                         <input
                           type="text"
                           placeholder="เช่น คลองเตย"
-                          className="input input-xs input-bordered w-full rounded-lg text-xs"
+                          className="input input-sm input-bordered w-full rounded-lg text-sm"
                           value={shippingFields.subdistrict}
                           onChange={e => setShippingFields(prev => ({ ...prev, subdistrict: e.target.value }))}
                         />
                       </div>
                       <div>
-                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">เขต/อำเภอ</label>
+                        <label className="block text-[11px] font-bold text-slate-500 mb-0.5">เขต/อำเภอ</label>
                         <input
                           type="text"
                           placeholder="เช่น คลองเตย"
-                          className="input input-xs input-bordered w-full rounded-lg text-xs"
+                          className="input input-sm input-bordered w-full rounded-lg text-sm"
                           value={shippingFields.district}
                           onChange={e => setShippingFields(prev => ({ ...prev, district: e.target.value }))}
                         />
                       </div>
                       <div>
-                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">จังหวัด</label>
+                        <label className="block text-[11px] font-bold text-slate-500 mb-0.5">จังหวัด</label>
                         <input
                           type="text"
                           placeholder="เช่น กรุงเทพมหานคร"
-                          className="input input-xs input-bordered w-full rounded-lg text-xs"
+                          className="input input-sm input-bordered w-full rounded-lg text-sm"
                           value={shippingFields.province}
                           onChange={e => setShippingFields(prev => ({ ...prev, province: e.target.value }))}
                         />
                       </div>
                       <div>
-                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">รหัสไปรษณีย์</label>
+                        <label className="block text-[11px] font-bold text-slate-500 mb-0.5">รหัสไปรษณีย์</label>
                         <input
                           type="text"
                           placeholder="เช่น 10110"
-                          className="input input-xs input-bordered w-full rounded-lg text-xs"
+                          className="input input-sm input-bordered w-full rounded-lg text-sm"
                           value={shippingFields.zipcode}
                           onChange={e => setShippingFields(prev => ({ ...prev, zipcode: e.target.value }))}
                         />
@@ -641,71 +641,71 @@ export default function CustomerManagementPage() {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
                       <div>
-                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">บ้านเลขที่/อาคาร</label>
+                        <label className="block text-[11px] font-bold text-slate-500 mb-0.5">บ้านเลขที่/อาคาร</label>
                         <input
                           type="text"
                           placeholder="เช่น 123/45 หมู่ 5"
-                          className="input input-xs input-bordered w-full rounded-lg text-xs"
+                          className="input input-sm input-bordered w-full rounded-lg text-sm"
                           value={billingFields.number}
                           onChange={e => setBillingFields(prev => ({ ...prev, number: e.target.value }))}
                         />
                       </div>
                       <div>
-                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">ซอย</label>
+                        <label className="block text-[11px] font-bold text-slate-500 mb-0.5">ซอย</label>
                         <input
                           type="text"
                           placeholder="เช่น ซอยสุขุมวิท 10"
-                          className="input input-xs input-bordered w-full rounded-lg text-xs"
+                          className="input input-sm input-bordered w-full rounded-lg text-sm"
                           value={billingFields.soi}
                           onChange={e => setBillingFields(prev => ({ ...prev, soi: e.target.value }))}
                         />
                       </div>
                       <div>
-                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">ถนน</label>
+                        <label className="block text-[11px] font-bold text-slate-500 mb-0.5">ถนน</label>
                         <input
                           type="text"
                           placeholder="เช่น ถนนสุขุมวิท"
-                          className="input input-xs input-bordered w-full rounded-lg text-xs"
+                          className="input input-sm input-bordered w-full rounded-lg text-sm"
                           value={billingFields.road}
                           onChange={e => setBillingFields(prev => ({ ...prev, road: e.target.value }))}
                         />
                       </div>
                       <div>
-                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">แขวง/ตำบล</label>
+                        <label className="block text-[11px] font-bold text-slate-500 mb-0.5">แขวง/ตำบล</label>
                         <input
                           type="text"
                           placeholder="เช่น คลองเตย"
-                          className="input input-xs input-bordered w-full rounded-lg text-xs"
+                          className="input input-sm input-bordered w-full rounded-lg text-sm"
                           value={billingFields.subdistrict}
                           onChange={e => setBillingFields(prev => ({ ...prev, subdistrict: e.target.value }))}
                         />
                       </div>
                       <div>
-                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">เขต/อำเภอ</label>
+                        <label className="block text-[11px] font-bold text-slate-500 mb-0.5">เขต/อำเภอ</label>
                         <input
                           type="text"
                           placeholder="เช่น คลองเตย"
-                          className="input input-xs input-bordered w-full rounded-lg text-xs"
+                          className="input input-sm input-bordered w-full rounded-lg text-sm"
                           value={billingFields.district}
                           onChange={e => setBillingFields(prev => ({ ...prev, district: e.target.value }))}
                         />
                       </div>
                       <div>
-                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">จังหวัด</label>
+                        <label className="block text-[11px] font-bold text-slate-500 mb-0.5">จังหวัด</label>
                         <input
                           type="text"
                           placeholder="เช่น กรุงเทพมหานคร"
-                          className="input input-xs input-bordered w-full rounded-lg text-xs"
+                          className="input input-sm input-bordered w-full rounded-lg text-sm"
                           value={billingFields.province}
                           onChange={e => setBillingFields(prev => ({ ...prev, province: e.target.value }))}
                         />
                       </div>
                       <div>
-                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">รหัสไปรษณีย์</label>
+                        <label className="block text-[11px] font-bold text-slate-500 mb-0.5">รหัสไปรษณีย์</label>
                         <input
                           type="text"
                           placeholder="เช่น 10110"
-                          className="input input-xs input-bordered w-full rounded-lg text-xs"
+                          className="input input-sm input-bordered w-full rounded-lg text-sm"
                           value={billingFields.zipcode}
                           onChange={e => setBillingFields(prev => ({ ...prev, zipcode: e.target.value }))}
                         />
