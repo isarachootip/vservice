@@ -33,7 +33,9 @@ import {
   Percent,
   Clock,
   MessageSquare,
-  Image
+  Image,
+  Grid,
+  BookOpen
 } from "lucide-react";
 
 
@@ -266,12 +268,14 @@ export default function AppShell({ children }: { children: ReactNode }) {
 
   const menuItems = [
     { href: "/dashboard", label: "หน้าหลัก", icon: Home },
+    { href: "/menu", label: "เมนูหลัก (VService)", icon: Grid },
     { href: "/status", label: "งานซ่อมทั้งหมด", icon: ClipboardList },
     { href: "/request/add", label: "รับเครื่อง / สร้างงาน", icon: Wrench, show: canAddRequest },
     { href: "/customer", label: "ลูกค้า", icon: Users },
     { href: "/quotation", label: "ใบเสนอราคา", icon: FileText, badge: 8 },
     { href: "/chat", label: "ห้องสนทนาทีมงาน", icon: MessageSquare },
     { href: "/chat/customer", label: "แชตกับลูกค้า (LINE)", icon: MessageSquare },
+    { href: "/faq", label: "คลังความรู้ & คู่มือ", icon: BookOpen },
     { href: "/maintain?tab=location", label: "สาขา / จุดบริการ", icon: Store, show: isAdmin },
     { href: "#", label: "รายงาน / วิเคราะห์", icon: BarChart2 },
     { href: "#", label: "การแจ้งเตือน", icon: Bell, badge: 6 },
