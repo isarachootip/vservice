@@ -103,6 +103,8 @@ model repair_request {
   location                        String?               @db.VarChar(100)
   location_id                     String?               @db.VarChar(50)
   location_rel                    location?             @relation(fields: [location_id], references: [id], onDelete: SetNull)
+  customer_id                     Int?
+  customer_rel                    customer?             @relation(fields: [customer_id], references: [id], onDelete: SetNull)
   status_updated_date             DateTime?             @db.Timestamp(6)
   service_tier                    String?               @db.VarChar(20) @default("NORMAL")
   diagnostic_fee                  Decimal?              @db.Decimal(10, 2) @default(0.00)
@@ -500,4 +502,27 @@ model system_config {
   config_key   String   @id @db.VarChar(100)
   config_value String   @db.Text
   updated_at   DateTime @default(now()) @db.Timestamp(6)
+}
+
+model customer {
+  id           Int                @id @default(autoincrement())
+  name         String             @db.VarChar(100)
+  phone        String             @unique @db.VarChar(30)
+  created_date DateTime?          @default(now()) @db.Timestamp(6)
+  updated_date DateTime?          @default(now()) @db.Timestamp(6)
+  
+  // Relations
+  addresses       customer_address[]
+  repair_requests repair_request[]
+}
+
+model customer_address {
+  id             Int       @id @default(autoincrement())
+  customer_id    Int
+  address_type   String    @db.VarChar(20) // "BILLING" or "SHIPPING"
+  address_detail String    @db.VarChar(250)
+  created_date   DateTime? @default(now()) @db.Timestamp(6)
+  updated_date   DateTime? @default(now()) @db.Timestamp(6)
+
+  customer       customer  @relation(fields: [customer_id], references: [id], onDelete: Cascade)
 }

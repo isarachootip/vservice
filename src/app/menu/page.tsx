@@ -10,6 +10,7 @@ import {
   FileText, 
   MessageSquare, 
   Users, 
+  User,
   Store, 
   BookOpen, 
   Settings, 
@@ -97,6 +98,14 @@ export default function MenuPage() {
       icon: Users,
       color: "text-indigo-600",
       bgColor: "bg-indigo-50",
+    },
+    {
+      title: "จัดการข้อมูลลูกค้า (Customer Management)",
+      desc: "ค้นหาข้อมูลลูกค้า ดูประวัติการแจ้งซ่อม และจัดการที่อยู่จัดส่งสินค้า/ออกใบกำกับภาษี",
+      href: "/customer",
+      icon: User,
+      color: "text-pink-600",
+      bgColor: "bg-pink-50",
     },
     {
       title: "คู่มือ & คำถามที่พบบ่อย (Manual & FAQ)",

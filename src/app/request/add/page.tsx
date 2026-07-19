@@ -31,6 +31,54 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
     const [lastName, setLastName]  = useState("");
     const [address, setAddress]    = useState("");
     const [phone, setPhone]        = useState("");
+    const [billingAddress, setBillingAddress] = useState("");
+    const [useSameAddress, setUseSameAddress] = useState(true);
+    const [lookupLoading, setLookupLoading]   = useState(false);
+    const [foundCustomerMsg, setFoundCustomerMsg] = useState("");
+
+    useEffect(() => {
+        const cleanedPhone = phone.trim();
+        if (cleanedPhone.length === 10) {
+            const lookup = async () => {
+                setLookupLoading(true);
+                setFoundCustomerMsg("");
+                try {
+                    const res = await fetch(`/api/customer/lookup?phone=${cleanedPhone}`);
+                    const data = await res.json();
+                    if (data.ok && data.customer) {
+                        const cust = data.customer;
+                        const names = cust.name.split(" ");
+                        const first = names[0] || "";
+                        const last = names.slice(1).join(" ") || "";
+                        setFirstName(first);
+                        setLastName(last);
+                        
+                        const shipping = cust.addresses.find((a: any) => a.address_type === "SHIPPING")?.address_detail || "";
+                        const billing = cust.addresses.find((a: any) => a.address_type === "BILLING")?.address_detail || "";
+                        
+                        setAddress(shipping);
+                        if (billing && billing !== shipping) {
+                            setBillingAddress(billing);
+                            setUseSameAddress(false);
+                        } else {
+                            setBillingAddress(shipping);
+                            setUseSameAddress(true);
+                        }
+                        setFoundCustomerMsg(`พบข้อมูลคุณ ${cust.name} ในระบบ (ดึงข้อมูลอัตโนมัติ)`);
+                    } else {
+                        setFoundCustomerMsg("ลูกค้าใหม่ (ยังไม่มีข้อมูลในฐานข้อมูล)");
+                    }
+                } catch (err) {
+                    console.error("Lookup error:", err);
+                } finally {
+                    setLookupLoading(false);
+                }
+            };
+            lookup();
+        } else {
+            setFoundCustomerMsg("");
+        }
+    }, [phone]);
 
     //? ข้อมูลสินค้า
     const [productType, setProductType] = useState("");
@@ -437,6 +485,8 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
             firstName,
             lastName,
             address,
+            billingAddress: useSameAddress ? address : billingAddress,
+            shippingAddress: address,
             phone,
             receiveFromUserDtStr,
         }));
@@ -633,8 +683,11 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                             </div>
 
                             <div className="grid grid-cols-3 gap-3 items-end">
-                                <div className="col-span-2">
-                                    <label htmlFor="phone" className="block text-[11px] font-semibold text-slate-500 mb-1">เบอร์โทรศัพท์<Req /></label>
+                                <div className="col-span-2 relative">
+                                    <label htmlFor="phone" className="block text-[11px] font-semibold text-slate-500 mb-1">
+                                        เบอร์โทรศัพท์<Req />
+                                        {lookupLoading && <span className="ml-2 loading loading-spinner loading-xs text-[#c8102e] inline-block align-middle"></span>}
+                                    </label>
                                     <input
                                         id="phone"
                                         className={inputClass(!!errors.phone)}
@@ -643,6 +696,13 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                         inputMode="tel"
                                         placeholder="0812345678"
                                     />
+                                    {foundCustomerMsg && (
+                                        <p className={`text-[10px] mt-0.5 font-bold ${
+                                            foundCustomerMsg.includes("พบข้อมูล") ? "text-emerald-600" : "text-blue-500"
+                                        }`}>
+                                            {foundCustomerMsg}
+                                        </p>
+                                    )}
                                     {errors.phone && <p className="text-red-600 text-[10px] mt-0.5">{errors.phone}</p>}
                                 </div>
                                 <div className="flex items-center pb-2">
@@ -666,7 +726,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                             </div>
 
                             <div>
-                                <label htmlFor="address" className="block text-[11px] font-semibold text-slate-500 mb-1">ที่อยู่ติดต่อ</label>
+                                <label htmlFor="address" className="block text-[11px] font-semibold text-slate-500 mb-1">ที่อยู่จัดส่งสินค้า</label>
                                 <textarea
                                     id="address"
                                     className="input-base text-xs py-1 h-12 resize-none"
@@ -674,6 +734,32 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                     onChange={e => setAddress(e.target.value)}
                                     placeholder="บ้านเลขที่, ถนน, ตำบล, อำเภอ, จังหวัด"
                                 />
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <div className="flex items-center">
+                                    <label className="inline-flex items-center gap-1.5 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={useSameAddress}
+                                            onChange={e => setUseSameAddress(e.target.checked)}
+                                            className="w-4 h-4 rounded text-[#c8102e] focus:ring-[#c8102e] border-slate-300"
+                                        />
+                                        <span className="text-[11px] font-semibold text-slate-700">ใช้ที่อยู่จัดส่งเป็นที่อยู่ออกใบกำกับภาษี</span>
+                                    </label>
+                                </div>
+                                {!useSameAddress && (
+                                    <div>
+                                        <label htmlFor="billingAddress" className="block text-[11px] font-semibold text-slate-500 mb-1">ที่อยู่ออกใบกำกับภาษี</label>
+                                        <textarea
+                                            id="billingAddress"
+                                            className="input-base text-xs py-1 h-12 resize-none"
+                                            value={billingAddress}
+                                            onChange={e => setBillingAddress(e.target.value)}
+                                            placeholder="ระบุบ้านเลขที่, ชื่อบริษัท/ร้านค้า, เลขผู้เสียภาษี (ถ้ามี)"
+                                        />
+                                    </div>
+                                )}
                             </div>
 
                             <h3 className="text-xs font-bold text-slate-800 border-b border-slate-100 pb-1 pt-1 flex items-center gap-1.5 uppercase tracking-wide">

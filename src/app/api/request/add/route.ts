@@ -72,7 +72,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, message: "ไม่พบข้อมูลผู้ใช้งาน" }, { status: 401 });
     }
 
-    const { firstName, lastName, address, phone, receiveFromUserDtStr } = customer;
+    const { firstName, lastName, address, billingAddress, shippingAddress, phone, receiveFromUserDtStr } = customer;
     const { productType, brand, model = "", serial = "", qty, skuFlg, sku, barcode, issue = ""} = product;
 
     const { status, warrantyNo = null } = warranty;
@@ -98,6 +98,73 @@ export async function POST(req: Request) {
     const inWarrantyFlag = status === "in" ? "Y" : "N"
     const serial_num = (serial ?? "").trim();
 
+    // Check/create/update customer logic
+    const trimmedPhone = String(phone || "").trim();
+    const finalBillingAddress = String(billingAddress || address || "").trim();
+    const finalShippingAddress = String(shippingAddress || address || "").trim();
+
+    let dbCustomer = await prisma.customer.findUnique({
+      where: { phone: trimmedPhone }
+    });
+
+    if (!dbCustomer) {
+      dbCustomer = await prisma.customer.create({
+        data: {
+          name: fullCustomerName,
+          phone: trimmedPhone,
+          addresses: {
+            create: [
+              ...(finalBillingAddress ? [{ address_type: "BILLING", address_detail: finalBillingAddress }] : []),
+              ...(finalShippingAddress ? [{ address_type: "SHIPPING", address_detail: finalShippingAddress }] : [])
+            ]
+          }
+        }
+      });
+    } else {
+      await prisma.customer.update({
+        where: { id: dbCustomer.id },
+        data: {
+          name: fullCustomerName,
+          updated_date: new Date()
+        }
+      });
+
+      const existingAddresses = await prisma.customer_address.findMany({
+        where: { customer_id: dbCustomer.id }
+      });
+
+      const hasBilling = existingAddresses.some(a => a.address_type === "BILLING");
+      const hasShipping = existingAddresses.some(a => a.address_type === "SHIPPING");
+
+      if (!hasBilling && finalBillingAddress) {
+        await prisma.customer_address.create({
+          data: { customer_id: dbCustomer.id, address_type: "BILLING", address_detail: finalBillingAddress }
+        });
+      } else if (hasBilling && finalBillingAddress) {
+        const billingAddr = existingAddresses.find(a => a.address_type === "BILLING");
+        if (billingAddr && billingAddr.address_detail !== finalBillingAddress) {
+          await prisma.customer_address.update({
+            where: { id: billingAddr.id },
+            data: { address_detail: finalBillingAddress, updated_date: new Date() }
+          });
+        }
+      }
+
+      if (!hasShipping && finalShippingAddress) {
+        await prisma.customer_address.create({
+          data: { customer_id: dbCustomer.id, address_type: "SHIPPING", address_detail: finalShippingAddress }
+        });
+      } else if (hasShipping && finalShippingAddress) {
+        const shippingAddr = existingAddresses.find(a => a.address_type === "SHIPPING");
+        if (shippingAddr && shippingAddr.address_detail !== finalShippingAddress) {
+          await prisma.customer_address.update({
+            where: { id: shippingAddr.id },
+            data: { address_detail: finalShippingAddress, updated_date: new Date() }
+          });
+        }
+      }
+    }
+
     const uploadDir = path.join(process.cwd(), "public", "uploads", "repair", request_no);
     await fs.mkdir(uploadDir, { recursive: true });
 
@@ -107,8 +174,9 @@ export async function POST(req: Request) {
     const created = await prisma.repair_request.create({
       data: {
         request_no: request_no,
+        customer_id: dbCustomer.id,
         customer_name: fullCustomerName,
-        address,
+        address: finalShippingAddress,
         phone,
         store_code: storeCode,
         location_id: profile?.location_id || null,
