@@ -138,6 +138,8 @@ export async function POST(req: Request) {
       data: {
         status: statusByMode,
         updated_user: updatedUser,
+        updated_date: new Date(),
+        status_updated_date: new Date(),
       },
     });
 

@@ -93,6 +93,8 @@ export async function POST(req: Request) {
       data: {
         status: 0,
         updated_user: body.updatedUser,
+        updated_date: new Date(),
+        status_updated_date: new Date(),
       },
     });
 

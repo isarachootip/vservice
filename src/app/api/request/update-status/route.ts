@@ -84,6 +84,8 @@ export async function POST(req: Request) {
           reject_flg: "N",
           status: body.status,
           updated_user: body.updatedUser,
+          updated_date: new Date(),
+          status_updated_date: new Date(),
         },
       });
     }else{
@@ -92,6 +94,8 @@ export async function POST(req: Request) {
         data: {
           status: body.status,
           updated_user: body.updatedUser,
+          updated_date: new Date(),
+          status_updated_date: new Date(),
         },
       });
     }

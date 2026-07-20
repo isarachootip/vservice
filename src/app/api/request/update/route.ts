@@ -214,8 +214,13 @@ export async function POST(req: Request) {
         address: formatAddressDetail(body.customer?.address ?? existing.address),
         phone: body.customer?.phone ?? existing.phone,
         updated_user: updatedUser,
+        updated_date: new Date(),
         status,
       };
+
+      if (status !== existing.status) {
+        requestBaseUpdate.status_updated_date = new Date();
+      }
 
       const receiveDateParsed = parseDate(body.customer?.receiveFromUserDt);
       if (receiveDateParsed) {

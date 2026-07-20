@@ -98,6 +98,8 @@ export async function POST(req: Request) {
                         vendor_return_sender_tel: vendorSentTel,
                         status: nextStatus,
                         updated_user: updatedUser,
+                        updated_date: new Date(),
+                        status_updated_date: new Date(),
                     },
                 });
 

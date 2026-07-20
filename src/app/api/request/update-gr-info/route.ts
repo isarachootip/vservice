@@ -71,6 +71,8 @@ export async function POST(req: Request) {
                 cs_send_to_gr_date: sendDateDt,
                 status: StatusGrToCS,
                 updated_user: updatedUser,
+                updated_date: new Date(),
+                status_updated_date: new Date(),
             },
         });
 

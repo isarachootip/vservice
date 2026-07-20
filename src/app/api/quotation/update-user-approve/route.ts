@@ -78,6 +78,7 @@ export async function POST(req: Request) {
                         user_approve_date: approveDateDt,
                         ticket_no: ticketNum,
                         updated_user: updatedUser,
+                        updated_date: new Date(),
                     },
                 })
             )
@@ -89,6 +90,8 @@ export async function POST(req: Request) {
                 data: {
                     status: statusByMode,
                     updated_user: updatedUser,
+                    updated_date: new Date(),
+                    status_updated_date: new Date(),
                 },
             });
         }
@@ -98,6 +101,8 @@ export async function POST(req: Request) {
                 data: {
                     status: statusByMode,
                     updated_user: updatedUser,
+                    updated_date: new Date(),
+                    status_updated_date: new Date(),
                 },
             });
         }

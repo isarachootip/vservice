@@ -69,6 +69,8 @@ export async function POST(req: Request) {
                 approvelog_id: approvelogID,
                 status: StatusGrLogForDc,
                 updated_user: updatedUser,
+                updated_date: new Date(),
+                status_updated_date: new Date(),
             },
         });
 

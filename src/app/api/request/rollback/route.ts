@@ -115,6 +115,8 @@ export async function POST(req: Request) {
             const updateData: {
                 status: number;
                 updated_user: string;
+                updated_date?: Date;
+                status_updated_date?: Date;
                 rollback_reason: string;
                 rollback_by: string;
                 rollback_date?: Date | null;
@@ -128,6 +130,8 @@ export async function POST(req: Request) {
             } = {
                 status: prevStatus,
                 updated_user: user,
+                updated_date: new Date(),
+                status_updated_date: new Date(),
 
                 rollback_reason: reason,
                 rollback_by: updatedUser,

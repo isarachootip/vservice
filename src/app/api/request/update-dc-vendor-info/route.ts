@@ -53,6 +53,8 @@ export async function POST(req: Request) {
                 send_to_vendor_tel: vendorReceiverTel,
                 status: 240,
                 updated_user: updatedUser,
+                updated_date: new Date(),
+                status_updated_date: new Date(),
             },
         });
 

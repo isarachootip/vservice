@@ -91,6 +91,8 @@ export async function POST(req: Request) {
                     vendor_to_dc_tel: vendorSentTel,
                     status: nextStatus,
                     updated_user: updatedUser,
+                    updated_date: new Date(),
+                    status_updated_date: new Date(),
                 },
             });
         }
@@ -117,6 +119,8 @@ export async function POST(req: Request) {
                     vendor_to_dc_tel: vendorSentTel,
                     status: nextStatus,
                     updated_user: updatedUser,
+                    updated_date: new Date(),
+                    status_updated_date: new Date(),
                 },
             });
         }
@@ -143,6 +147,8 @@ export async function POST(req: Request) {
                     vendor_to_dc_tel: vendorSentTel,
                     status: nextStatus,
                     updated_user: updatedUser,
+                    updated_date: new Date(),
+                    status_updated_date: new Date(),
                 },
             });
         }
@@ -170,6 +176,8 @@ export async function POST(req: Request) {
                     dc_return_tel: dcSentTel,
                     status: nextStatus,
                     updated_user: updatedUser,
+                    updated_date: new Date(),
+                    status_updated_date: new Date(),
                 },
             });
         }
@@ -196,6 +204,8 @@ export async function POST(req: Request) {
                     vendor_return_sender_tel: vendorSentTel,
                     status: nextStatus,
                     updated_user: updatedUser,
+                    updated_date: new Date(),
+                    status_updated_date: new Date(),
                 },
             });
         }
@@ -224,6 +234,8 @@ export async function POST(req: Request) {
                     location: location,
                     status: nextStatus,
                     updated_user: updatedUser,
+                    updated_date: new Date(),
+                    status_updated_date: new Date(),
                 },
             });
 
@@ -296,6 +308,8 @@ export async function POST(req: Request) {
                     customer_receive_date: sentProductReturnDateDt,
                     status: nextStatus,
                     updated_user: updatedUser,
+                    updated_date: new Date(),
+                    status_updated_date: new Date(),
                     request_return_no: request_return_no
                 },
             });
