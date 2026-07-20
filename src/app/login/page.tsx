@@ -63,7 +63,7 @@ export default function LoginPage() {
             VService
           </h2>
           <p className="text-xs font-semibold text-slate-400 mt-1">
-            ระบบใบแจ้งซ่อมสินค้า
+            ระบบแจ้งซ่อมสินค้า
           </p>
         </div>
 
