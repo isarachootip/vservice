@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 const COOKIE = process.env.AUTH_COOKIE || "app_auth";
-const PROTECTED = [/^\/menu/, /^\/request(\/|$)/];
+const PROTECTED = [/^\/menu/, /^\/request(\/|$)/, /^\/chat(\/|$)/];
 
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
