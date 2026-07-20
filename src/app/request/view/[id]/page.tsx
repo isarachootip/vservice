@@ -137,6 +137,10 @@ export default function RequestViewPage({ params }: { params: Promise<{ id: stri
     const [rejectFlg,   setRejectFlg] = useState<string | null>(null);
     const [rejectFromStatus, setRejectFromStatus] = useState<string | null>(null);
     const [transactionLogs, setTransactionLogs] = useState<Array<{step_no: string | null; act_user_name: string | null; act_trans_log: string | null; act_date_time: Date | null}>>([]);
+    const [createdUser, setCreatedUser] = useState("");
+    const [createdDate, setCreatedDate] = useState<string>("");
+    const [updatedUserVal, setUpdatedUserVal] = useState("");
+    const [updatedDate, setUpdatedDate] = useState<string>("");
     const [attachments, setAttachments] = useState<{ file_path: string; file_name: string }[]>([]);
     const [signatureAttachments237, setSignatureAttachments237] = useState<{ id: number; file_path: string; file_name: string }[]>([]);
     const [signatureAttachments37, setSignatureAttachments37] = useState<{ id: number; file_path: string; file_name: string }[]>([]);
@@ -269,6 +273,10 @@ export default function RequestViewPage({ params }: { params: Promise<{ id: stri
                 const r = data.request;
                 if (!r) throw new Error("ไม่พบข้อมูลใบแจ้งซ่อม");
                 setTransactionLogs(data.transactionLogs ?? []);
+                setCreatedUser(r.created_user ?? "");
+                setCreatedDate(r.created_date ?? "");
+                setUpdatedUserVal(r.updated_user ?? "");
+                setUpdatedDate(r.updated_date ?? "");
                 // console.log("check obj : ",r)
                 const [fn = "", ln = ""] = String(r.customer_name || "").split(" ", 2);
 
@@ -878,6 +886,21 @@ export default function RequestViewPage({ params }: { params: Promise<{ id: stri
                     <Image className="w-4 h-4" />
                     ดาวน์โหลดไฟล์แนบ
                 </Link>
+            </div>
+            {/* ข้อมูลผู้สร้าง/ผู้แก้ไขเอกสาร */}
+            <div className="mb-6 bg-slate-100/80 border border-slate-200/60 rounded-xl p-4 text-[11px] md:text-xs text-slate-600 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-center gap-1.5">
+                    <span className="font-semibold text-slate-400">ผู้สร้างใบแจ้งซ่อม (Created By):</span>
+                    <span className="font-bold text-slate-800">{createdUser || "-"}</span>
+                    <span className="text-slate-400">เมื่อ</span>
+                    <span className="font-semibold text-slate-700">{createdDate ? new Date(createdDate).toLocaleString("th-TH") : "-"}</span>
+                </div>
+                <div className="flex items-center gap-1.5 md:border-l md:border-slate-200 md:pl-4">
+                    <span className="font-semibold text-slate-400">ผู้แก้ไขล่าสุด (Last Updated By):</span>
+                    <span className="font-bold text-slate-800">{updatedUserVal || "-"}</span>
+                    <span className="text-slate-400">เมื่อ</span>
+                    <span className="font-semibold text-slate-700">{updatedDate ? new Date(updatedDate).toLocaleString("th-TH") : "-"}</span>
+                </div>
             </div>
 
             {transactionLogs.some(log => log.act_trans_log && log.act_trans_log.includes("Reject")) && (
@@ -2014,6 +2037,39 @@ export default function RequestViewPage({ params }: { params: Promise<{ id: stri
 
                 </TimelineStep>
             ))}
+
+            {/* ประวัติการดำเนินงานทั้งหมด (Transaction History) */}
+            {transactionLogs && transactionLogs.length > 0 && (
+                <div className="mt-8 border-t border-slate-200 pt-6">
+                    <h3 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <span className="text-lg">📋</span> ประวัติการดำเนินงานทั้งหมด (Transaction History)
+                    </h3>
+                    <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+                        <table className="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold">
+                                    <th className="px-4 py-2.5 w-12 text-center">ลำดับ</th>
+                                    <th className="px-4 py-2.5 w-40">วัน-เวลา (Date-Time)</th>
+                                    <th className="px-4 py-2.5 w-44">ผู้ดำเนินการ (User)</th>
+                                    <th className="px-4 py-2.5">รายละเอียดขั้นตอน (Activity Log)</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 text-slate-600">
+                                {transactionLogs.map((log, idx) => (
+                                    <tr key={idx} className="hover:bg-slate-50/50 transition">
+                                        <td className="px-4 py-2.5 text-center font-medium text-slate-400">{idx + 1}</td>
+                                        <td className="px-4 py-2.5 whitespace-nowrap text-slate-500 font-mono text-[11px]">
+                                            {log.act_date_time ? new Date(log.act_date_time).toLocaleString("th-TH") : "-"}
+                                        </td>
+                                        <td className="px-4 py-2.5 font-bold text-slate-700">{log.act_user_name || "-"}</td>
+                                        <td className="px-4 py-2.5 text-slate-600 font-medium whitespace-pre-wrap">{log.act_trans_log || "-"}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
 
             <div className="flex items-center justify-end gap-3">
                 <button
