@@ -79,10 +79,29 @@ export default function CustomerChatPage() {
     }
   };
 
-  // Run on mount
+  // Run on mount & poll rooms list silently
   useEffect(() => {
-    fetchRooms();
-  }, []);
+    fetchRooms(searchQuery);
+
+    const interval = setInterval(() => {
+      const fetchRoomsSilently = async () => {
+        try {
+          const url = `/api/chat/customer/rooms${searchQuery ? `?search=${encodeURIComponent(searchQuery)}` : ""}`;
+          const res = await fetch(url, { cache: "no-store" });
+          const data = await res.json();
+          if (data.ok) {
+            setRooms(data.rooms || []);
+            setCurrentUser(data.user);
+          }
+        } catch (err) {
+          console.error("Silent fetch rooms error:", err);
+        }
+      };
+      fetchRoomsSilently();
+    }, 10000); // Poll rooms list every 10 seconds
+
+    return () => clearInterval(interval);
+  }, [searchQuery]);
 
   // Poll for messages
   useEffect(() => {

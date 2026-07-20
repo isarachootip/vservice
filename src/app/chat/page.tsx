@@ -83,10 +83,30 @@ export default function TeamChatPage() {
     }
   };
 
-  // Run on mount
+  // Run on mount & poll rooms list silently
   useEffect(() => {
-    fetchRooms();
-  }, []);
+    fetchRooms(selectedLocationId);
+
+    const interval = setInterval(() => {
+      const fetchRoomsSilently = async () => {
+        try {
+          const url = `/api/chat/rooms${selectedLocationId ? `?locationId=${selectedLocationId}` : ""}`;
+          const res = await fetch(url, { cache: "no-store" });
+          const data = await res.json();
+          if (data.ok) {
+            setRooms(data.rooms || []);
+            setCurrentUser(data.user);
+            setLocations(data.locations || []);
+          }
+        } catch (err) {
+          console.error("Silent fetch rooms error:", err);
+        }
+      };
+      fetchRoomsSilently();
+    }, 10000); // Poll rooms list every 10 seconds
+
+    return () => clearInterval(interval);
+  }, [selectedLocationId]);
 
   // Poll for messages in the active room
   useEffect(() => {
