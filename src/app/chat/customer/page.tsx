@@ -341,7 +341,7 @@ export default function CustomerChatPage() {
                 {messages.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-2 bg-white rounded-xl border border-slate-100 m-4 shadow-inner">
                     <MessageCircle className="w-12 h-12 text-slate-300" />
-                    <span className="text-sm font-extrabold text-slate-500">ยินดีต้อนรับสู่ระบบแชต V-Repair</span>
+                    <span className="text-sm font-extrabold text-slate-500">ยินดีต้อนรับสู่ระบบแชต VService</span>
                     <span className="text-xs font-semibold text-slate-400">กรุณาส่งข้อความชิ้นแรกเพื่อเริ่มคุยกับลูกค้า</span>
                   </div>
                 ) : (
@@ -436,7 +436,7 @@ export default function CustomerChatPage() {
           ) : (
             <div className="flex-grow flex flex-col items-center justify-center py-20 text-slate-400 gap-3">
               <MessageSquare className="w-16 h-16 text-slate-300" />
-              <span className="text-sm font-extrabold text-slate-500">ยินดีต้อนรับสู่ระบบแชต V-Repair</span>
+              <span className="text-sm font-extrabold text-slate-500">ยินดีต้อนรับสู่ระบบแชต VService</span>
               <span className="text-xs font-semibold text-slate-400">กรุณาเลือกรายการใบรับซ่อมด้านซ้าย เพื่อพูดคุยติดต่อกับลูกค้า</span>
             </div>
           )}

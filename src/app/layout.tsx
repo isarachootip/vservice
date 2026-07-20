@@ -12,7 +12,7 @@ const prompt = Prompt({
 });
 
 export const metadata: Metadata = {
-  title: "V-Repair Service - ระบบแจ้งซ่อม",
+  title: "VService - ระบบแจ้งซ่อม",
   description: "Internal repair request system",
 };
 
