@@ -800,8 +800,8 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                             {/* Shipping Address */}
                             <div className="space-y-2">
                                 <label className="block text-[11px] font-black text-sky-750 uppercase tracking-wider">ที่อยู่จัดส่งสินค้า</label>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
-                                    <div>
+                                <div className="grid grid-cols-12 gap-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
+                                    <div className="col-span-4">
                                         <label className="block text-[11px] font-bold text-slate-500 mb-0.5">บ้านเลขที่/อาคาร</label>
                                         <input
                                             type="text"
@@ -811,7 +811,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                             onChange={e => setShippingFields(prev => ({ ...prev, number: e.target.value }))}
                                         />
                                     </div>
-                                    <div>
+                                    <div className="col-span-4">
                                         <label className="block text-[11px] font-bold text-slate-500 mb-0.5">ซอย</label>
                                         <input
                                             type="text"
@@ -821,7 +821,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                             onChange={e => setShippingFields(prev => ({ ...prev, soi: e.target.value }))}
                                         />
                                     </div>
-                                    <div className="sm:col-span-2">
+                                    <div className="col-span-4">
                                         <label className="block text-[11px] font-bold text-slate-500 mb-0.5">ถนน</label>
                                         <input
                                             type="text"
@@ -831,7 +831,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                             onChange={e => setShippingFields(prev => ({ ...prev, road: e.target.value }))}
                                         />
                                     </div>
-                                    <div>
+                                    <div className="col-span-3">
                                         <label className="block text-[11px] font-bold text-slate-500 mb-0.5">แขวง/ตำบล</label>
                                         <input
                                             type="text"
@@ -841,7 +841,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                             onChange={e => setShippingFields(prev => ({ ...prev, subdistrict: e.target.value }))}
                                         />
                                     </div>
-                                    <div>
+                                    <div className="col-span-3">
                                         <label className="block text-[11px] font-bold text-slate-500 mb-0.5">เขต/อำเภอ</label>
                                         <input
                                             type="text"
@@ -851,7 +851,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                             onChange={e => setShippingFields(prev => ({ ...prev, district: e.target.value }))}
                                         />
                                     </div>
-                                    <div>
+                                    <div className="col-span-3">
                                         <label className="block text-[11px] font-bold text-slate-500 mb-0.5">จังหวัด</label>
                                         <input
                                             type="text"
@@ -861,7 +861,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                             onChange={e => setShippingFields(prev => ({ ...prev, province: e.target.value }))}
                                         />
                                     </div>
-                                    <div>
+                                    <div className="col-span-3">
                                         <label className="block text-[11px] font-bold text-slate-500 mb-0.5">รหัสไปรษณีย์</label>
                                         <input
                                             type="text"
@@ -899,8 +899,8 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                                 คัดลอกจากที่อยู่จัดส่ง
                                             </button>
                                         </div>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
-                                            <div>
+                                        <div className="grid grid-cols-12 gap-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
+                                            <div className="col-span-4">
                                                 <label className="block text-[11px] font-bold text-slate-500 mb-0.5">บ้านเลขที่/อาคาร</label>
                                                 <input
                                                     type="text"
@@ -910,7 +910,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                                     onChange={e => setBillingFields(prev => ({ ...prev, number: e.target.value }))}
                                                 />
                                             </div>
-                                            <div>
+                                            <div className="col-span-4">
                                                 <label className="block text-[11px] font-bold text-slate-500 mb-0.5">ซอย</label>
                                                 <input
                                                     type="text"
@@ -920,7 +920,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                                     onChange={e => setBillingFields(prev => ({ ...prev, soi: e.target.value }))}
                                                 />
                                             </div>
-                                            <div className="sm:col-span-2">
+                                            <div className="col-span-4">
                                                 <label className="block text-[11px] font-bold text-slate-500 mb-0.5">ถนน</label>
                                                 <input
                                                     type="text"
@@ -930,7 +930,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                                     onChange={e => setBillingFields(prev => ({ ...prev, road: e.target.value }))}
                                                 />
                                             </div>
-                                            <div>
+                                            <div className="col-span-3">
                                                 <label className="block text-[11px] font-bold text-slate-500 mb-0.5">แขวง/ตำบล</label>
                                                 <input
                                                     type="text"
@@ -940,7 +940,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                                     onChange={e => setBillingFields(prev => ({ ...prev, subdistrict: e.target.value }))}
                                                 />
                                             </div>
-                                            <div>
+                                            <div className="col-span-3">
                                                 <label className="block text-[11px] font-bold text-slate-500 mb-0.5">เขต/อำเภอ</label>
                                                 <input
                                                     type="text"
@@ -950,7 +950,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                                     onChange={e => setBillingFields(prev => ({ ...prev, district: e.target.value }))}
                                                 />
                                             </div>
-                                            <div>
+                                            <div className="col-span-3">
                                                 <label className="block text-[11px] font-bold text-slate-500 mb-0.5">จังหวัด</label>
                                                 <input
                                                     type="text"
@@ -960,7 +960,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                                     onChange={e => setBillingFields(prev => ({ ...prev, province: e.target.value }))}
                                                 />
                                             </div>
-                                            <div>
+                                            <div className="col-span-3">
                                                 <label className="block text-[11px] font-bold text-slate-500 mb-0.5">รหัสไปรษณีย์</label>
                                                 <input
                                                     type="text"
@@ -980,7 +980,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                 รายละเอียดสินค้า
                             </h3>
 
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-4 gap-3">
                                 <div>
                                     <label className="block text-[11px] font-semibold text-slate-500 mb-1">ยี่ห้อ<Req /></label>
                                     {skuFlg ? (
@@ -1050,9 +1050,6 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                     )}
                                     {errors.productType && <p className="text-red-600 text-[10px] mt-0.5">{errors.productType}</p>}
                                 </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-3">
                                 <div>
                                     <label htmlFor="sku" className="block text-[11px] font-semibold text-slate-500 mb-1">SKU<Req /></label>
                                                                     {skuFlg && brand && productType ? (
@@ -1131,8 +1128,8 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                 การรับประกัน & อาการเสีย
                             </h3>
 
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
+                            <div className="grid grid-cols-12 gap-3">
+                                <div className="col-span-4">
                                     <label htmlFor="model" className="block text-[11px] font-semibold text-slate-500 mb-1">รุ่นสินค้า / SKU<Req /></label>
                                     {skuFlg ? (
                                         <select
@@ -1177,7 +1174,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                         />
                                     )}
                                 </div>
-                                <div>
+                                <div className="col-span-3">
                                     <label htmlFor="serial" className="block text-[11px] font-semibold text-slate-500 mb-1">Serial Number (เลขเครื่อง)</label>
                                     <input
                                         id="serial"
@@ -1187,10 +1184,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                         placeholder="ระบุเลข Serial"
                                     />
                                 </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
+                                <div className="col-span-2">
                                     <label htmlFor="qty" className="block text-[11px] font-semibold text-slate-500 mb-1">จำนวน<Req /></label>
                                     <input
                                         id="qty"
@@ -1202,7 +1196,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                     />
                                     {errors.qty && <p className="text-red-600 text-[10px] mt-0.5">{errors.qty}</p>}
                                 </div>
-                                <div className="flex flex-col">
+                                <div className="col-span-3 flex flex-col">
                                     <label className="block text-[11px] font-semibold text-slate-500 mb-1">วันที่รับเครื่อง<Req /></label>
                                     <DatePicker
                                         id="receiveFromUserDt"
@@ -1216,50 +1210,49 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                 </div>
                             </div>
 
-                            <div>
-                                <label className="block text-[11px] font-semibold text-slate-500 mb-1">การรับประกัน<Req /></label>
-                                <div className="flex items-center gap-4 py-1 text-xs">
-                                    <label className="inline-flex items-center gap-1.5 cursor-pointer">
-                                        <input
-                                            type="radio"
-                                            name="warranty"
-                                            value="in"
-                                            checked={warranty === "in"}
-                                            onChange={() => setWarranty("in")}
-                                            className="w-4 h-4 text-[#c8102e] focus:ring-[#c8102e] border-slate-300"
-                                        />
-                                        <span className="font-semibold text-slate-700">อยู่ในประกัน</span>
-                                    </label>
-                                    <label className="inline-flex items-center gap-1.5 cursor-pointer">
-                                        <input
-                                            type="radio"
-                                            name="warranty"
-                                            value="out"
-                                            checked={warranty === "out"}
-                                            onChange={() => setWarranty("out")}
-                                            className="w-4 h-4 text-[#c8102e] focus:ring-[#c8102e] border-slate-300"
-                                        />
-                                        <span className="font-semibold text-slate-700">ไม่อยู่ในประกัน</span>
-                                    </label>
-                                </div>
-                                {errors.warranty && <p className="text-red-600 text-[10px] mt-0.5">{errors.warranty}</p>}
-                                
-                                {warranty === "in" && (
-                                    <div className="mt-2">
-                                        <label htmlFor="warrantyNo" className="block text-[11px] font-semibold text-slate-500 mb-1">เลขที่ใบประกัน<Req /></label>
-                                        <input
-                                            id="warrantyNo"
-                                            className={inputClass(!!errors.warrantyNo)}
-                                            value={warrantyNo}
-                                            onChange={e => setWarrantyNo(e.target.value)}
-                                            placeholder="ระบุเลขที่รับประกัน"
-                                        />
-                                        {errors.warrantyNo && <p className="text-red-600 text-[10px] mt-0.5">{errors.warrantyNo}</p>}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-[11px] font-semibold text-slate-500 mb-1">การรับประกัน<Req /></label>
+                                    <div className="flex items-center gap-4 py-1 text-xs">
+                                        <label className="inline-flex items-center gap-1.5 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="warranty"
+                                                value="in"
+                                                checked={warranty === "in"}
+                                                onChange={() => setWarranty("in")}
+                                                className="w-4 h-4 text-[#c8102e] focus:ring-[#c8102e] border-slate-300"
+                                            />
+                                            <span className="font-semibold text-slate-700">อยู่ในประกัน</span>
+                                        </label>
+                                        <label className="inline-flex items-center gap-1.5 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="warranty"
+                                                value="out"
+                                                checked={warranty === "out"}
+                                                onChange={() => setWarranty("out")}
+                                                className="w-4 h-4 text-[#c8102e] focus:ring-[#c8102e] border-slate-300"
+                                            />
+                                            <span className="font-semibold text-slate-700">ไม่อยู่ในประกัน</span>
+                                        </label>
                                     </div>
-                                )}
-                            </div>
-
-                            <div className="space-y-2">
+                                    {errors.warranty && <p className="text-red-600 text-[10px] mt-0.5">{errors.warranty}</p>}
+                                    
+                                    {warranty === "in" && (
+                                        <div className="mt-1">
+                                            <label htmlFor="warrantyNo" className="block text-[11px] font-semibold text-slate-500 mb-1">เลขที่ใบประกัน<Req /></label>
+                                            <input
+                                                id="warrantyNo"
+                                                className={inputClass(!!errors.warrantyNo)}
+                                                value={warrantyNo}
+                                                onChange={e => setWarrantyNo(e.target.value)}
+                                                placeholder="ระบุเลขที่รับประกัน"
+                                            />
+                                            {errors.warrantyNo && <p className="text-red-600 text-[10px] mt-0.5">{errors.warrantyNo}</p>}
+                                        </div>
+                                    )}
+                                </div>
                                 <div>
                                     <label htmlFor="issueSymptom" className="block text-[11px] font-semibold text-slate-500 mb-1">อาการเสียที่พบ (จากระบบ)<Req /></label>
                                     <select
@@ -1275,32 +1268,32 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                         <option value="other">อื่นๆ (ระบุเอง)</option>
                                     </select>
                                 </div>
+                            </div>
 
-                                <div>
-                                    <label htmlFor="issue" className="block text-[11px] font-semibold text-slate-500 mb-1">
-                                        {selectedSymptom === "other" ? "รายละเอียดอาการเสีย *" : "รายละเอียดอาการเสียเพิ่มเติม (ถ้ามี)"}
-                                    </label>
-                                    <textarea
-                                        id="issue"
-                                        className="input-base text-xs py-1 h-12 resize-none w-full"
-                                        value={issue}
-                                        onChange={e => setIssue(e.target.value)}
-                                        placeholder="ระบุรายละเอียดอาการชำรุดเสียหายเพิ่มเติม"
-                                    />
-                                    {errors.issue && <p className="text-red-600 text-[10px] mt-0.5">{errors.issue}</p>}
-                                </div>
+                            <div>
+                                <label htmlFor="issue" className="block text-[11px] font-semibold text-slate-500 mb-1">
+                                    {selectedSymptom === "other" ? "รายละเอียดอาการเสีย *" : "รายละเอียดอาการเสียเพิ่มเติม (ถ้ามี)"}
+                                </label>
+                                <textarea
+                                    id="issue"
+                                    className="input-base text-xs py-1 h-12 resize-none w-full"
+                                    value={issue}
+                                    onChange={e => setIssue(e.target.value)}
+                                    placeholder="ระบุรายละเอียดอาการชำรุดเสียหายเพิ่มเติม"
+                                />
+                                {errors.issue && <p className="text-red-600 text-[10px] mt-0.5">{errors.issue}</p>}
                             </div>
 
                         </div>
 
                         {/* Image Slots Section */}
-                        <div className="md:col-span-2 bg-slate-50 border border-slate-200/80 rounded-2xl p-5 space-y-4">
+                        <div className="md:col-span-2 bg-slate-50 border border-slate-200/80 rounded-2xl p-3 space-y-2.5">
                             <h3 className="text-xs font-bold text-slate-800 border-b border-slate-200 pb-1.5 flex items-center gap-1.5 uppercase tracking-wide">
                                 <span className="w-1.5 h-3 bg-[#c8102e] rounded"></span>
                                 รูปถ่ายเครื่องและป้าย Serial เพื่อบันทึกงานซ่อม (Required Photos & Serial)
                             </h3>
 
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                 {renderUploadSlot('slot1', '1. ภาพด้านบน', true, fileSlot1, previewSlot1, setFileSlot1, slot1Ref)}
                                 {renderUploadSlot('slot2', '2. ภาพด้านข้าง', false, fileSlot2, previewSlot2, setFileSlot2, slot2Ref)}
                                 {renderUploadSlot('slot3', '3. ภาพด้านบน', false, fileSlot3, previewSlot3, setFileSlot3, slot3Ref)}
@@ -1309,13 +1302,13 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                         </div>
 
                         {/* V2.0 Service Center Extensions Section */}
-                        <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-5 space-y-4">
+                        <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3 space-y-2.5">
                             <h3 className="text-xs font-bold text-slate-800 border-b border-slate-200 pb-1.5 flex items-center gap-1.5 uppercase tracking-wide">
                                 <span className="w-1.5 h-3 bg-[#c8102e] rounded"></span>
                                 ระดับบริการ & ค่าเปิดเครื่องตรวจเช็ค (Service Tier & Diagnostic Fee)
                             </h3>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                 {/* Service Tier Dropdown */}
                                 <div>
                                     <label className="block text-[11px] font-bold text-slate-500 mb-1">ระดับบริการ (Service Tier)</label>
@@ -1344,7 +1337,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
 
                                 {/* Payment details if out of warranty */}
                                 {warranty === "out" && diagnosticFee > 0 && (
-                                    <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-200/60">
+                                    <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-slate-200/60">
                                         <div>
                                             <label className="block text-[11px] font-bold text-slate-500 mb-1">ช่องทางการชำระเงินค่าเปิดเครื่อง</label>
                                             <select
