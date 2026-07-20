@@ -470,14 +470,30 @@ export default function AppShell({ children }: { children: ReactNode }) {
             }
 
             return (
-              <div key={ann.id} className={`${bannerBg} text-white px-6 py-2 flex items-center justify-between text-xs font-semibold border-b border-white/10`}>
-                <div className="flex items-center gap-6">
-                  <span>⚠️ ประกาศด่วน</span>
-                  <span>📢 {ann.message}</span>
+              <div 
+                key={ann.id} 
+                className={`${bannerBg} text-white px-6 py-2 flex items-center justify-between text-xs font-semibold border-b border-white/10 relative overflow-hidden`}
+              >
+                {/* Text Scroller Container */}
+                <div className="flex items-center w-full pr-8 overflow-hidden relative">
+                  {/* Static Title Badge with same background to mask scrolling text */}
+                  <span className={`${bannerBg} z-10 pr-4 py-0.5 font-extrabold flex items-center gap-1.5 shrink-0`}>
+                    ⚠️ ประกาศด่วน
+                  </span>
+                  
+                  {/* Scrolling Text Window */}
+                  <div className="flex-grow overflow-hidden relative h-5 flex items-center select-none">
+                    <div className="animate-marquee whitespace-nowrap absolute">
+                      📢 {ann.message}
+                    </div>
+                  </div>
                 </div>
+                
+                {/* Close button with same background to mask scrolling text */}
                 <button 
                   onClick={() => setClosedAnnouncements(prev => ({ ...prev, [ann.id]: true }))}
-                  className="hover:opacity-85 text-white/80"
+                  className={`${bannerBg} pl-4 hover:opacity-85 text-white/80 z-10 cursor-pointer shrink-0`}
+                  title="ปิดประกาศ"
                 >
                   ×
                 </button>
