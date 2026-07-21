@@ -108,6 +108,16 @@ function isVendorStatus(v: number): v is VendorStatus {
   return (VENDOR_ROUTE as readonly number[]).includes(v);
 }
 
+function getActiveStepIndex(status: number): number {
+  if (status === 100) return 0;
+  if ([110, 200, 210, 220, 230, 300].includes(status)) return 1;
+  if ([240, 250, 310, 320].includes(status)) return 2;
+  if ([260, 270, 275, 330, 340, 345].includes(status)) return 3;
+  if ([280, 285, 290, 350, 360, 390].includes(status)) return 4;
+  if ([299, 399].includes(status)) return 5;
+  return 0;
+}
+
 export default function RequestViewPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
     const { id } = use(params);
@@ -902,6 +912,72 @@ export default function RequestViewPage({ params }: { params: Promise<{ id: stri
                     <span className="font-semibold text-slate-700">{updatedDate ? new Date(updatedDate).toLocaleString("th-TH") : "-"}</span>
                 </div>
             </div>
+
+            {/* Shopee-style 6-Step Progress Bar Component */}
+            {typeof status === "number" && (
+              <div className="mb-6">
+                {status === 0 ? (
+                  <div className="bg-red-50 border border-red-200 text-red-700 p-5 rounded-2xl flex items-center gap-3 shadow-sm">
+                    <span className="text-2xl">❌</span>
+                    <div>
+                      <h3 className="font-bold text-sm">ใบแจ้งซ่อมนี้ถูกยกเลิกแล้ว (Cancelled)</h3>
+                      <p className="text-xs text-red-600/90 mt-0.5">รายการซ่อมนี้ได้รับการยกเลิกในระบบแล้ว หากมีข้อสงสัยโปรดติดต่อสาขาไทวัสดุ</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm overflow-x-auto">
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">ภาพรวมขั้นตอนการซ่อม (Shopee-Style Status Tracking)</span>
+                      <span className="text-xs font-semibold text-slate-400">สถานะปัจจุบัน: #{status}</span>
+                    </div>
+                    <div className="relative flex justify-between items-center w-full min-w-[650px] px-4 pt-2 pb-1">
+                      {/* Background Line */}
+                      <div className="absolute top-[30px] left-[40px] right-[40px] h-[3px] bg-slate-100 -z-0" />
+                      
+                      {/* Progress Line */}
+                      <div 
+                        className="absolute top-[30px] left-[40px] h-[3px] bg-[#c8102e] transition-all duration-500 -z-0" 
+                        style={{ width: `${(getActiveStepIndex(status) / 5) * 87}%` }}
+                      />
+
+                      {[
+                        { label: "แจ้งซ่อม", desc: "CS เปิดใบแจ้งซ่อม" },
+                        { label: "ส่งซ่อม (Vendor)", desc: "กำลังส่งไปยังศูนย์ซ่อม" },
+                        { label: "ประเมินราคา", desc: "ประเมินค่าใช้จ่าย" },
+                        { label: "อนุมัติซ่อม", desc: "ช่างเริ่มงานซ่อม" },
+                        { label: "ส่งคืนสาขา", desc: "ส่งกลับมายังสาขา" },
+                        { label: "ส่งคืนลูกค้า", desc: "รับเครื่องเรียบร้อย" }
+                      ].map((step, idx) => {
+                        const activeIndex = getActiveStepIndex(status);
+                        const isCompleted = idx < activeIndex;
+                        const isActive = idx === activeIndex;
+                        
+                        return (
+                          <div key={idx} className="flex flex-col items-center z-10 flex-1">
+                            <div 
+                              className={`w-11 h-11 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
+                                isCompleted 
+                                  ? "bg-[#c8102e] border-[#c8102e] text-white shadow-md shadow-red-200" 
+                                  : isActive 
+                                    ? "bg-white border-[#c8102e] text-[#c8102e] shadow-md shadow-red-100 scale-110 font-bold ring-4 ring-red-50" 
+                                    : "bg-white border-slate-200 text-slate-400"
+                              }`}
+                            >
+                              {idx + 1}
+                            </div>
+                            <span className={`text-[11px] font-bold mt-2 text-center max-w-[100px] leading-tight ${
+                              isActive ? "text-[#c8102e]" : isCompleted ? "text-slate-700" : "text-slate-400"
+                            }`}>
+                              {step.label}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {transactionLogs.some(log => log.act_trans_log && log.act_trans_log.includes("Reject")) && (
                 <div className="mb-6 bg-red-50 border-2 border-red-300 rounded-lg p-4 shadow-sm">
