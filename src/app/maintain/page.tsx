@@ -1430,6 +1430,23 @@ function MaintainContent() {
         }
     };
 
+    //* Delete all locations
+    const handleDeleteAllLocations = async () => {
+        if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลสาขาทั้งหมดออกเพื่อนำเข้าข้อมูลใหม่? (การดำเนินการนี้จะไม่สามารถยกเลิกได้)")) return;
+        try {
+            setLocationLoading(true);
+            const res = await fetch("/api/maintain/locations?all=true", { method: "DELETE" });
+            const data = await res.json();
+            if (!data.ok) throw new Error(data.message || "เกิดข้อผิดพลาดในการลบข้อมูลสาขา");
+            alert(data.message || "ลบข้อมูลสาขาทั้งหมดสำเร็จ");
+            fetchLocations();
+        } catch (e: any) {
+            alert(e.message || "เกิดข้อผิดพลาดในการลบข้อมูลสาขา");
+        } finally {
+            setLocationLoading(false);
+        }
+    };
+
     //* Export vendor data to Excel
     const handleVendorExport = () => {
         if (vendorRows.length === 0) {
@@ -2104,6 +2121,13 @@ function MaintainContent() {
                                     className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold rounded-lg shadow transition text-sm disabled:opacity-50"
                                 >
                                     {locationLoading ? "กำลังนำเข้า..." : "นำเข้าข้อมูลสาขา (Excel / JSON)"}
+                                </button>
+                                <button
+                                    onClick={handleDeleteAllLocations}
+                                    disabled={locationLoading || locationsList.length === 0}
+                                    className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-semibold rounded-lg shadow transition text-sm disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
+                                >
+                                    🗑️ ลบสาขาทั้งหมด
                                 </button>
                             </div>
                         </div>

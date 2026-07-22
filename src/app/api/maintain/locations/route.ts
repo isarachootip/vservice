@@ -168,6 +168,24 @@ export async function DELETE(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
+    const all = searchParams.get("all");
+
+    if (all === "true" || id === "all") {
+      await prisma.users.updateMany({
+        where: { location_id: { not: null } },
+        data: { location_id: null },
+      });
+      await prisma.repair_request.updateMany({
+        where: { location_id: { not: null } },
+        data: { location_id: null },
+      });
+      await prisma.chat_room.deleteMany({
+        where: { location_id: { not: null } },
+      });
+      await prisma.location.deleteMany({});
+      await prisma.store.deleteMany({});
+      return NextResponse.json({ ok: true, message: "ลบข้อมูลสาขาทั้งหมดเรียบร้อยแล้ว" });
+    }
 
     if (!id) {
       return NextResponse.json({ ok: false, message: "ไม่พบ ID ที่ต้องการลบ" }, { status: 400 });
