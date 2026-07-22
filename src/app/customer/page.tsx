@@ -1,4 +1,5 @@
 "use client";
+// HMR trigger update: expanded customer modal layout
 
 import { useEffect, useState, useMemo } from "react";
 import { 
@@ -497,218 +498,252 @@ export default function CustomerManagementPage() {
 
       {/* Customer Form Modal (Create/Edit) */}
       {isFormOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl w-full max-w-3xl shadow-xl overflow-hidden animate-zoomIn flex flex-col border border-slate-100">
-            <div className="bg-[#c8102e] text-white px-5 py-4 flex items-center justify-between">
-              <h3 className="font-bold text-sm flex items-center gap-1.5">
-                <User className="w-4 h-4" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-6">
+          <div className="bg-white rounded-2xl w-11/12 max-w-6xl shadow-2xl overflow-hidden animate-zoomIn flex flex-col border border-slate-100 max-h-[92vh]">
+            <div className="bg-[#c8102e] text-white px-6 py-4 flex items-center justify-between shadow-sm">
+              <h3 className="font-bold text-base flex items-center gap-2">
+                <User className="w-5 h-5" />
                 {formId ? "แก้ไขข้อมูลลูกค้า" : "เพิ่มข้อมูลลูกค้าใหม่"}
               </h3>
-              <button onClick={() => setIsFormOpen(false)} className="text-white/80 hover:text-white transition-colors">
-                <X className="w-4 h-4" />
+              <button onClick={() => setIsFormOpen(false)} className="text-white/80 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10">
+                <X className="w-5 h-5" />
               </button>
             </div>
             
-            <form onSubmit={handleSave} className="p-5 space-y-4 overflow-y-auto flex-1 max-h-[70vh]">
+            <form onSubmit={handleSave} className="p-6 space-y-6 overflow-y-auto flex-1">
               {formError && (
-                <div className="alert alert-error text-xs py-2 px-3 rounded-xl flex items-center gap-2 bg-red-50 text-red-700 border border-red-100">
+                <div className="alert alert-error text-xs py-2.5 px-4 rounded-xl flex items-center gap-2 bg-red-50 text-red-700 border border-red-200 shadow-sm font-semibold">
                   <span>⚠️ {formError}</span>
                 </div>
               )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-500 mb-1">ชื่อ-นามสกุลจริง *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="เช่น สมชาย รักดี"
-                    className="input input-sm input-bordered w-full rounded-xl text-sm"
-                    value={formName}
-                    onChange={e => setFormName(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-500 mb-1">เบอร์โทรศัพท์ *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="เช่น 0812345678"
-                    className="input input-sm input-bordered w-full rounded-xl text-sm"
-                    value={formPhone}
-                    onChange={e => setFormPhone(e.target.value)}
-                  />
-                </div>
-
-                <div className="border-t border-slate-100 pt-3 mt-1 space-y-3">
-                  <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5 text-[#c8102e]" />
-                    ข้อมูลที่อยู่ลูกค้า (บันทึกเข้าระบบ)
-                  </h4>
-                  
-                  {/* Shipping Address */}
-                  <div className="space-y-2">
-                    <label className="block text-[10.5px] font-black text-sky-700 uppercase tracking-wider">
-                      ที่อยู่สำหรับจัดส่งสินค้า
+              {/* General Customer Info Card */}
+              <div className="bg-slate-50/80 p-4 rounded-2xl border border-slate-200/80 space-y-3">
+                <h4 className="text-xs font-black text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                  <User className="w-4 h-4 text-[#c8102e]" />
+                  ข้อมูลพื้นฐานลูกค้า
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      ชื่อ-นามสกุลจริง <span className="text-red-500">*</span>
                     </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
-                      <div>
-                        <label className="block text-[11px] font-bold text-slate-500 mb-0.5">บ้านเลขที่/อาคาร</label>
-                        <input
-                          type="text"
-                          placeholder="เช่น 123/45 หมู่ 5"
-                          className="input input-sm input-bordered w-full rounded-lg text-sm"
-                          value={shippingFields.number}
-                          onChange={e => setShippingFields(prev => ({ ...prev, number: e.target.value }))}
-                        />
+                    <input
+                      type="text"
+                      required
+                      placeholder="เช่น สมชาย รักดี"
+                      className="input input-bordered w-full rounded-xl text-sm h-10 bg-white border-slate-300 focus:border-[#c8102e] focus:ring-1 focus:ring-[#c8102e] font-medium"
+                      value={formName}
+                      onChange={e => setFormName(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      เบอร์โทรศัพท์ <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="เช่น 0812345678"
+                      className="input input-bordered w-full rounded-xl text-sm h-10 bg-white border-slate-300 focus:border-[#c8102e] focus:ring-1 focus:ring-[#c8102e] font-medium"
+                      value={formPhone}
+                      onChange={e => setFormPhone(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Addresses Section */}
+              <div className="space-y-4">
+                <h4 className="text-xs font-black text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                  <MapPin className="w-4 h-4 text-[#c8102e]" />
+                  ข้อมูลที่อยู่ลูกค้า (บันทึกเข้าระบบ)
+                </h4>
+                
+                <div className="space-y-5">
+                  {/* Shipping Address - Full Width */}
+                  <div className="bg-sky-50/40 p-4 rounded-2xl border border-sky-100 space-y-3">
+                    <div className="flex items-center justify-between pb-2 border-b border-sky-100/80">
+                      <span className="text-xs font-black text-sky-800 uppercase tracking-wider flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-sky-500 inline-block"></span>
+                        ที่อยู่สำหรับจัดส่งสินค้า (Shipping Address)
+                      </span>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      {/* Row 1: Number, Soi, Road (3 columns full width) */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-600 mb-1">บ้านเลขที่/อาคาร</label>
+                          <input
+                            type="text"
+                            placeholder="เช่น 123/45 หมู่ 5"
+                            className="input input-bordered w-full rounded-xl text-sm h-10 bg-white border-slate-200 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 font-medium"
+                            value={shippingFields.number}
+                            onChange={e => setShippingFields(prev => ({ ...prev, number: e.target.value }))}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-600 mb-1">ซอย</label>
+                          <input
+                            type="text"
+                            placeholder="เช่น ซอยสุขุมวิท 10"
+                            className="input input-bordered w-full rounded-xl text-sm h-10 bg-white border-slate-200 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 font-medium"
+                            value={shippingFields.soi}
+                            onChange={e => setShippingFields(prev => ({ ...prev, soi: e.target.value }))}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-600 mb-1">ถนน</label>
+                          <input
+                            type="text"
+                            placeholder="เช่น ถนนสุขุมวิท"
+                            className="input input-bordered w-full rounded-xl text-sm h-10 bg-white border-slate-200 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 font-medium"
+                            value={shippingFields.road}
+                            onChange={e => setShippingFields(prev => ({ ...prev, road: e.target.value }))}
+                          />
+                        </div>
                       </div>
-                      <div>
-                        <label className="block text-[11px] font-bold text-slate-500 mb-0.5">ซอย</label>
-                        <input
-                          type="text"
-                          placeholder="เช่น ซอยสุขุมวิท 10"
-                          className="input input-sm input-bordered w-full rounded-lg text-sm"
-                          value={shippingFields.soi}
-                          onChange={e => setShippingFields(prev => ({ ...prev, soi: e.target.value }))}
-                        />
-                      </div>
-                      <div className="sm:col-span-2">
-                        <label className="block text-[11px] font-bold text-slate-500 mb-0.5">ถนน</label>
-                        <input
-                          type="text"
-                          placeholder="เช่น ถนนสุขุมวิท"
-                          className="input input-sm input-bordered w-full rounded-lg text-sm"
-                          value={shippingFields.road}
-                          onChange={e => setShippingFields(prev => ({ ...prev, road: e.target.value }))}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[11px] font-bold text-slate-500 mb-0.5">แขวง/ตำบล</label>
-                        <input
-                          type="text"
-                          placeholder="เช่น คลองเตย"
-                          className="input input-sm input-bordered w-full rounded-lg text-sm"
-                          value={shippingFields.subdistrict}
-                          onChange={e => setShippingFields(prev => ({ ...prev, subdistrict: e.target.value }))}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[11px] font-bold text-slate-500 mb-0.5">เขต/อำเภอ</label>
-                        <input
-                          type="text"
-                          placeholder="เช่น คลองเตย"
-                          className="input input-sm input-bordered w-full rounded-lg text-sm"
-                          value={shippingFields.district}
-                          onChange={e => setShippingFields(prev => ({ ...prev, district: e.target.value }))}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[11px] font-bold text-slate-500 mb-0.5">จังหวัด</label>
-                        <input
-                          type="text"
-                          placeholder="เช่น กรุงเทพมหานคร"
-                          className="input input-sm input-bordered w-full rounded-lg text-sm"
-                          value={shippingFields.province}
-                          onChange={e => setShippingFields(prev => ({ ...prev, province: e.target.value }))}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[11px] font-bold text-slate-500 mb-0.5">รหัสไปรษณีย์</label>
-                        <input
-                          type="text"
-                          placeholder="เช่น 10110"
-                          className="input input-sm input-bordered w-full rounded-lg text-sm"
-                          value={shippingFields.zipcode}
-                          onChange={e => setShippingFields(prev => ({ ...prev, zipcode: e.target.value }))}
-                        />
+
+                      {/* Row 2: Subdistrict, District, Province, Zipcode (4 columns full width) */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-600 mb-1">แขวง/ตำบล</label>
+                          <input
+                            type="text"
+                            placeholder="เช่น คลองเตย"
+                            className="input input-bordered w-full rounded-xl text-sm h-10 bg-white border-slate-200 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 font-medium"
+                            value={shippingFields.subdistrict}
+                            onChange={e => setShippingFields(prev => ({ ...prev, subdistrict: e.target.value }))}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-600 mb-1">เขต/อำเภอ</label>
+                          <input
+                            type="text"
+                            placeholder="เช่น คลองเตย"
+                            className="input input-bordered w-full rounded-xl text-sm h-10 bg-white border-slate-200 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 font-medium"
+                            value={shippingFields.district}
+                            onChange={e => setShippingFields(prev => ({ ...prev, district: e.target.value }))}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-600 mb-1">จังหวัด</label>
+                          <input
+                            type="text"
+                            placeholder="เช่น กรุงเทพมหานคร"
+                            className="input input-bordered w-full rounded-xl text-sm h-10 bg-white border-slate-200 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 font-medium"
+                            value={shippingFields.province}
+                            onChange={e => setShippingFields(prev => ({ ...prev, province: e.target.value }))}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-600 mb-1">รหัสไปรษณีย์</label>
+                          <input
+                            type="text"
+                            placeholder="เช่น 10110"
+                            className="input input-bordered w-full rounded-xl text-sm h-10 bg-white border-slate-200 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 font-medium"
+                            value={shippingFields.zipcode}
+                            onChange={e => setShippingFields(prev => ({ ...prev, zipcode: e.target.value }))}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Billing Address */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <label className="block text-[10.5px] font-black text-purple-750 uppercase tracking-wider">
-                        ที่อยู่ออกใบกำกับภาษี
-                      </label>
+                  {/* Billing Address - Full Width */}
+                  <div className="bg-purple-50/40 p-4 rounded-2xl border border-purple-100 space-y-3">
+                    <div className="flex items-center justify-between pb-2 border-b border-purple-100/80">
+                      <span className="text-xs font-black text-purple-800 uppercase tracking-wider flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-purple-500 inline-block"></span>
+                        ที่อยู่ออกใบกำกับภาษี (Billing Address)
+                      </span>
                       <button
                         type="button"
                         onClick={() => setBillingFields({ ...shippingFields })}
-                        className="text-[10px] font-black text-[#c8102e] hover:underline"
+                        className="btn btn-xs bg-purple-100 hover:bg-purple-200 text-purple-800 border-none rounded-lg font-bold transition-all shadow-xs"
                       >
-                        คัดลอกจากที่อยู่จัดส่ง
+                        📋 คัดลอกจากที่อยู่จัดส่ง
                       </button>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
-                      <div>
-                        <label className="block text-[11px] font-bold text-slate-500 mb-0.5">บ้านเลขที่/อาคาร</label>
-                        <input
-                          type="text"
-                          placeholder="เช่น 123/45 หมู่ 5"
-                          className="input input-sm input-bordered w-full rounded-lg text-sm"
-                          value={billingFields.number}
-                          onChange={e => setBillingFields(prev => ({ ...prev, number: e.target.value }))}
-                        />
+                    
+                    <div className="space-y-3">
+                      {/* Row 1: Number, Soi, Road (3 columns full width) */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-600 mb-1">บ้านเลขที่/อาคาร</label>
+                          <input
+                            type="text"
+                            placeholder="เช่น 123/45 หมู่ 5"
+                            className="input input-bordered w-full rounded-xl text-sm h-10 bg-white border-slate-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 font-medium"
+                            value={billingFields.number}
+                            onChange={e => setBillingFields(prev => ({ ...prev, number: e.target.value }))}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-600 mb-1">ซอย</label>
+                          <input
+                            type="text"
+                            placeholder="เช่น ซอยสุขุมวิท 10"
+                            className="input input-bordered w-full rounded-xl text-sm h-10 bg-white border-slate-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 font-medium"
+                            value={billingFields.soi}
+                            onChange={e => setBillingFields(prev => ({ ...prev, soi: e.target.value }))}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-600 mb-1">ถนน</label>
+                          <input
+                            type="text"
+                            placeholder="เช่น ถนนสุขุมวิท"
+                            className="input input-bordered w-full rounded-xl text-sm h-10 bg-white border-slate-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 font-medium"
+                            value={billingFields.road}
+                            onChange={e => setBillingFields(prev => ({ ...prev, road: e.target.value }))}
+                          />
+                        </div>
                       </div>
-                      <div>
-                        <label className="block text-[11px] font-bold text-slate-500 mb-0.5">ซอย</label>
-                        <input
-                          type="text"
-                          placeholder="เช่น ซอยสุขุมวิท 10"
-                          className="input input-sm input-bordered w-full rounded-lg text-sm"
-                          value={billingFields.soi}
-                          onChange={e => setBillingFields(prev => ({ ...prev, soi: e.target.value }))}
-                        />
-                      </div>
-                      <div className="sm:col-span-2">
-                        <label className="block text-[11px] font-bold text-slate-500 mb-0.5">ถนน</label>
-                        <input
-                          type="text"
-                          placeholder="เช่น ถนนสุขุมวิท"
-                          className="input input-sm input-bordered w-full rounded-lg text-sm"
-                          value={billingFields.road}
-                          onChange={e => setBillingFields(prev => ({ ...prev, road: e.target.value }))}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[11px] font-bold text-slate-500 mb-0.5">แขวง/ตำบล</label>
-                        <input
-                          type="text"
-                          placeholder="เช่น คลองเตย"
-                          className="input input-sm input-bordered w-full rounded-lg text-sm"
-                          value={billingFields.subdistrict}
-                          onChange={e => setBillingFields(prev => ({ ...prev, subdistrict: e.target.value }))}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[11px] font-bold text-slate-500 mb-0.5">เขต/อำเภอ</label>
-                        <input
-                          type="text"
-                          placeholder="เช่น คลองเตย"
-                          className="input input-sm input-bordered w-full rounded-lg text-sm"
-                          value={billingFields.district}
-                          onChange={e => setBillingFields(prev => ({ ...prev, district: e.target.value }))}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[11px] font-bold text-slate-500 mb-0.5">จังหวัด</label>
-                        <input
-                          type="text"
-                          placeholder="เช่น กรุงเทพมหานคร"
-                          className="input input-sm input-bordered w-full rounded-lg text-sm"
-                          value={billingFields.province}
-                          onChange={e => setBillingFields(prev => ({ ...prev, province: e.target.value }))}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[11px] font-bold text-slate-500 mb-0.5">รหัสไปรษณีย์</label>
-                        <input
-                          type="text"
-                          placeholder="เช่น 10110"
-                          className="input input-sm input-bordered w-full rounded-lg text-sm"
-                          value={billingFields.zipcode}
-                          onChange={e => setBillingFields(prev => ({ ...prev, zipcode: e.target.value }))}
-                        />
+
+                      {/* Row 2: Subdistrict, District, Province, Zipcode (4 columns full width) */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-600 mb-1">แขวง/ตำบล</label>
+                          <input
+                            type="text"
+                            placeholder="เช่น คลองเตย"
+                            className="input input-bordered w-full rounded-xl text-sm h-10 bg-white border-slate-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 font-medium"
+                            value={billingFields.subdistrict}
+                            onChange={e => setBillingFields(prev => ({ ...prev, subdistrict: e.target.value }))}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-600 mb-1">เขต/อำเภอ</label>
+                          <input
+                            type="text"
+                            placeholder="เช่น คลองเตย"
+                            className="input input-bordered w-full rounded-xl text-sm h-10 bg-white border-slate-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 font-medium"
+                            value={billingFields.district}
+                            onChange={e => setBillingFields(prev => ({ ...prev, district: e.target.value }))}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-600 mb-1">จังหวัด</label>
+                          <input
+                            type="text"
+                            placeholder="เช่น กรุงเทพมหานคร"
+                            className="input input-bordered w-full rounded-xl text-sm h-10 bg-white border-slate-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 font-medium"
+                            value={billingFields.province}
+                            onChange={e => setBillingFields(prev => ({ ...prev, province: e.target.value }))}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-600 mb-1">รหัสไปรษณีย์</label>
+                          <input
+                            type="text"
+                            placeholder="เช่น 10110"
+                            className="input input-bordered w-full rounded-xl text-sm h-10 bg-white border-slate-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 font-medium"
+                            value={billingFields.zipcode}
+                            onChange={e => setBillingFields(prev => ({ ...prev, zipcode: e.target.value }))}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -716,27 +751,27 @@ export default function CustomerManagementPage() {
               </div>
 
               {/* Actions */}
-              <div className="flex justify-end gap-2 border-t border-slate-100 pt-4 mt-2">
+              <div className="flex justify-end gap-3 border-t border-slate-200 pt-4 mt-2">
                 <button
                   type="button"
                   onClick={() => setIsFormOpen(false)}
-                  className="btn btn-sm btn-ghost rounded-xl font-bold"
+                  className="btn btn-sm btn-ghost rounded-xl font-bold text-slate-600 px-4"
                   disabled={saving}
                 >
                   ยกเลิก
                 </button>
                 <button
                   type="submit"
-                  className="btn btn-sm bg-[#c8102e] hover:bg-[#a00c24] text-white border-none rounded-xl font-bold px-5"
+                  className="btn btn-sm bg-[#c8102e] hover:bg-[#a00c24] text-white border-none rounded-xl font-bold px-6 shadow-md"
                   disabled={saving}
                 >
                   {saving ? (
                     <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <Loader2 className="w-4 h-4 animate-spin" />
                       กำลังบันทึก...
                     </>
                   ) : (
-                    "บันทึกข้อมูล"
+                    "บันทึกข้อมูลลูกค้า"
                   )}
                 </button>
               </div>
@@ -747,31 +782,33 @@ export default function CustomerManagementPage() {
 
       {/* Customer Detail & Repair History Modal */}
       {isDetailOpen && selectedCustomer && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-slate-100 rounded-2xl w-full max-w-3xl shadow-xl overflow-hidden animate-zoomIn flex flex-col border border-slate-200 h-[80vh]">
-            <div className="bg-slate-800 text-white px-5 py-4 flex items-center justify-between shadow-sm">
-              <div className="flex items-center gap-2">
-                <User className="w-5 h-5 text-red-500" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 sm:p-6">
+          <div className="bg-slate-100 rounded-2xl w-full max-w-5xl shadow-2xl overflow-hidden animate-zoomIn flex flex-col border border-slate-200 h-[85vh]">
+            <div className="bg-slate-800 text-white px-6 py-4 flex items-center justify-between shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-slate-700/80 rounded-xl">
+                  <User className="w-5 h-5 text-red-400" />
+                </div>
                 <div>
-                  <h3 className="font-bold text-sm">{selectedCustomer.name}</h3>
-                  <p className="text-[10px] text-slate-400 font-bold">เบอร์โทร: {selectedCustomer.phone}</p>
+                  <h3 className="font-bold text-base">{selectedCustomer.name}</h3>
+                  <p className="text-xs text-slate-400 font-semibold">เบอร์โทรศัพท์: {selectedCustomer.phone}</p>
                 </div>
               </div>
-              <button onClick={() => setIsDetailOpen(false)} className="text-slate-400 hover:text-white transition-colors">
-                <X className="w-4.5 h-4.5" />
+              <button onClick={() => setIsDetailOpen(false)} className="text-slate-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-slate-700">
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-5 flex-1 overflow-y-auto space-y-5">
+            <div className="p-6 flex-1 overflow-y-auto space-y-6">
               {/* Profile card & Addresses */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {/* Shipping address details */}
-                <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-sm space-y-2">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-sky-700">
-                    <MapPin className="w-4 h-4" />
+                <div className="bg-white rounded-2xl p-5 border border-sky-100 shadow-sm space-y-3">
+                  <div className="flex items-center gap-2 text-xs font-bold text-sky-800 uppercase tracking-wider border-b border-slate-100 pb-2">
+                    <MapPin className="w-4 h-4 text-sky-600" />
                     <span>ที่อยู่จัดส่งสินค้า (Shipping Address)</span>
                   </div>
-                  <p className="text-xs text-slate-600 font-medium leading-relaxed bg-slate-50 p-2.5 rounded-lg border border-slate-100 min-h-16">
+                  <p className="text-xs text-slate-700 font-medium leading-relaxed bg-sky-50/30 p-3 rounded-xl border border-sky-100/60 min-h-16">
                     {formatAddressDetail(selectedCustomer.addresses.find(a => a.address_type === "SHIPPING")?.address_detail || "") || (
                       <span className="text-slate-400 italic">ไม่มีข้อมูลที่อยู่จัดส่ง</span>
                     )}
@@ -779,12 +816,12 @@ export default function CustomerManagementPage() {
                 </div>
 
                 {/* Billing address details */}
-                <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-sm space-y-2">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-purple-700">
-                    <MapPin className="w-4 h-4" />
+                <div className="bg-white rounded-2xl p-5 border border-purple-100 shadow-sm space-y-3">
+                  <div className="flex items-center gap-2 text-xs font-bold text-purple-800 uppercase tracking-wider border-b border-slate-100 pb-2">
+                    <MapPin className="w-4 h-4 text-purple-600" />
                     <span>ที่อยู่ออกใบกำกับภาษี (Billing Address)</span>
                   </div>
-                  <p className="text-xs text-slate-600 font-medium leading-relaxed bg-slate-50 p-2.5 rounded-lg border border-slate-100 min-h-16">
+                  <p className="text-xs text-slate-700 font-medium leading-relaxed bg-purple-50/30 p-3 rounded-xl border border-purple-100/60 min-h-16">
                     {formatAddressDetail(selectedCustomer.addresses.find(a => a.address_type === "BILLING")?.address_detail || "") || (
                       <span className="text-slate-400 italic">ไม่มีข้อมูลที่อยู่ออกใบกำกับภาษี</span>
                     )}
@@ -793,62 +830,62 @@ export default function CustomerManagementPage() {
               </div>
 
               {/* Repair Requests History */}
-              <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm p-4 space-y-3">
-                <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                  <Wrench className="w-4 h-4 text-[#c8102e]" />
+              <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 space-y-4">
+                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
+                  <Wrench className="w-4.5 h-4.5 text-[#c8102e]" />
                   ประวัติใบแจ้งสั่งซ่อม (Repair History)
                 </h4>
 
                 {loadingRequests ? (
-                  <div className="flex items-center justify-center py-10 gap-2">
+                  <div className="flex items-center justify-center py-12 gap-2">
                     <Loader2 className="w-6 h-6 animate-spin text-[#c8102e]" />
                     <span className="text-xs text-slate-500 font-semibold">กำลังดึงข้อมูลประวัติ...</span>
                   </div>
                 ) : customerRequests.length === 0 ? (
-                  <div className="text-center py-8 text-xs text-slate-400 font-medium">
+                  <div className="text-center py-10 text-xs text-slate-400 font-medium">
                     ไม่พบประวัติการแจ้งซ่อมของลูกค้ารายนี้
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="table w-full text-slate-700">
                       <thead>
-                        <tr className="bg-slate-50 text-slate-500 font-bold text-[10px] border-b border-slate-100">
-                          <th className="py-2 px-3">เลขที่ใบแจ้งซ่อม</th>
-                          <th className="py-2 px-3">ประเภทบริการ</th>
-                          <th className="py-2 px-3">วันที่สั่งซ่อม</th>
-                          <th className="py-2 px-3">สถานะ</th>
-                          <th className="py-2 px-3 text-center">ดูงาน</th>
+                        <tr className="bg-slate-50 text-slate-600 font-bold text-xs border-b border-slate-200/80">
+                          <th className="py-3 px-4">เลขที่ใบแจ้งซ่อม</th>
+                          <th className="py-3 px-4">ประเภทบริการ</th>
+                          <th className="py-3 px-4">วันที่สั่งซ่อม</th>
+                          <th className="py-3 px-4">สถานะ</th>
+                          <th className="py-3 px-4 text-center">ดูงาน</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 text-xs">
                         {customerRequests.map((req) => (
-                          <tr key={req.id} className="hover:bg-slate-50/50">
-                            <td className="py-2 px-3 font-bold text-[#c8102e]">
+                          <tr key={req.id} className="hover:bg-slate-50/80 transition-colors">
+                            <td className="py-3 px-4 font-bold text-[#c8102e]">
                               {req.request_no}
                             </td>
-                            <td className="py-2 px-3 font-semibold text-slate-600">
-                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            <td className="py-3 px-4 font-semibold text-slate-600">
+                              <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold ${
                                 req.service_tier === "VIP" ? "bg-amber-100 text-amber-800" :
                                 req.service_tier === "EXPRESS" ? "bg-red-100 text-red-800" : "bg-slate-100 text-slate-800"
                               }`}>
                                 {req.service_tier}
                               </span>
                             </td>
-                            <td className="py-2 px-3 font-medium text-slate-500">
+                            <td className="py-3 px-4 font-medium text-slate-500">
                               {formatDate(req.created_date)}
                             </td>
-                            <td className="py-2 px-3 font-semibold">
-                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${getStatusBadgeClass(req.status)}`}>
+                            <td className="py-3 px-4 font-semibold">
+                              <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${getStatusBadgeClass(req.status)}`}>
                                 {statusMap[req.status] || `สถานะ ${req.status}`}
                               </span>
                             </td>
-                            <td className="py-2 px-3 text-center">
+                            <td className="py-3 px-4 text-center">
                               <Link
                                 href={`/status?q=${req.request_no}`}
-                                className="btn btn-ghost btn-xs text-[#c8102e]"
+                                className="btn btn-ghost btn-xs text-[#c8102e] hover:bg-red-50 font-bold"
                                 onClick={() => setIsDetailOpen(false)}
                               >
-                                <Eye className="w-3.5 h-3.5" />
+                                <Eye className="w-4 h-4" />
                               </Link>
                             </td>
                           </tr>
@@ -860,10 +897,10 @@ export default function CustomerManagementPage() {
               </div>
             </div>
 
-            <div className="bg-slate-50 border-t border-slate-200 px-5 py-3 flex justify-end">
+            <div className="bg-slate-50 border-t border-slate-200 px-6 py-4 flex justify-end">
               <button
                 onClick={() => setIsDetailOpen(false)}
-                className="btn btn-sm btn-slate rounded-xl font-bold bg-white border-slate-300 hover:bg-slate-100 px-5 text-slate-700"
+                className="btn btn-sm rounded-xl font-bold bg-white border-slate-300 hover:bg-slate-100 px-6 text-slate-700 shadow-sm"
               >
                 ปิดหน้าต่าง
               </button>
