@@ -3,11 +3,41 @@ import { prisma } from "@/lib/database";
 
 export const runtime = "nodejs";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const locations = await prisma.location.findMany({
+    const { searchParams } = new URL(req.url);
+    const includeAll = searchParams.get("all") === "true";
+
+    let locations = await prisma.location.findMany({
       orderBy: { id: "asc" },
     });
+
+    if (!includeAll) {
+      locations = locations.filter((l) => {
+        const nameLower = l.name.toLowerCase();
+        const shortLower = (l.short_name || "").toLowerCase();
+        const buUpper = (l.bu || "").toUpperCase();
+
+        if (buUpper === "TW" || buUpper === "HBY" || buUpper === "HO" || buUpper === "HEAD OFFICE") {
+          return true;
+        }
+
+        if (
+          nameLower.includes("auto1") ||
+          nameLower.includes("auto 1") ||
+          nameLower.includes("gowow") ||
+          nameLower.includes("go! wow") ||
+          nameLower.includes("go wow") ||
+          nameLower.includes("joy") ||
+          shortLower.includes("auto1") ||
+          shortLower.includes("gowow")
+        ) {
+          return false;
+        }
+
+        return true;
+      });
+    }
 
     return NextResponse.json({ ok: true, locations });
   } catch (error) {
