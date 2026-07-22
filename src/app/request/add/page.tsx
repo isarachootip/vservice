@@ -742,7 +742,7 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                         </h2>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-start">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
                         <div>
                             <label htmlFor="firstName" className="block text-xs font-bold text-slate-700 mb-1.5">
                                 ชื่อจริง<Req />
@@ -792,25 +792,6 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
                                 </p>
                             )}
                             {errors.phone && <p className="text-red-600 text-xs mt-1 font-medium">{errors.phone}</p>}
-                        </div>
-
-                        <div className="pt-2 sm:pt-6">
-                            <label className="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100/80 cursor-pointer transition">
-                                <input
-                                    type="checkbox"
-                                    checked={skuFlg}
-                                    onChange={(e) => {
-                                        const checked = e.target.checked;
-                                        setSkuFlg(checked);
-                                        if (!checked) {
-                                            setSku("");
-                                            setErrors(prev => ({ ...prev, sku: undefined }));
-                                        }
-                                    }}
-                                    className="w-4 h-4 rounded text-[#c8102e] focus:ring-[#c8102e] border-slate-300"
-                                />
-                                <span className="text-xs font-bold text-slate-700">สินค้าในระบบ (System Stock)</span>
-                            </label>
                         </div>
                     </div>
 
@@ -1007,11 +988,45 @@ export default function RequestAddPage({ searchParams }: { searchParams: Promise
 
                 {/* SECTION 2: PRODUCT & WARRANTY DETAILS */}
                 <div className="bg-white border border-slate-200/80 rounded-2xl p-5 sm:p-6 shadow-sm space-y-5">
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div className="flex flex-wrap items-center justify-between border-b border-slate-100 pb-3 gap-3">
                         <h2 className="text-sm sm:text-base font-bold text-slate-800 flex items-center gap-2">
                             <span className="w-2 h-4 bg-[#c8102e] rounded"></span>
                             📦 ข้อมูลสินค้าและการรับประกัน (Product & Warranty)
                         </h2>
+
+                        {/* Mode Selector Badge: System Stock vs Non-System Stock */}
+                        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setSkuFlg(true);
+                                }}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                                    skuFlg
+                                        ? "bg-white text-[#c8102e] shadow-sm border border-slate-200"
+                                        : "text-slate-600 hover:text-slate-900"
+                                }`}
+                            >
+                                <span className={`w-2 h-2 rounded-full ${skuFlg ? "bg-[#c8102e]" : "bg-slate-300"}`}></span>
+                                สินค้าในระบบ (System Stock)
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setSkuFlg(false);
+                                    setSku("");
+                                    setErrors(prev => ({ ...prev, sku: undefined }));
+                                }}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                                    !skuFlg
+                                        ? "bg-white text-[#c8102e] shadow-sm border border-slate-200"
+                                        : "text-slate-600 hover:text-slate-900"
+                                }`}
+                            >
+                                <span className={`w-2 h-2 rounded-full ${!skuFlg ? "bg-[#c8102e]" : "bg-slate-300"}`}></span>
+                                สินค้านอกระบบ (Non-System)
+                            </button>
+                        </div>
                     </div>
 
                     {/* Product Basic Fields */}
