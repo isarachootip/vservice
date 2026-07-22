@@ -5,19 +5,8 @@ export const runtime = "nodejs";
 
 export async function GET() {
   try {
-    let locations = await prisma.location.findMany({
+    const locations = await prisma.location.findMany({
       orderBy: { id: "asc" },
-    });
-
-    // Exclude Auto1, GoWow, and Joy locations, keeping everything else (TW, BB, Head Office, etc.)
-    locations = locations.filter(l => {
-      const nameLower = l.name.toLowerCase();
-      if (nameLower.includes("auto1") || nameLower.includes("auto 1") || 
-          nameLower.includes("gowow") || nameLower.includes("go! wow") || nameLower.includes("go wow") ||
-          nameLower.includes("joy")) {
-        return false;
-      }
-      return true;
     });
 
     return NextResponse.json({ ok: true, locations });
