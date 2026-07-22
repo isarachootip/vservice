@@ -1396,17 +1396,19 @@ function MaintainContent() {
                     return;
                 }
 
-                locationData = jsonData.map((row, idx) => {
-                    const id = String(row.id || row.code || "").trim();
-                    const name = String(row.name || "").trim();
-                    const shortName = String(row.shortName || row.short_name || "").trim();
-                    const code = String(row.code || "").trim();
+                locationData = jsonData.map((row: any, idx) => {
+                    const id = String(row.id || row.code || row.STORE || row.store || "").trim();
+                    const nameRaw = String(row.name || row.SnameTH || row.SName || row.name_th || "").trim();
+                    const name = nameRaw ? (nameRaw.startsWith("สาขา") || nameRaw.startsWith("ไทวัสดุ") ? nameRaw : `ไทวัสดุ ${nameRaw}`) : "";
+                    const shortName = String(row.shortName || row.short_name || row.SName || "").trim();
+                    const code = String(row.code || row.STCODE || row.stcode || "").trim();
                     const status = String(row.status || "active").trim();
+                    const bu = String(row.bu || row.STOREGROUP || row.storegroup || "TW").trim();
 
-                    if (!id || !name) {
-                        throw new Error(`แถวที่ ${idx + 2}: ข้อมูลไม่ครบ (ต้องมีคอลัมน์ id หรือ code และ name)`);
+                    if (!id || !nameRaw) {
+                        throw new Error(`แถวที่ ${idx + 2}: ข้อมูลไม่ครบ (ต้องมีคอลัมน์ id/STORE และ name/SnameTH)`);
                     }
-                    return { id, name, shortName, code, status };
+                    return { id, name, shortName, code, status, bu };
                 });
             }
 
