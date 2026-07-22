@@ -113,18 +113,51 @@ export const canHandle = (role: Role, row: RepairRow) => {
     return list.includes(row.status);
 };
 
-export const statusText = (row: RepairRow) => {
-
+export const statusText = (row: RepairRow, lang: "th" | "en" = "th") => {
     if (row.status === 220 
         && row.reject_flg === "Y"
         && (row.reject_from_status === "220" || row.reject_from_status === "230")){
-        return "DC ตีกลับสินค้าคืนสาขา";
+        return lang === "en" ? "DC returned product to store" : "DC ตีกลับสินค้าคืนสาขา";
     }
 
     if (row.status === 110 
         && row.reject_flg === "Y"
         && (row.reject_from_status === "220" || row.reject_from_status === "230")){
-        return "GR บันทึกรับสินค้าคืนจาก DC";
+        return lang === "en" ? "GR received returned product from DC" : "GR บันทึกรับสินค้าคืนจาก DC";
+    }
+
+    if (lang === "en") {
+        switch (row.status) {
+            case 0:   return "Ticket Cancelled";
+            case 100: return "Create Ticket / Submit for Repair";
+            case 110: return "GR Received Item from CS";
+            case 200: return "GR Opened DC Log";
+            case 210: return "Awaiting DC Pickup";
+            case 220: return "DC Received Item from Branch";
+            case 230: return "DC Awaiting Vendor Pickup";
+            case 240: return "Awaiting Vendor Quotation";
+            case 250: return "Awaiting Customer Price Approval";
+            case 260: return "Notified Approval Result";
+            case 270: return "Awaiting Vendor Return (Unrepaired)";
+            case 275: return "Awaiting Vendor Return (Repaired)";
+            case 280: return "DC Received Return from Vendor";
+            case 285: return "GR Received Return from DC";
+            case 290: return "CS Received Return / Awaiting Customer Pickup";
+            case 299: return "Customer Picked Up Item";
+
+            case 300: return "Awaiting Vendor Pickup";
+            case 310: return "Awaiting Vendor Quotation";
+            case 320: return "Awaiting Customer Price Approval";
+            case 330: return "Notified Approval Result";
+            case 340: return "Awaiting Vendor Return (Unrepaired)";
+            case 345: return "Awaiting Vendor Return (Repaired)";
+            case 350: return "Vendor Returned via DC";
+            case 360: return "GR Received Return from Vendor/DC";
+            case 390: return "CS Received Return / Awaiting Customer Pickup";
+            case 399: return "Customer Picked Up Item";
+
+            default: return "-";
+        }
     }
 
     switch (row.status) {

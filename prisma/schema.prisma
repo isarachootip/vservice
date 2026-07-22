@@ -411,6 +411,7 @@ model repair_category {
   id           Int       @id @default(autoincrement())
   name         String    @unique @db.VarChar(100)
   name_th      String?   @db.VarChar(100)
+  name_en      String?   @db.VarChar(100)
   active_flg   String    @default("Y") @db.VarChar(5)
   created_user String?   @db.VarChar(50)
   created_date DateTime? @default(now()) @db.Timestamp(6)

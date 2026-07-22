@@ -37,6 +37,7 @@ import {
   Grid,
   BookOpen
 } from "lucide-react";
+import { LanguageProvider, useLanguage } from "@/context/LanguageContext";
 
 
 type UserData = {
@@ -85,7 +86,6 @@ function SidebarNav({
           const handleParentClick = (e: React.MouseEvent) => {
             if (item.subItems) {
               e.preventDefault();
-              // Toggle settingsExpanded
               setSettingsExpanded(!settingsExpanded);
             }
           };
@@ -100,48 +100,57 @@ function SidebarNav({
                   collapsed ? "lg:justify-center lg:px-2" : "justify-between px-3"
                 } ${
                   isActive
-                    ? "bg-[#c8102e] text-white shadow-sm"
-                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                    ? "bg-[#c8102e] text-white shadow-sm font-bold"
+                    : "text-slate-600 hover:bg-red-50 hover:text-[#c8102e]"
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <Icon className={`w-4.5 h-4.5 shrink-0 ${isActive ? "text-white" : "text-slate-400"}`} />
-                  {(!collapsed || mobileOpen) && (
-                    <span className="animate-fadeIn">{item.label}</span>
-                  )}
+                  <Icon className={`w-5 h-5 shrink-0 ${isActive ? "text-white" : "text-slate-500"}`} />
+                  {!collapsed && <span className="truncate">{item.label}</span>}
                 </div>
-                {(!collapsed || mobileOpen) && (
+
+                {!collapsed && (
                   <div className="flex items-center gap-1.5">
                     {item.badge !== undefined && (
-                      <span className="bg-[#c8102e] text-white text-[10px] font-bold px-2 py-0.5 rounded-full min-w-5 text-center">
+                      <span className={`text-[11px] px-1.5 py-0.2 rounded-full font-extrabold ${
+                        isActive ? "bg-white text-[#c8102e]" : "bg-red-100 text-[#c8102e]"
+                      }`}>
                         {item.badge}
                       </span>
                     )}
                     {item.subItems && (
-                      <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${settingsExpanded ? "rotate-180" : ""}`} />
+                      <ChevronDown
+                        className={`w-4 h-4 transition-transform duration-200 ${
+                          settingsExpanded ? "rotate-180" : ""
+                        }`}
+                      />
                     )}
                   </div>
                 )}
               </Link>
 
-              {item.subItems && settingsExpanded && (!collapsed || mobileOpen) && (
-                <div className="flex flex-col gap-0.5 pl-6 mt-1 border-l border-slate-200 ml-5 animate-fadeIn">
-                  {item.subItems.map((sub: any, sIdx: number) => {
+              {/* Sub-menu rendering for settings */}
+              {item.subItems && settingsExpanded && !collapsed && (
+                <div className="ml-4 mt-1 flex flex-col gap-0.5 border-l-2 border-slate-200 pl-2">
+                  {item.subItems.map((sub: any, subIdx: number) => {
                     const SubIcon = sub.icon;
-                    const subTab = sub.href.split("=")[1];
-                    const isSubActive = pathname.startsWith("/maintain") && currentTab === subTab;
+                    const isSubActive = pathname === "/maintain" && (
+                      sub.href.includes(`tab=${currentTab}`) || 
+                      (!searchParams.get("tab") && sub.href.endsWith("status"))
+                    );
+
                     return (
                       <Link
-                        key={sIdx}
+                        key={subIdx}
                         href={sub.href}
-                        className={`flex items-center gap-2.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all duration-150 ${
+                        className={`flex items-center gap-2.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
                           isSubActive
-                            ? "text-[#c8102e] bg-[#c8102e]/5 font-extrabold"
-                            : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
+                            ? "text-[#c8102e] bg-red-50 font-bold"
+                            : "text-slate-500 hover:text-slate-900 hover:bg-slate-100"
                         }`}
                       >
-                        {SubIcon && <SubIcon className="w-3.5 h-3.5 shrink-0" />}
-                        <span>{sub.label}</span>
+                        <SubIcon className="w-3.5 h-3.5 shrink-0" />
+                        <span className="truncate">{sub.label}</span>
                       </Link>
                     );
                   })}
@@ -154,9 +163,10 @@ function SidebarNav({
   );
 }
 
-export default function AppShell({ children }: { children: ReactNode }) {
+function AppShellContent({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { language, setLanguage, t } = useLanguage();
   const [user, setUser] = useState<UserData | null>(null);
   const [activeAnnouncements, setActiveAnnouncements] = useState<any[]>([]);
   const [closedAnnouncements, setClosedAnnouncements] = useState<Record<number, boolean>>({});
@@ -268,36 +278,36 @@ export default function AppShell({ children }: { children: ReactNode }) {
   }, [user]);
 
   const menuItems = [
-    { href: "/dashboard", label: "หน้าหลัก", icon: Home },
-    { href: "/menu", label: "เมนูหลัก (VService)", icon: Grid },
-    { href: "/status", label: "งานซ่อมทั้งหมด", icon: ClipboardList },
-    { href: "/request/add", label: "รับเครื่อง / สร้างงาน", icon: Wrench, show: canAddRequest },
-    { href: "/customer", label: "ลูกค้า", icon: Users },
-    { href: "/quotation", label: "ใบเสนอราคา", icon: FileText, badge: 8 },
-    { href: "/chat", label: "ห้องสนทนาทีมงาน", icon: MessageSquare },
-    { href: "/chat/customer", label: "แชตกับลูกค้า (LINE)", icon: MessageSquare },
-    { href: "/faq", label: "คลังความรู้ & คู่มือ", icon: BookOpen },
-    { href: "/maintain?tab=location", label: "สาขา / จุดบริการ", icon: Store, show: isAdmin },
-    { href: "#", label: "รายงาน / วิเคราะห์", icon: BarChart2 },
-    { href: "#", label: "การแจ้งเตือน", icon: Bell, badge: 6 },
+    { href: "/dashboard", label: t("menu_dashboard"), icon: Home },
+    { href: "/menu", label: language === "en" ? "Main Menu (VService)" : "เมนูหลัก (VService)", icon: Grid },
+    { href: "/status", label: t("menu_track_status"), icon: ClipboardList },
+    { href: "/request/add", label: t("menu_create_repair"), icon: Wrench, show: canAddRequest },
+    { href: "/customer", label: language === "en" ? "Customers" : "ลูกค้า", icon: Users },
+    { href: "/quotation", label: t("menu_quotations"), icon: FileText, badge: 8 },
+    { href: "/chat", label: t("menu_staff_chat"), icon: MessageSquare },
+    { href: "/chat/customer", label: t("menu_customer_chat"), icon: MessageSquare },
+    { href: "/faq", label: t("menu_faq"), icon: BookOpen },
+    { href: "/maintain?tab=location", label: language === "en" ? "Branches / Service Points" : "สาขา / จุดบริการ", icon: Store, show: isAdmin },
+    { href: "#", label: language === "en" ? "Reports & Analytics" : "รายงาน / วิเคราะห์", icon: BarChart2 },
+    { href: "#", label: language === "en" ? "Notifications" : "การแจ้งเตือน", icon: Bell, badge: 6 },
     { 
       href: "/maintain", 
-      label: "ตั้งค่า", 
+      label: t("menu_settings"), 
       icon: Settings, 
       show: isAdmin,
       subItems: [
         { href: "/maintain?tab=status", label: "Status Info", icon: List },
-        { href: "/maintain?tab=vendor", label: "Vendor Info (ผู้รับเหมา)", icon: Truck },
+        { href: "/maintain?tab=vendor", label: "Vendor Info", icon: Truck },
         { href: "/maintain?tab=user", label: "User & Access Info", icon: ShieldAlert },
-        { href: "/maintain?tab=location", label: "Location Info (สาขา)", icon: Store },
-        { href: "/maintain?tab=product", label: "Product Info (สินค้า & ทุน)", icon: Package },
-        { href: "/maintain?tab=category", label: "Category Info (หมวดหมู่)", icon: Layers },
-        { href: "/maintain?tab=symptom", label: "Symptom Info (อาการเสีย)", icon: AlertTriangle },
-        { href: "/maintain?tab=announcement", label: "ตั้งค่าประกาศ", icon: Megaphone },
+        { href: "/maintain?tab=location", label: "Location Info", icon: Store },
+        { href: "/maintain?tab=product", label: "Product Info", icon: Package },
+        { href: "/maintain?tab=category", label: t("maintain_category_title"), icon: Layers },
+        { href: "/maintain?tab=symptom", label: "Symptom Info", icon: AlertTriangle },
+        { href: "/maintain?tab=announcement", label: language === "en" ? "Announcements" : "ตั้งค่าประกาศ", icon: Megaphone },
         { href: "/maintain?tab=diagnostic", label: "Diagnostic Fee Config", icon: Coins },
         { href: "/maintain?tab=margin", label: "Margin Config", icon: Percent },
         { href: "/maintain?tab=service_tier", label: "Service Tier Config", icon: Clock },
-        { href: "/maintain?tab=example_images", label: "ตั้งค่ารูปภาพตัวอย่าง", icon: Image },
+        { href: "/maintain?tab=example_images", label: language === "en" ? "Example Images Config" : "ตั้งค่ารูปภาพตัวอย่าง", icon: Image },
       ]
     },
   ];
@@ -347,112 +357,141 @@ export default function AppShell({ children }: { children: ReactNode }) {
         ${collapsed ? "lg:w-16" : "lg:w-64"}
       `}>
         <div className="flex flex-col h-full overflow-y-auto scrollbar-hide">
-          {/* Sidebar Top Header Logo (Thai Watsadu Brand Replica) */}
-          <div className={`flex items-center justify-between border-b border-slate-100 bg-white px-5 py-4 ${collapsed ? "lg:px-2 lg:justify-center" : ""}`}>
-            <div className="flex items-center gap-1.5">
-              {/* Red House Box */}
-              <div className="w-11 h-11 bg-[#c8102e] rounded flex flex-col items-center justify-center p-0.5 relative shrink-0 shadow-sm">
-                <svg viewBox="0 0 24 24" className="w-9 h-9 fill-none stroke-white stroke-[2.5] absolute inset-0 m-auto" style={{ top: '-1.5px' }}>
+          {/* Sidebar Top Header Logo */}
+          <div className="p-4 border-b border-slate-100 flex items-center justify-between shrink-0 h-16">
+            <div className={`flex items-center gap-2.5 overflow-hidden transition-all duration-200 ${collapsed ? "lg:opacity-0 lg:w-0" : "w-auto"}`}>
+              <div className="w-9 h-9 bg-[#c8102e] rounded-lg flex flex-col items-center justify-center p-0.5 relative shrink-0 shadow-md">
+                <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-white stroke-[2.5] absolute inset-0 m-auto" style={{ top: '-1px' }}>
                   <polygon points="12,3 3,11 6,11 6,20 18,20 18,11 21,11" fill="white" stroke="white" />
                 </svg>
-                {/* Red "ไท" text inside the white house cutout */}
-                <span className="text-[#c8102e] font-extrabold text-[15px] z-10 select-none relative" style={{ top: '3.5px' }}>ไท</span>
+                <span className="text-[#c8102e] font-extrabold text-[11px] z-10 select-none relative" style={{ top: '2px' }}>ไท</span>
               </div>
-              {/* Black "วัสดุ" and subtext */}
-              {(!collapsed || mobileOpen) && (
-                <div className="flex flex-col select-none animate-fadeIn">
-                  <span className="text-[#121212] font-black text-xl tracking-tight leading-none">วัสดุ</span>
-                  <span className="text-[#555] text-[9px] font-bold tracking-wider leading-none mt-1">SERVICE CENTER</span>
+              <div className="flex flex-col select-none">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-[#121212] font-black text-lg tracking-tight leading-none">ไทวัสดุ</span>
+                  <span className="text-[#c8102e] font-bold text-xs">VService</span>
                 </div>
-              )}
+                <span className="text-[10px] text-slate-400 font-semibold tracking-wider uppercase mt-0.5">Service Center</span>
+              </div>
             </div>
 
-            {/* Toggle Button for Desktop */}
             <button
               onClick={handleToggleCollapse}
-              className="hidden lg:flex p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition cursor-pointer"
-              title={collapsed ? "ขยายเมนู" : "ย่อเมนู"}
+              className="hidden lg:flex p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition"
+              title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
               {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
             </button>
 
-            {/* Close Button on Mobile Drawer */}
             <button
               onClick={() => setMobileOpen(false)}
-              className="lg:hidden p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition"
-              title="Close menu"
+              className="lg:hidden p-1 rounded-lg hover:bg-slate-100 text-slate-500"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          <div className="p-3">
-            {/* Navigation Links */}
-            <Suspense fallback={<div className="h-40" />}>
-              <SidebarNav menuItems={menuItems} collapsed={collapsed} mobileOpen={mobileOpen} pathname={pathname} />
+          {/* Navigation Items */}
+          <div className="p-3 flex-grow overflow-y-auto">
+            <Suspense fallback={<div className="p-2 text-xs text-slate-400">Loading menu...</div>}>
+              <SidebarNav
+                menuItems={menuItems}
+                collapsed={collapsed}
+                mobileOpen={mobileOpen}
+                pathname={pathname}
+              />
             </Suspense>
-
-            {/* CALL CENTER Banner Card */}
-            {/* CALL CENTER Banner Card */}
-            {(!collapsed || mobileOpen) && (
-              <div className="mt-4 mx-1.5 p-3 bg-slate-50 border border-slate-200/60 rounded-2xl flex flex-col items-center text-center relative overflow-hidden shadow-sm animate-fadeIn">
-                <span className="text-[10px] font-extrabold text-[#777] tracking-wider">CALL CENTER</span>
-                <span className="text-[#c8102e] text-2xl font-black mt-0.5">1308</span>
-                <span className="text-[9px] text-slate-400 font-semibold mt-1">บริการทุกวัน 07.00 - 20.00 น.</span>
-                
-                <div className="mt-2 w-28 h-28 relative overflow-hidden flex items-center justify-center">
-                  <img 
-                    src="/images/mascot_twd.png" 
-                    alt="Thai Watsadu Mascot" 
-                    className="w-full h-full object-contain filter drop-shadow-sm hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-              </div>
-            )}
           </div>
-        </div>
 
-        {/* Footer profile info & Logout */}
-        <div className={`p-3 border-t border-slate-100 bg-slate-50 flex flex-col gap-2 ${collapsed ? "lg:items-center" : ""}`}>
-          <button
-            onClick={handleLogout}
-            title={collapsed ? "Logout" : undefined}
-            className={`w-full flex items-center text-slate-600 hover:text-[#c8102e] hover:bg-red-50 rounded-lg transition duration-150 py-2 text-sm font-semibold ${
-              collapsed ? "lg:justify-center lg:px-0" : "gap-3 px-3"
-            }`}
-          >
-            <LogOut className="w-4 h-4 text-slate-400 shrink-0" />
-            {(!collapsed || mobileOpen) && <span className="animate-fadeIn">Logout</span>}
-          </button>
+          {/* Language Switcher in Sidebar Footer */}
+          <div className="p-3 border-t border-slate-100 flex items-center justify-between">
+            {!collapsed && <span className="text-xs font-semibold text-slate-500">{t("language")}</span>}
+            <div className="flex items-center bg-slate-100 rounded-lg p-1 border border-slate-200 text-xs font-semibold">
+              <button
+                type="button"
+                onClick={() => setLanguage("th")}
+                className={`px-2 py-0.5 rounded transition-colors ${
+                  language === "th"
+                    ? "bg-[#c8102e] text-white font-bold shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                TH
+              </button>
+              <button
+                type="button"
+                onClick={() => setLanguage("en")}
+                className={`px-2 py-0.5 rounded transition-colors ${
+                  language === "en"
+                    ? "bg-[#c8102e] text-white font-bold shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                EN
+              </button>
+            </div>
+          </div>
+
+          {/* User profile & logout section */}
+          <div className="p-3 border-t border-slate-100 bg-slate-50/50 shrink-0">
+            <div className={`flex items-center justify-between ${collapsed ? "flex-col gap-2" : ""}`}>
+              <div className={`flex items-center gap-3 overflow-hidden ${collapsed ? "justify-center" : ""}`}>
+                <div className="w-9 h-9 rounded-full bg-red-100 text-[#c8102e] font-extrabold text-xs flex items-center justify-center shrink-0 border border-red-200 shadow-xs">
+                  {userInitials}
+                </div>
+                {!collapsed && (
+                  <div className="flex flex-col overflow-hidden">
+                    <span className="text-xs font-bold text-slate-800 truncate" title={user?.user_full_name || user?.user_name}>
+                      {user?.user_full_name || user?.user_name || "Guest"}
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-semibold truncate">
+                      {roleNameTH} {user?.store_code ? `(${user.store_code})` : ""}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <button
+                onClick={handleLogout}
+                className="p-2 text-slate-400 hover:text-[#c8102e] hover:bg-red-50 rounded-lg transition"
+                title={t("logout")}
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
         </div>
       </aside>
 
-      {/* Right Content Area */}
+      {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="hidden lg:flex sticky top-0 bg-white border-b border-slate-200/80 px-6 py-3.5 items-center justify-between z-10 shadow-sm">
-          <div className="flex items-center gap-3">
-            <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
-              <span className="text-[#c8102e] font-black">VService</span>
-              <span className="text-slate-300 font-normal">|</span>
-              <span className="text-slate-500 font-bold text-[11px] tracking-wide uppercase">Thai Watsadu Service Center {user?.location_name ? `(${user.location_name})` : user?.store_code ? `(สาขา ${user.store_code})` : ""}</span>
-            </h2>
+        {/* Desktop Header */}
+        <header className="hidden lg:flex h-16 bg-white border-b border-slate-200 items-center justify-between px-6 sticky top-0 z-10 shadow-xs">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-slate-400">VService System</span>
+            <span className="text-slate-300">/</span>
+            <span className="text-sm font-bold text-slate-800">
+              {menuItems.find(m => m.href === pathname || (m.href !== "/menu" && pathname.startsWith(m.href)))?.label || t("systemTitle")}
+            </span>
           </div>
-          
-          <div className="flex items-center gap-4">
-            {/* Notification bell */}
-            <button className="p-2 text-slate-450 hover:text-[#c8102e] rounded-full hover:bg-slate-50 transition relative">
-              <Bell className="w-5 h-5 text-slate-500" />
-              <span className="absolute top-1.5 right-1.5 w-4.5 h-4.5 bg-[#c8102e] text-white text-[9px] font-bold rounded-full flex items-center justify-center">6</span>
-            </button>
 
-            {/* Profile badge info */}
-            <div className="flex items-center gap-3 border-l border-slate-200 pl-4">
-              <div className="flex flex-col text-right select-none">
-                <span className="text-xs font-bold text-slate-800">{user?.user_full_name || user?.user_name || "Admin"}</span>
-                <span className="text-[10px] text-slate-400 font-bold">{roleNameTH}</span>
-              </div>
-              <div className="w-8 h-8 rounded-full bg-red-50 text-[#c8102e] border border-red-150 font-extrabold text-xs flex items-center justify-center shadow-sm">
-                {userInitials}
+          <div className="flex items-center gap-4">
+            {/* User Badges */}
+            <div className="flex items-center gap-3">
+              {user?.store_code && (
+                <div className="flex items-center gap-1.5 bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-xs font-semibold border border-slate-200">
+                  <Store className="w-3.5 h-3.5 text-[#c8102e]" />
+                  <span>{t("store")}: {user.store_code}</span>
+                </div>
+              )}
+              <div className="flex items-center gap-3 bg-white px-3 py-1.5 rounded-full border border-slate-200 shadow-2xs">
+                <div className="flex flex-col text-right select-none">
+                  <span className="text-xs font-bold text-slate-800">{user?.user_full_name || user?.user_name || "Admin"}</span>
+                  <span className="text-[10px] text-slate-400 font-bold">{roleNameTH}</span>
+                </div>
+                <div className="w-8 h-8 rounded-full bg-red-50 text-[#c8102e] border border-red-150 font-extrabold text-xs flex items-center justify-center shadow-xs">
+                  {userInitials}
+                </div>
               </div>
             </div>
           </div>
@@ -462,7 +501,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
         {activeAnnouncements
           .filter(ann => !closedAnnouncements[ann.id])
           .map(ann => {
-            let bannerBg = "bg-[#aa7d39]"; // warning brown
+            let bannerBg = "bg-[#aa7d39]";
             if (ann.severity === "danger") {
               bannerBg = "bg-[#c8102e]";
             } else if (ann.severity === "info") {
@@ -474,14 +513,11 @@ export default function AppShell({ children }: { children: ReactNode }) {
                 key={ann.id} 
                 className={`${bannerBg} text-white px-6 py-2 flex items-center justify-between text-xs font-semibold border-b border-white/10 relative overflow-hidden`}
               >
-                {/* Text Scroller Container */}
                 <div className="flex items-center w-full pr-8 overflow-hidden relative">
-                  {/* Static Title Badge with same background to mask scrolling text */}
                   <span className={`${bannerBg} z-10 pr-4 py-0.5 font-extrabold flex items-center gap-1.5 shrink-0`}>
-                    ⚠️ ประกาศด่วน
+                    ⚠️ {t("warning")}
                   </span>
                   
-                  {/* Scrolling Text Window */}
                   <div className="flex-grow overflow-hidden relative h-5 flex items-center select-none">
                     <div className="animate-marquee whitespace-nowrap absolute">
                       📢 {ann.message}
@@ -489,11 +525,10 @@ export default function AppShell({ children }: { children: ReactNode }) {
                   </div>
                 </div>
                 
-                {/* Close button with same background to mask scrolling text */}
                 <button 
                   onClick={() => setClosedAnnouncements(prev => ({ ...prev, [ann.id]: true }))}
                   className={`${bannerBg} pl-4 hover:opacity-85 text-white/80 z-10 cursor-pointer shrink-0`}
-                  title="ปิดประกาศ"
+                  title="Close"
                 >
                   ×
                 </button>
@@ -506,5 +541,13 @@ export default function AppShell({ children }: { children: ReactNode }) {
         </main>
       </div>
     </div>
+  );
+}
+
+export default function AppShell({ children }: { children: ReactNode }) {
+  return (
+    <LanguageProvider>
+      <AppShellContent>{children}</AppShellContent>
+    </LanguageProvider>
   );
 }

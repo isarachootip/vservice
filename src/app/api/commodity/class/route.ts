@@ -27,7 +27,7 @@ export async function GET(req: Request) {
         orderBy: { name: "asc" }
       });
 
-      const data = activeCategories.map(r => ({ name: r.name, name_th: r.name_th }));
+      const data = activeCategories.map(r => ({ name: r.name, name_th: r.name_th, name_en: r.name_en }));
       return NextResponse.json({ ok: true, data });
     }
 
@@ -35,7 +35,7 @@ export async function GET(req: Request) {
       where: { active_flg: "Y" },
       orderBy: { name: "asc" },
     });
-    const data = rows.map(r => ({ name: r.name, name_th: r.name_th }));
+    const data = rows.map(r => ({ name: r.name, name_th: r.name_th, name_en: r.name_en }));
     
     return NextResponse.json({ ok: true, data });
   } catch (err) {

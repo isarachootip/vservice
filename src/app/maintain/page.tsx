@@ -81,7 +81,7 @@ function MaintainContent() {
     const [categoryError, setCategoryError] = useState<string | null>(null);
     const [showCategoryModal, setShowCategoryModal] = useState(false);
     const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
-    const [categoryFormData, setCategoryFormData] = useState({ name: "", name_th: "", active_flg: "Y" });
+    const [categoryFormData, setCategoryFormData] = useState({ name: "", name_th: "", name_en: "", active_flg: "Y" });
     const [categorySearchQ, setCategorySearchQ] = useState("");
     const [categoryFormError, setCategoryFormError] = useState<string | null>(null);
     const [isSavingCategory, setIsSavingCategory] = useState(false);
@@ -848,7 +848,7 @@ function MaintainContent() {
 
     const openAddCategoryModal = () => {
         setEditingCategoryId(null);
-        setCategoryFormData({ name: "", name_th: "", active_flg: "Y" });
+        setCategoryFormData({ name: "", name_th: "", name_en: "", active_flg: "Y" });
         setCategoryFormError(null);
         setShowCategoryModal(true);
     };
@@ -858,6 +858,7 @@ function MaintainContent() {
         setCategoryFormData({ 
             name: cat.name, 
             name_th: cat.name_th || "", 
+            name_en: cat.name_en || "",
             active_flg: cat.active_flg || "Y" 
         });
         setCategoryFormError(null);
@@ -879,6 +880,7 @@ function MaintainContent() {
                 id: editingCategoryId,
                 name: categoryFormData.name,
                 name_th: categoryFormData.name_th,
+                name_en: categoryFormData.name_en,
                 active_flg: categoryFormData.active_flg,
                 updatedUser,
             };
@@ -3476,7 +3478,7 @@ function MaintainContent() {
 
                         <div className="space-y-4 mb-6">
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-1">ชื่อหมวดหมู่ (EN) <span className="text-red-500">*</span></label>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1">รหัส/ชื่อหลักหมวดหมู่ (Key Name) <span className="text-red-500">*</span></label>
                                 <input
                                     type="text"
                                     value={categoryFormData.name}
@@ -3486,13 +3488,23 @@ function MaintainContent() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-1">ชื่อหมวดหมู่ (TH)</label>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1">ชื่อหมวดหมู่ภาษาไทย (Thai Name)</label>
                                 <input
                                     type="text"
                                     value={categoryFormData.name_th}
                                     onChange={(e) => setCategoryFormData(prev => ({ ...prev, name_th: e.target.value }))}
                                     className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 text-slate-900 bg-white"
                                     placeholder="เช่น เครื่องซักผ้า, ทีวี..."
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1">ชื่อหมวดหมู่ภาษาอังกฤษ (English Name)</label>
+                                <input
+                                    type="text"
+                                    value={categoryFormData.name_en}
+                                    onChange={(e) => setCategoryFormData(prev => ({ ...prev, name_en: e.target.value }))}
+                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 text-slate-900 bg-white"
+                                    placeholder="e.g. Washing Machine, Television..."
                                 />
                             </div>
                             <div>

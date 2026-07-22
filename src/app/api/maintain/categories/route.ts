@@ -43,7 +43,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { name, name_th, active_flg, updatedUser } = body;
+    const { name, name_th, name_en, active_flg, updatedUser } = body;
 
     if (!name) {
       return NextResponse.json({ ok: false, message: "กรุณาระบุชื่อหมวดหมู่" }, { status: 400 });
@@ -61,6 +61,7 @@ export async function POST(req: Request) {
       data: {
         name: name.trim(),
         name_th: name_th ? name_th.trim() : null,
+        name_en: name_en ? name_en.trim() : null,
         active_flg: active_flg || "Y",
         created_user: updatedUser || "admin",
         updated_user: updatedUser || "admin",
@@ -80,7 +81,7 @@ export async function POST(req: Request) {
 export async function PUT(req: Request) {
   try {
     const body = await req.json();
-    const { id, name, name_th, active_flg, updatedUser } = body;
+    const { id, name, name_th, name_en, active_flg, updatedUser } = body;
 
     if (!id || !name) {
       return NextResponse.json({ ok: false, message: "ข้อมูลไม่ครบถ้วน" }, { status: 400 });
@@ -128,6 +129,7 @@ export async function PUT(req: Request) {
       data: {
         name: name.trim(),
         name_th: name_th ? name_th.trim() : null,
+        name_en: name_en ? name_en.trim() : null,
         active_flg: active_flg || "Y",
         updated_user: updatedUser || "admin",
         updated_date: new Date(),
