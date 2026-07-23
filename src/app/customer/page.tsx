@@ -560,9 +560,9 @@ export default function CustomerManagementPage() {
                   ข้อมูลที่อยู่ลูกค้า (บันทึกเข้าระบบ)
                 </h4>
                 
-                <div className="space-y-5">
-                  {/* Shipping Address - Full Width */}
-                  <div className="bg-sky-50/40 p-4 rounded-2xl border border-sky-100 space-y-3">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                  {/* Shipping Address */}
+                  <div className="bg-sky-50/40 p-4 rounded-2xl border border-sky-100 space-y-3 flex flex-col justify-between">
                     <div className="flex items-center justify-between pb-2 border-b border-sky-100/80">
                       <span className="text-xs font-black text-sky-800 uppercase tracking-wider flex items-center gap-1.5">
                         <span className="w-2 h-2 rounded-full bg-sky-500 inline-block"></span>
@@ -570,9 +570,9 @@ export default function CustomerManagementPage() {
                       </span>
                     </div>
                     
-                    <div className="space-y-3">
-                      {/* Row 1: Number, Soi, Road (3 columns full width) */}
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="space-y-3 flex-1">
+                      {/* Row 1: Number, Soi */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                           <label className="block text-xs font-bold text-slate-600 mb-1">บ้านเลขที่/อาคาร</label>
                           <input
@@ -593,20 +593,22 @@ export default function CustomerManagementPage() {
                             onChange={e => setShippingFields(prev => ({ ...prev, soi: e.target.value }))}
                           />
                         </div>
-                        <div>
-                          <label className="block text-xs font-bold text-slate-600 mb-1">ถนน</label>
-                          <input
-                            type="text"
-                            placeholder="เช่น ถนนสุขุมวิท"
-                            className="input input-bordered w-full rounded-xl text-sm h-10 bg-white border-slate-200 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 font-medium"
-                            value={shippingFields.road}
-                            onChange={e => setShippingFields(prev => ({ ...prev, road: e.target.value }))}
-                          />
-                        </div>
                       </div>
 
-                      {/* Row 2: Subdistrict, District, Province, Zipcode (4 columns full width) */}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {/* Row 2: Road */}
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">ถนน</label>
+                        <input
+                          type="text"
+                          placeholder="เช่น ถนนสุขุมวิท"
+                          className="input input-bordered w-full rounded-xl text-sm h-10 bg-white border-slate-200 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 font-medium"
+                          value={shippingFields.road}
+                          onChange={e => setShippingFields(prev => ({ ...prev, road: e.target.value }))}
+                        />
+                      </div>
+
+                      {/* Row 3: Subdistrict, District */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                           <label className="block text-xs font-bold text-slate-600 mb-1">แขวง/ตำบล</label>
                           <input
@@ -627,6 +629,10 @@ export default function CustomerManagementPage() {
                             onChange={e => setShippingFields(prev => ({ ...prev, district: e.target.value }))}
                           />
                         </div>
+                      </div>
+
+                      {/* Row 4: Province, Zipcode */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                           <label className="block text-xs font-bold text-slate-600 mb-1">จังหวัด</label>
                           <input
@@ -651,8 +657,8 @@ export default function CustomerManagementPage() {
                     </div>
                   </div>
 
-                  {/* Billing Address - Full Width */}
-                  <div className="bg-purple-50/40 p-4 rounded-2xl border border-purple-100 space-y-3">
+                  {/* Billing Address */}
+                  <div className="bg-purple-50/40 p-4 rounded-2xl border border-purple-100 space-y-3 flex flex-col justify-between">
                     <div className="flex items-center justify-between pb-2 border-b border-purple-100/80">
                       <span className="text-xs font-black text-purple-800 uppercase tracking-wider flex items-center gap-1.5">
                         <span className="w-2 h-2 rounded-full bg-purple-500 inline-block"></span>
@@ -667,9 +673,9 @@ export default function CustomerManagementPage() {
                       </button>
                     </div>
                     
-                    <div className="space-y-3">
-                      {/* Row 1: Number, Soi, Road (3 columns full width) */}
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="space-y-3 flex-1">
+                      {/* Row 1: Number, Soi */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                           <label className="block text-xs font-bold text-slate-600 mb-1">บ้านเลขที่/อาคาร</label>
                           <input
@@ -690,20 +696,22 @@ export default function CustomerManagementPage() {
                             onChange={e => setBillingFields(prev => ({ ...prev, soi: e.target.value }))}
                           />
                         </div>
-                        <div>
-                          <label className="block text-xs font-bold text-slate-600 mb-1">ถนน</label>
-                          <input
-                            type="text"
-                            placeholder="เช่น ถนนสุขุมวิท"
-                            className="input input-bordered w-full rounded-xl text-sm h-10 bg-white border-slate-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 font-medium"
-                            value={billingFields.road}
-                            onChange={e => setBillingFields(prev => ({ ...prev, road: e.target.value }))}
-                          />
-                        </div>
                       </div>
 
-                      {/* Row 2: Subdistrict, District, Province, Zipcode (4 columns full width) */}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {/* Row 2: Road */}
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">ถนน</label>
+                        <input
+                          type="text"
+                          placeholder="เช่น ถนนสุขุมวิท"
+                          className="input input-bordered w-full rounded-xl text-sm h-10 bg-white border-slate-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 font-medium"
+                          value={billingFields.road}
+                          onChange={e => setBillingFields(prev => ({ ...prev, road: e.target.value }))}
+                        />
+                      </div>
+
+                      {/* Row 3: Subdistrict, District */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                           <label className="block text-xs font-bold text-slate-600 mb-1">แขวง/ตำบล</label>
                           <input
@@ -724,6 +732,10 @@ export default function CustomerManagementPage() {
                             onChange={e => setBillingFields(prev => ({ ...prev, district: e.target.value }))}
                           />
                         </div>
+                      </div>
+
+                      {/* Row 4: Province, Zipcode */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                           <label className="block text-xs font-bold text-slate-600 mb-1">จังหวัด</label>
                           <input

@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useState, useRef } from "react";
 import { ShieldCheck, ShieldX } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { notifyVendor } from "@/lib/service/vendor-notify.service";
@@ -39,6 +39,9 @@ export default function RequestChangeStatusPage({ params }: { params: Promise<{ 
     // GR Serial verification states
     const [verifySerial, setVerifySerial] = useState("");
     const [serialMismatchReason, setSerialMismatchReason] = useState("");
+
+    const [attachments, setAttachments] = useState<File[]>([]);
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
 
     const [loading, setLoading] = useState(true);
 
@@ -147,24 +150,34 @@ export default function RequestChangeStatusPage({ params }: { params: Promise<{ 
             return;
         }
 
+        if (attachments.length === 0) {
+            alert("กรุณาแนบรูปถ่ายสินค้าอย่างน้อย 1 รูปเพื่อเป็นหลักฐานการรับสินค้า");
+            return;
+        }
+
         try {
+            const formData = new FormData();
+            formData.append("Id", String(id));
+            formData.append("status", String(newStatus));
+            formData.append("updatedUser", updatedUser);
+            formData.append("newSerial", verifySerial);
+            if (isMismatch) {
+                formData.append("serialMismatchReason", serialMismatchReason);
+            }
+            attachments.forEach((file) => {
+                formData.append("files", file);
+            });
+
             const res = await fetch("/api/request/update-status", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ 
-                Id: id, 
-                status: newStatus, 
-                updatedUser,
-                newSerial: verifySerial,
-                serialMismatchReason: isMismatch ? serialMismatchReason : null
-            }),
+                method: "POST",
+                body: formData,
             });
 
             const data = await res.json();
             if (!res.ok) throw new Error(data?.message || "อัปเดตไม่สำเร็จ");
 
             //* email process
-            if (newStatus === 30 && sku && requestNo) {
+            if (newStatus === 300 && sku && requestNo) {
                 const notifyResult = await notifyVendor({
                     sku: Number(sku),
                     requestNo,
@@ -349,6 +362,56 @@ export default function RequestChangeStatusPage({ params }: { params: Promise<{ 
                           </div>
                         )}
                     </div>
+
+                    <div className="border-t border-slate-200 pt-4 mt-4">
+                        <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                            อัปโหลดรูปภาพสินค้าเพื่อเป็นหลักฐานการรับของ <span className="text-red-600 ml-0.5">*</span>
+                        </label>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            multiple
+                            accept=".jpg,.jpeg,.png"
+                            className="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-[#c8102e] hover:file:bg-red-100 border border-slate-200 rounded-xl p-2 bg-slate-50"
+                            onChange={(e) => {
+                                const files = Array.from(e.target.files ?? []);
+                                const oversized = files.some(f => f.size > 800 * 1024);
+                                if (oversized) {
+                                    alert("พบไฟล์ที่มีขนาดเกิน 800 KB กรุณาเลือกไฟล์ใหม่ที่มีขนาดไม่เกิน 800 KB ครับ");
+                                    if (fileInputRef.current) fileInputRef.current.value = "";
+                                    return;
+                                }
+                                setAttachments(files);
+                            }}
+                        />
+                        {attachments.length > 0 && (
+                            <ul className="mt-2 text-xs text-slate-700 space-y-1 bg-slate-50 p-2 rounded-xl border border-slate-100">
+                                {attachments.map((f, idx) => (
+                                    <li
+                                        key={`${f.name}-${f.size}`}
+                                        className="flex items-center justify-between px-2 py-1 rounded hover:bg-slate-100"
+                                    >
+                                        <span className="truncate">{f.name} ({(f.size / 1024).toFixed(1)} KB)</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setAttachments((prev) => {
+                                                    const next = prev.filter((_, i) => i !== idx);
+                                                    if (next.length === 0 && fileInputRef.current) {
+                                                        fileInputRef.current.value = "";
+                                                    }
+                                                    return next;
+                                                });
+                                            }}
+                                            className="ml-3 text-red-500 hover:text-red-700 text-[11px] font-bold"
+                                        >
+                                            ลบ
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
                 </fieldset>
                 {reason && (
                     <div className="rounded-lg border border-red-200 bg-red-50 p-4 mt-4">
@@ -371,8 +434,20 @@ export default function RequestChangeStatusPage({ params }: { params: Promise<{ 
                 <div className="flex justify-center items-center gap-4 mt-6">
                     <button 
                         type="button" 
+                        className="btn-dc" 
+                        onClick={() => {
+                            if (alrtFlg) {
+                                setShowDcConfirm(true);
+                            } else {
+                                onUpdateStatus(200);
+                            }
+                        }}>
+                        จัดส่งให้ DC
+                    </button>
+                    <button 
+                        type="button" 
                         className="btn-vendor" 
-                        onClick={() => onUpdateStatus(30)}>
+                        onClick={() => onUpdateStatus(300)}>
                         จัดส่งให้ Vendor
                     </button>
                     <button
@@ -409,7 +484,7 @@ export default function RequestChangeStatusPage({ params }: { params: Promise<{ 
                             className="btn-submit"
                             onClick={() => {
                                 setShowDcConfirm(false);
-                                onUpdateStatus(20);
+                                onUpdateStatus(200);
                             }}
                         >
                             ยืนยัน

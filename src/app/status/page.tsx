@@ -190,7 +190,7 @@ export default function StatusPage() {
       return;
     }
 
-    const allowedStatuses = [10, 11, 20, 201, 30];
+    const allowedStatuses = [100, 110, 200, 210, 300];
     const isAllowedSelf = allowedStatuses.includes(cancelRequestStatus);
     if (!isAllowedSelf && (!cancelAdminUser.trim() || !cancelAdminPass.trim())) {
       alert("กรุณากรอกชื่อผู้ใช้และรหัสผ่านของผู้ดูแลระบบ (Supervisor Bypass)");
@@ -303,10 +303,10 @@ export default function StatusPage() {
   const getTiers = (row: Row) => {
     const status = row.status;
     if (status === 0) return { t1: "-", t2: "-", t3: "-" };
-    if (status === 237 || status === 37) {
+    if (status === 299 || status === 399) {
       return { t1: "Support Team 1", t2: "Warut", t3: "-" };
     }
-    if (status === 10 || status === 11) {
+    if (status === 100 || status === 110) {
       return { t1: "System Admin", t2: "-", t3: "-" };
     }
     return { t1: "Support Team 1", t2: "Pakorn", t3: "-" };
@@ -323,16 +323,16 @@ export default function StatusPage() {
 
     rows.forEach(r => {
       const p = getPriority(r);
-      const isClosed = r.status === 237 || r.status === 37;
+      const isClosed = r.status === 299 || r.status === 399;
       const isCancelled = r.status === 0;
 
       if (!isClosed && !isCancelled) {
         openCount++;
         if (p === "CRITICAL") criticalCount++;
-        if ([21, 22, 23, 232, 233, 234, 235, 30, 31, 32, 33, 34, 35].includes(r.status)) {
+        if ([220, 230, 240, 250, 260, 270, 275, 300, 310, 320, 330, 340, 345].includes(r.status)) {
           escalatedCount++;
         }
-        if (r.status === 10 || r.status === 11) {
+        if (r.status === 100 || r.status === 110) {
           newCount++;
         }
       } else if (isClosed) {
@@ -503,20 +503,32 @@ export default function StatusPage() {
                 className="select-custom bg-white border border-slate-200 text-slate-700 rounded-lg px-3 py-1.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#c8102e] focus:border-[#c8102e]"
               >
                 <option value="">ทั้งหมด</option>
-                <option value="10">ส่งซ่อม</option>
-                <option value="11">GR รับสินค้า</option>
-                <option value="20">GR เปิด log DC</option>
-                <option value="201">รอ DC รับสินค้า</option>
-                <option value="21">DC รับสินค้าแล้ว</option>
-                <option value="22">DC รอ Vendor</option>
-                <option value="23">DC รอตีราคา</option>
-                <option value="232">ขออนุมัติราคา</option>
-                <option value="233">แจ้งผลการอนุมัติ</option>
-                <option value="234">รอ Vendor ส่งคืน (ไม่อนุมัติ)</option>
-                <option value="235">รอ Vendor ส่งคืน (เสร็จ)</option>
-                <option value="236">CS รอลูกค้ารับคืน</option>
-                <option value="237">ลูกค้ารับของแล้ว</option>
-                <option value="0">ใบซ่อมถูกยกเลิก</option>
+                <option value="100">ส่งซ่อม (100)</option>
+                <option value="110">GR รับสินค้า (110)</option>
+                <option value="200">GR เปิด log DC (200)</option>
+                <option value="210">รอ DC รับสินค้า (210)</option>
+                <option value="220">DC รับสินค้าแล้ว (220)</option>
+                <option value="230">DC รอ Vendor (230)</option>
+                <option value="240">DC รอตีราคา (240)</option>
+                <option value="250">ขออนุมัติราคา (250)</option>
+                <option value="260">แจ้งผลการอนุมัติ (260)</option>
+                <option value="270">รอ Vendor ส่งคืน (ไม่อนุมัติ - 270)</option>
+                <option value="275">รอ Vendor ส่งคืน (เสร็จ - 275)</option>
+                <option value="280">DC รับสินค้าคืนจาก Vendor (280)</option>
+                <option value="285">GR รับสินค้าคืนจาก DC (285)</option>
+                <option value="290">CS รอลูกค้ารับคืน (DC - 290)</option>
+                <option value="299">ลูกค้ารับของแล้ว (ปิดงาน - 299)</option>
+                <option value="300">รอ Vendor รับสินค้า (ตรง - 300)</option>
+                <option value="310">รอ Vendor ตีราคา (ตรง - 310)</option>
+                <option value="320">ขออนุมัติราคา (ตรง - 320)</option>
+                <option value="330">แจ้งผลการอนุมัติ (ตรง - 330)</option>
+                <option value="340">รอ Vendor ส่งคืน (ไม่อนุมัติ - 340)</option>
+                <option value="345">รอ Vendor ส่งคืน (เสร็จ - 345)</option>
+                <option value="350">Vendor คืนผ่าน DC แทนสาขา (350)</option>
+                <option value="360">GR รับสินค้าคืนจาก Vendor/DC (360)</option>
+                <option value="390">CS รอลูกค้ารับคืน (ตรง - 390)</option>
+                <option value="399">ลูกค้ารับของแล้ว (ปิดงาน - ตรง - 399)</option>
+                <option value="0">ใบซ่อมถูกยกเลิก (0)</option>
               </select>
             </div>
 
@@ -666,15 +678,15 @@ export default function StatusPage() {
                           <span className="inline-block px-2.5 py-1 rounded-full bg-slate-100 text-slate-500 border border-slate-200 font-bold text-[10px]">
                             ยกเลิก
                           </span>
-                        ) : r.status === 237 || r.status === 37 ? (
+                        ) : r.status === 299 || r.status === 399 ? (
                           <span className="inline-block px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold text-[10px]">
                             ปิดงาน
                           </span>
-                        ) : r.status === 10 || r.status === 11 ? (
+                        ) : r.status === 100 || r.status === 110 ? (
                           <span className="inline-block px-2.5 py-1 rounded-full bg-rose-100 text-rose-700 border border-rose-200 font-bold text-[10px]">
                             เปิดใหม่
                           </span>
-                        ) : r.status === 20 || r.status === 201 || r.status === 21 || r.status === 22 ? (
+                        ) : [200, 210, 220, 230, 300].includes(r.status ?? 0) ? (
                           <span className="inline-block px-2.5 py-1 rounded-full bg-purple-100 text-purple-700 border border-purple-200 font-bold text-[10px]">
                             รอรับเรื่อง
                           </span>
@@ -716,7 +728,7 @@ export default function StatusPage() {
                             </Link>
                           )}
 
-                          {r.status !== 0 && r.status !== 237 && r.status !== 37 && (
+                          {r.status !== 0 && r.status !== 299 && r.status !== 399 && r.status !== 237 && r.status !== 37 && (
                             <button
                               type="button"
                               onClick={() => openCancelModal(r)}

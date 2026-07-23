@@ -203,7 +203,7 @@ export async function POST(req: Request) {
         store_code: storeCode,
         location_id: profile?.location_id || null,
         receive_from_user_date: newReceiveFromUserDt,
-        status : 10 ,
+        status : 100 ,
         internal_flg: internalFlg,
         service_tier: serviceTier,
         diagnostic_fee: diagnosticFee,

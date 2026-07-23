@@ -75,6 +75,7 @@ export async function GET(req: Request) {
 
   // Authenticate user to get their location
   let userLocationId: string | null = null;
+  let userStoreCode: string | null = null;
   let isStaffFiltered = false;
   try {
     const cookieStore = await cookies();
@@ -88,6 +89,7 @@ export async function GET(req: Request) {
           const isAdmin = profile.role === "ADMIN";
           if (!isAdmin) {
             userLocationId = profile.location_id || null;
+            userStoreCode = profile.store_code ? String(profile.store_code) : null;
             isStaffFiltered = true;
           }
         }
@@ -98,13 +100,31 @@ export async function GET(req: Request) {
   }
 
   if (isStaffFiltered) {
-    andConditions.push({
-      repair_request: {
-        is: {
-          location_id: userLocationId || "__NONE__",
+    if (userLocationId) {
+      andConditions.push({
+        repair_request: {
+          is: {
+            location_id: userLocationId,
+          },
         },
-      },
-    });
+      });
+    } else if (userStoreCode) {
+      andConditions.push({
+        repair_request: {
+          is: {
+            store_code: userStoreCode,
+          },
+        },
+      });
+    } else {
+      andConditions.push({
+        repair_request: {
+          is: {
+            location_id: "__NONE__",
+          },
+        },
+      });
+    }
   } else if (filterLocationId) {
     andConditions.push({
       repair_request: {
@@ -243,7 +263,11 @@ export async function GET(req: Request) {
         ON si.status_id = rr.status
       WHERE 1=1
         ${isStaffFiltered
-          ? Prisma.sql`AND rr.location_id = ${userLocationId || '__NONE__'}`
+          ? userLocationId
+            ? Prisma.sql`AND rr.location_id = ${userLocationId}`
+            : userStoreCode
+              ? Prisma.sql`AND rr.store_code = ${userStoreCode}`
+              : Prisma.sql`AND rr.location_id = '__NONE__'`
           : filterLocationId
             ? Prisma.sql`AND rr.location_id = ${filterLocationId}`
             : Prisma.empty}

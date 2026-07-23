@@ -81,7 +81,10 @@ export default function ProductCsToGrPage({ params }: { params: Promise<{ id: st
             const raw = localStorage.getItem("userInfo");
             if (raw) {
                 const u = JSON.parse(raw);
-                if (alive) setUpdatedUser(u.user_name);
+                if (alive) {
+                    setUpdatedUser(u.user_name);
+                    setSenderName(u.user_full_name || u.user_name || "");
+                }
             }
         
             const res = await fetch(`/api/request/find?id=${encodeURIComponent(id!)}`, { cache: "no-store" });
@@ -183,14 +186,14 @@ export default function ProductCsToGrPage({ params }: { params: Promise<{ id: st
     return (
         <section className="max-w-4xl mx-auto">
             <br />
-            <h1 className="text-2xl md:text-3xl font-bold text-center text-slate-800">
+            <h1 className="text-2xl md:text-3xl font-extrabold text-center text-[#c8102e] drop-shadow-sm">
                 บันทึกรายละเอียดการส่งสินค้าซ่อม (CS)
             </h1>
 
-            <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-6 md:p-8 shadow-sm">
+            <div className="mt-6 rounded-2xl border-t-4 border-t-[#c8102e] border-x border-b border-slate-200 bg-white p-6 md:p-8 shadow-sm">
                 <form className="space-y-8">
                     <fieldset className="space-y-4">
-                        <legend className="text-lg font-semibold text-slate-900">ข้อมูลลูกค้า</legend>
+                        <legend className="text-lg font-bold text-[#c8102e] flex items-center gap-2 border-b border-[#c8102e]/10 pb-2 mb-4 w-full block">👤 ข้อมูลลูกค้า</legend>
                         <div className="flex justify-center">
                             <table className="min-w-[560px]">
                                 <tbody>
@@ -216,7 +219,7 @@ export default function ProductCsToGrPage({ params }: { params: Promise<{ id: st
                     </fieldset>
 
                     <fieldset className="space-y-4">
-                        <legend className="text-lg font-semibold text-slate-900">รายละเอียดสินค้า</legend>
+                        <legend className="text-lg font-bold text-[#c8102e] flex items-center gap-2 border-b border-[#c8102e]/10 pb-2 mb-4 w-full block">📦 รายละเอียดสินค้า</legend>
                         <div className="flex justify-center">
                             <table className="min-w-[560px]">
                                 <tbody>
@@ -298,7 +301,7 @@ export default function ProductCsToGrPage({ params }: { params: Promise<{ id: st
                         </div>
                     </fieldset>
                     <fieldset className="space-y-4">
-                        <legend className="text-lg font-semibold text-slate-900">รายละเอียดการส่งสินค้าให้ GR</legend>
+                        <legend className="text-lg font-bold text-[#c8102e] flex items-center gap-2 border-b border-[#c8102e]/10 pb-2 mb-4 w-full block">🚚 รายละเอียดการส่งสินค้าให้ GR</legend>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label htmlFor="senderName" className="form-label">ผู้ส่งมอบ<Req /></label>

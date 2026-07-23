@@ -25,8 +25,10 @@ export const optionRoute = (row: RepairRow) => {
    
     switch (status) {
         // --- Common ---
+        case 10:
         case 100:
         return `/request/product-cs-to-gr/${id}`;
+        case 11:
         case 110:
         return `/request/change-status/${id}`;
 
@@ -80,10 +82,10 @@ export const optionRoute = (row: RepairRow) => {
 };
 
 export const labelFor = (row: RepairRow) => {
-    if (row.status === 100 && row.reject_flg === "Y" && row.status === Number(row.reject_from_status)) {
+    if ((row.status === 100 || row.status === 10) && row.reject_flg === "Y" && row.status === Number(row.reject_from_status)) {
         return "ดำเนินการ";
     }
-    if (row.status === 110 && row.reject_flg === "Y" && row.status === Number(row.reject_from_status)) {
+    if ((row.status === 110 || row.status === 11) && row.reject_flg === "Y" && row.status === Number(row.reject_from_status)) {
         return "ดำเนินการ";
     }
     if (row.status === 0) return "ยกเลิกใบแจ้งซ่อม";
@@ -92,12 +94,12 @@ export const labelFor = (row: RepairRow) => {
 
 // roleActionMap ตาม SRS v2.1 หัวข้อ 2
 export const roleActionMap: Record<Role, number[]> = {
-    CS:  [100, 240, 250, 260, 285, 290, 310, 320, 330, 360, 390],
-    GR:  [110, 200, 210, 280, 300, 340, 345, 350],
+    CS:  [10, 100, 240, 250, 260, 285, 290, 310, 320, 330, 360, 390],
+    GR:  [11, 110, 200, 210, 280, 300, 340, 345, 350],
     DC:  [220, 230, 270, 275],
-    ADMIN_GR: [110, 200, 210, 280, 300, 340, 345, 350],
-    ADMIN_DC: [100, 240, 250, 260, 285, 290, 310, 320, 330, 360, 390],
-    ADMIN: [100, 110,
+    ADMIN_GR: [11, 110, 200, 210, 280, 300, 340, 345, 350],
+    ADMIN_DC: [10, 100, 240, 250, 260, 285, 290, 310, 320, 330, 360, 390],
+    ADMIN: [10, 11, 100, 110,
         200, 210, 220, 230, 240, 250, 260, 270, 275, 280, 285, 290, 299,
         300, 310, 320, 330, 340, 345, 350, 360, 390, 399],
 };
