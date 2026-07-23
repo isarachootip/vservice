@@ -200,299 +200,319 @@ export default function RequestChangeStatusPage({ params }: { params: Promise<{ 
         return <section className="max-w-4xl mx-auto p-6">กำลังโหลดข้อมูล...</section>;
     }
 
-    const labelCell ="w-56 pr-4 text-right align-top whitespace-nowrap";
-
     return (
-        <section className="max-w-4xl mx-auto">
-        <br />
-        <h1 className="text-2xl md:text-3xl font-bold text-center text-slate-800">
-            รายละเอียดใบแจ้งซ่อม (GR)
-        </h1>
-
-        <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-6 md:p-8 shadow-sm">
-            <form className="space-y-8">
-                <fieldset className="space-y-4">
-                    <legend className="text-lg font-semibold text-slate-900">ข้อมูลลูกค้า</legend>
-                    <div className="flex justify-center">
-                        <table className="min-w-[560px]">
-                            <tbody>
-                                <tr>
-                                    <td className={labelCell}>ชื่อ :</td>
-                                    <td>{firstName}</td>
-                                </tr>
-                                <tr>
-                                    <td className={labelCell}>นามสกุล :</td>
-                                    <td>{lastName}</td>
-                                </tr>
-                                <tr>
-                                    <td className={labelCell}>ที่อยู่ :</td>
-                                    <td>{address}</td>
-                                </tr>
-                                <tr>
-                                    <td className={labelCell}>โทรศัพท์ :</td>
-                                    <td>{phone}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </fieldset>
-
-                <fieldset className="space-y-4">
-                    <legend className="text-lg font-semibold text-slate-900">รายละเอียดสินค้า</legend>
-                    <div className="flex justify-center">
-                        <table className="min-w-[560px]">
-                            <tbody>
-                                <tr>
-                                    <td className={labelCell}>ประเภทสินค้า :</td>
-                                    <td>{productType}</td>
-                                </tr>
-                                <tr>
-                                    <td className={labelCell}>ยี่ห้อ :</td>
-                                    <td>{brand}</td>
-                                </tr>
-                                <tr>
-                                    <td className={labelCell}>SKU :</td>
-                                    <td>{sku === 0 || sku == null ? "-" : sku}</td>
-                                </tr>
-                                <tr>
-                                    <td className={labelCell}>Barcode :</td>
-                                    <td>{barcode}</td>
-                                </tr>
-                                <tr>
-                                        <td className="pr-4 text-right align-top whitespace-nowrap"
-                                            style={{ width: "220px" }}>
-                                            รุ่น :
-                                        </td>
-                                        <td style={{
-                                            maxWidth: "300px",
-                                            wordBreak: "break-word",
-                                            whiteSpace: "normal",
-                                        }}>
-                                            {model}
-                                        </td>
-                                    </tr>
-                                <tr>
-                                    <td className={labelCell}>เลขเครื่อง (Serial) :</td>
-                                    <td>{serial}</td>
-                                </tr>
-                                <tr>
-                                    <td className={labelCell}>อาการที่พบ :</td>
-                                    <td>{issue}</td>
-                                </tr>
-                                <tr>
-                                    <td className={labelCell}>จำนวน :</td>
-                                    <td>{qty}  ชิ้น</td>
-                                </tr>
-                                <tr>
-                                    <td className={labelCell}>สถานะรับประกัน :</td>
-                                    <td>
-                                        {warranty === "in" ? (
-                                            <>
-                                                <ShieldCheck className="inline-block text-green-600" />
-                                            </>
-                                        ) : (
-                                            <>
-                                                <ShieldX className="inline-block text-red-600" />
-                                            </>
-                                        )}
-                                    </td>
-                                </tr>
-                                {warranty === "in" ? (
-                                    <>
-                                        <tr>
-                                            <td className={labelCell}>เลขที่ใบประกัน :</td>
-                                            <td>{warrantyNo}</td>
-                                        </tr>
-                                    </>
-                                ) : (
-                                    <>
-                                    </>
-                                )}
-                                <tr>
-                                    <td className={labelCell}>วันที่รับสินค้าจากลูกค้า :</td>
-                                    <td> 
-                                        {receiveFromUserDt ?
-                                            new Date(receiveFromUserDt).toLocaleDateString('th-TH') : '-'}
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </fieldset>
-
-                <fieldset className="space-y-4 bg-white border border-slate-200 rounded-2xl p-5 md:p-6 shadow-sm">
-                    <legend className="text-md font-bold text-[#c8102e] px-2">
-                        ตรวจสอบความถูกต้องสินค้า (GR Verification)
-                    </legend>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                            สแกน / กรอกเลขเครื่องเพื่อตรวจสอบ (Verify Serial) <span className="text-red-600 ml-0.5">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-[#c8102e] bg-white font-mono text-slate-800"
-                            placeholder="สแกนบาร์โค้ดเครื่อง หรือคีย์เลขเครื่อง"
-                            value={verifySerial}
-                            onChange={(e) => setVerifySerial(e.target.value)}
-                          />
-                          {verifySerial.trim() !== "" && (
-                            <div className="mt-2 text-xs font-bold">
-                              {serial.trim().toLowerCase() === verifySerial.trim().toLowerCase() ? (
-                                <span className="text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">✅ เลขเครื่องตรงกัน</span>
-                              ) : (
-                                <span className="text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">⚠️ เลขเครื่องไม่ตรงกับที่ CS บันทึก ({serial})</span>
-                              )}
-                            </div>
-                          )}
-                        </div>
-
-                        {verifySerial.trim() !== "" && serial.trim().toLowerCase() !== verifySerial.trim().toLowerCase() && (
-                          <div className="animate-fade-in">
-                            <label className="block text-xs font-bold text-red-800 mb-1.5">
-                              เหตุผลการแก้ไขเลขเครื่อง (Serial Mismatch Reason) <span className="text-red-600 ml-0.5">*</span>
-                            </label>
-                            <textarea
-                              rows={2}
-                              className="w-full rounded-xl border border-red-300 px-3.5 py-1.5 text-xs outline-none focus:ring-2 focus:ring-red-500 bg-red-50/20 text-slate-800"
-                              placeholder="ระบุสาเหตุที่เลขเครื่องไม่ตรงกัน เช่น CS คีย์ผิด / กล่องสลับเครื่อง..."
-                              value={serialMismatchReason}
-                              onChange={(e) => setSerialMismatchReason(e.target.value)}
-                            />
-                          </div>
-                        )}
-                    </div>
-
-                    <div className="border-t border-slate-200 pt-4 mt-4">
-                        <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                            อัปโหลดรูปภาพสินค้าเพื่อเป็นหลักฐานการรับของ <span className="text-red-600 ml-0.5">*</span>
-                        </label>
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            multiple
-                            accept=".jpg,.jpeg,.png"
-                            className="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-[#c8102e] hover:file:bg-red-100 border border-slate-200 rounded-xl p-2 bg-slate-50"
-                            onChange={(e) => {
-                                const files = Array.from(e.target.files ?? []);
-                                const oversized = files.some(f => f.size > 800 * 1024);
-                                if (oversized) {
-                                    alert("พบไฟล์ที่มีขนาดเกิน 800 KB กรุณาเลือกไฟล์ใหม่ที่มีขนาดไม่เกิน 800 KB ครับ");
-                                    if (fileInputRef.current) fileInputRef.current.value = "";
-                                    return;
-                                }
-                                setAttachments(files);
-                            }}
-                        />
-                        {attachments.length > 0 && (
-                            <ul className="mt-2 text-xs text-slate-700 space-y-1 bg-slate-50 p-2 rounded-xl border border-slate-100">
-                                {attachments.map((f, idx) => (
-                                    <li
-                                        key={`${f.name}-${f.size}`}
-                                        className="flex items-center justify-between px-2 py-1 rounded hover:bg-slate-100"
-                                    >
-                                        <span className="truncate">{f.name} ({(f.size / 1024).toFixed(1)} KB)</span>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setAttachments((prev) => {
-                                                    const next = prev.filter((_, i) => i !== idx);
-                                                    if (next.length === 0 && fileInputRef.current) {
-                                                        fileInputRef.current.value = "";
-                                                    }
-                                                    return next;
-                                                });
-                                            }}
-                                            className="ml-3 text-red-500 hover:text-red-700 text-[11px] font-bold"
-                                        >
-                                            ลบ
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                    </div>
-                </fieldset>
-                {reason && (
-                    <div className="rounded-lg border border-red-200 bg-red-50 p-4 mt-4">
-                        <div className="font-semibold text-red-700">
-                            เหตุผลการ Reject
-                        </div>
-
-                        <div className="text-sm text-slate-700 mt-1 whitespace-pre-wrap">
-                            {reason}
-                        </div>
-
-                        <div className="text-xs text-slate-500 mt-2">
-                            โดย {rollbackBy} วันที่{" "}
-                            {rollbackDt
-                                ? new Date(rollbackDt).toLocaleString("th-TH")
-                                : "-"}
-                        </div>
-                    </div>
-                )}
-                <div className="flex justify-center items-center gap-4 mt-6">
-                    <button 
-                        type="button" 
-                        className="btn-dc" 
-                        onClick={() => {
-                            if (alrtFlg) {
-                                setShowDcConfirm(true);
-                            } else {
-                                onUpdateStatus(200);
-                            }
-                        }}>
-                        จัดส่งให้ DC
-                    </button>
-                    <button 
-                        type="button" 
-                        className="btn-vendor" 
-                        onClick={() => onUpdateStatus(300)}>
-                        จัดส่งให้ Vendor
-                    </button>
-                    <button
-                        type="button"
-                        className="btn-back"
-                        onClick={() => history.back()}
-                    >
-                        ย้อนกลับ
-                    </button>
-                </div>
-            </form>
-        </div>
-        {showDcConfirm && (
-            <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-                <div className="bg-white rounded-xl shadow-xl w-[420px] p-6">
-                <h2 className="text-lg font-semibold text-slate-800">
-                        ยืนยันการจัดส่ง
-                    </h2>
-                    <p className="mt-3 text-m text-slate-600 leading-relaxed">
-                        สินค้าดังกล่าวไม่ได้อยู่ในรายการจัดส่งผ่าน DC
-                        <br />
-                        ยืนยันการจัดส่งใช่หรือไม่ ?
-                    </p>
-                    <div className="flex justify-end gap-3 mt-6">
-                        <button
-                            type="button"
-                            className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700"
-                            onClick={() => setShowDcConfirm(false)}
-                        >
-                            ยกเลิก
-                        </button>
-                        <button
-                            type="button"
-                            className="btn-submit"
-                            onClick={() => {
-                                setShowDcConfirm(false);
-                                onUpdateStatus(200);
-                            }}
-                        >
-                            ยืนยัน
-                        </button>
-                    </div>
-                </div>
+        <section className="max-w-4xl mx-auto space-y-6">
+            {/* Breadcrumbs */}
+            <div className="flex items-center gap-1.5 text-xs text-slate-400 font-semibold">
+                <span>VService System</span>
+                <span>/</span>
+                <span>รับเครื่อง</span>
+                <span>/</span>
+                <span className="text-[#c8102e]">ตรวจสอบและจัดส่ง</span>
             </div>
-        )}
+
+            {/* Page Title */}
+            <div className="flex flex-col gap-1">
+                <h1 className="text-xl md:text-2xl font-black text-slate-800 flex items-center gap-2">
+                    <span className="w-1.5 h-6 bg-[#c8102e] rounded-full inline-block"></span>
+                    ตรวจสอบและจัดส่งสินค้าซ่อม (GR Verification)
+                </h1>
+                <p className="text-xs text-slate-400 font-medium pl-3.5">
+                    ตรวจสอบข้อมูลการแจ้งซ่อม ตรวจสอบความถูกต้องของบาร์โค้ด/เลขเครื่อง และเลือกเส้นทางจัดส่งสินค้าซ่อม
+                </p>
+            </div>
+
+            <div className="bg-white border border-slate-200/80 border-t-4 border-t-[#c8102e] rounded-2xl p-6 md:p-8 shadow-sm">
+                <form className="space-y-8">
+                    {/* Section 1: Customer Details */}
+                    <div>
+                        <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100 mb-6">
+                            <span className="w-1 h-4 bg-[#c8102e] rounded-full inline-block"></span>
+                            <h3 className="text-sm font-bold text-slate-800">
+                                👤 รายละเอียดลูกค้าและเบอร์ติดต่อ (Customer Details)
+                            </h3>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div>
+                                <label className="block text-[11px] font-bold text-slate-400 mb-1">ชื่อจริง</label>
+                                <div className="px-3.5 py-2 rounded-xl border border-slate-100 bg-slate-50/50 text-slate-700 text-xs font-semibold">{firstName || "-"}</div>
+                            </div>
+                            <div>
+                                <label className="block text-[11px] font-bold text-slate-400 mb-1">นามสกุล</label>
+                                <div className="px-3.5 py-2 rounded-xl border border-slate-100 bg-slate-50/50 text-slate-700 text-xs font-semibold">{lastName || "-"}</div>
+                            </div>
+                            <div>
+                                <label className="block text-[11px] font-bold text-slate-400 mb-1">เบอร์โทรศัพท์</label>
+                                <div className="px-3.5 py-2 rounded-xl border border-slate-100 bg-slate-50/50 text-slate-700 text-xs font-semibold">{phone || "-"}</div>
+                            </div>
+                            <div className="sm:col-span-3">
+                                <label className="block text-[11px] font-bold text-slate-400 mb-1">ที่อยู่ออกใบกำกับภาษี / จัดส่ง</label>
+                                <div className="px-3.5 py-2.5 rounded-xl border border-slate-100 bg-slate-50/50 text-slate-700 text-xs font-semibold leading-relaxed">{address || "-"}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Section 2: Product Details */}
+                    <div>
+                        <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100 mb-6">
+                            <span className="w-1 h-4 bg-[#c8102e] rounded-full inline-block"></span>
+                            <h3 className="text-sm font-bold text-slate-800">
+                                📦 รายละเอียดสินค้า (Product Details)
+                            </h3>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                            <div>
+                                <label className="block text-[11px] font-bold text-slate-400 mb-1">ประเภทสินค้า</label>
+                                <div className="px-3.5 py-2 rounded-xl border border-slate-100 bg-slate-50/50 text-slate-700 text-xs font-semibold truncate" title={productType}>{productType || "-"}</div>
+                            </div>
+                            <div>
+                                <label className="block text-[11px] font-bold text-slate-400 mb-1">ยี่ห้อ</label>
+                                <div className="px-3.5 py-2 rounded-xl border border-slate-100 bg-slate-50/50 text-slate-700 text-xs font-semibold truncate" title={brand}>{brand || "-"}</div>
+                            </div>
+                            <div>
+                                <label className="block text-[11px] font-bold text-slate-400 mb-1">SKU</label>
+                                <div className="px-3.5 py-2 rounded-xl border border-slate-100 bg-slate-50/50 text-slate-700 text-xs font-semibold truncate">{sku === 0 || sku == null ? "-" : sku}</div>
+                            </div>
+                            <div>
+                                <label className="block text-[11px] font-bold text-slate-400 mb-1">Barcode</label>
+                                <div className="px-3.5 py-2 rounded-xl border border-slate-100 bg-slate-50/50 text-slate-700 text-xs font-semibold truncate" title={barcode}>{barcode || "-"}</div>
+                            </div>
+                            <div className="col-span-2">
+                                <label className="block text-[11px] font-bold text-slate-400 mb-1">รุ่นสินค้า (Model)</label>
+                                <div className="px-3.5 py-2 rounded-xl border border-slate-100 bg-slate-50/50 text-slate-700 text-xs font-semibold break-words">{model || "-"}</div>
+                            </div>
+                            <div>
+                                <label className="block text-[11px] font-bold text-slate-400 mb-1">เลขเครื่อง (Serial)</label>
+                                <div className="px-3.5 py-2 rounded-xl border border-slate-100 bg-slate-50/50 text-slate-700 text-xs font-semibold truncate">{serial || "-"}</div>
+                            </div>
+                            <div>
+                                <label className="block text-[11px] font-bold text-slate-400 mb-1">จำนวน</label>
+                                <div className="px-3.5 py-2 rounded-xl border border-slate-100 bg-slate-50/50 text-slate-700 text-xs font-semibold">{qty} ชิ้น</div>
+                            </div>
+                            <div className="col-span-2 sm:col-span-3">
+                                <label className="block text-[11px] font-bold text-slate-400 mb-1">อาการที่พบ</label>
+                                <div className="px-3.5 py-2 rounded-xl border border-slate-100 bg-slate-50/50 text-slate-700 text-xs font-semibold break-words">{issue || "-"}</div>
+                            </div>
+                            <div>
+                                <label className="block text-[11px] font-bold text-slate-400 mb-1">สถานะรับประกัน</label>
+                                <div className="px-3.5 py-1.5 rounded-xl border border-slate-100 bg-slate-50/50 text-slate-700 text-xs font-semibold flex items-center gap-1.5">
+                                    {warranty === "in" ? (
+                                        <>
+                                            <ShieldCheck className="w-4 h-4 text-green-600 shrink-0" />
+                                            <span className="text-green-700 font-bold">ในประกัน</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <ShieldX className="w-4 h-4 text-red-600 shrink-0" />
+                                            <span className="text-red-700 font-bold">นอกประกัน</span>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                            {warranty === "in" && (
+                                <div>
+                                    <label className="block text-[11px] font-bold text-slate-400 mb-1">เลขที่ใบประกัน</label>
+                                    <div className="px-3.5 py-2 rounded-xl border border-slate-100 bg-slate-50/50 text-slate-700 text-xs font-semibold truncate">{warrantyNo || "-"}</div>
+                                </div>
+                            )}
+                            <div>
+                                <label className="block text-[11px] font-bold text-slate-400 mb-1">วันที่รับสินค้าจากลูกค้า</label>
+                                <div className="px-3.5 py-2 rounded-xl border border-slate-100 bg-slate-50/50 text-slate-700 text-xs font-semibold truncate">
+                                    {receiveFromUserDt ? new Date(receiveFromUserDt).toLocaleDateString('th-TH') : '-'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Section 3: Verification */}
+                    <div>
+                        <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100 mb-6">
+                            <span className="w-1 h-4 bg-[#c8102e] rounded-full inline-block"></span>
+                            <h3 className="text-sm font-bold text-slate-800">
+                                🔍 ตรวจสอบความถูกต้องสินค้า (GR Verification)
+                            </h3>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div className="flex flex-col">
+                                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                                    สแกน / กรอกเลขเครื่องเพื่อตรวจสอบ (Verify Serial) <span className="text-red-600 ml-0.5">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#c8102e] bg-white font-mono text-slate-800 transition duration-150"
+                                    placeholder="สแกนบาร์โค้ดเครื่อง หรือคีย์เลขเครื่อง"
+                                    value={verifySerial}
+                                    onChange={(e) => setVerifySerial(e.target.value)}
+                                />
+                                {verifySerial.trim() !== "" && (
+                                    <div className="mt-2 text-xs font-bold animate-fade-in">
+                                        {serial.trim().toLowerCase() === verifySerial.trim().toLowerCase() ? (
+                                            <span className="text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full inline-block">✅ เลขเครื่องตรงกัน</span>
+                                        ) : (
+                                            <span className="text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full inline-block">⚠️ เลขเครื่องไม่ตรงกับที่ CS บันทึก ({serial})</span>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
+                            {verifySerial.trim() !== "" && serial.trim().toLowerCase() !== verifySerial.trim().toLowerCase() && (
+                                <div className="flex flex-col animate-fade-in">
+                                    <label className="block text-xs font-bold text-red-800 mb-1.5">
+                                        เหตุผลการแก้ไขเลขเครื่อง (Serial Mismatch Reason) <span className="text-red-600 ml-0.5">*</span>
+                                    </label>
+                                    <textarea
+                                        rows={2}
+                                        className="w-full rounded-xl border border-red-300 px-3.5 py-2 text-xs outline-none focus:ring-2 focus:ring-red-500 bg-red-50/20 text-slate-800"
+                                        placeholder="ระบุสาเหตุที่เลขเครื่องไม่ตรงกัน เช่น CS คีย์ผิด / กล่องสลับเครื่อง..."
+                                        value={serialMismatchReason}
+                                        onChange={(e) => setSerialMismatchReason(e.target.value)}
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                                อัปโหลดรูปภาพสินค้าเพื่อเป็นหลักฐานการรับของ <span className="text-red-600 ml-0.5">*</span>
+                            </label>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                multiple
+                                accept=".jpg,.jpeg,.png"
+                                className="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-[#c8102e] hover:file:bg-red-100 border border-slate-200 rounded-xl p-2 bg-slate-50 transition duration-150 cursor-pointer"
+                                onChange={(e) => {
+                                    const files = Array.from(e.target.files ?? []);
+                                    const oversized = files.some(f => f.size > 800 * 1024);
+                                    if (oversized) {
+                                        alert("พบไฟล์ที่มีขนาดเกิน 800 KB กรุณาเลือกไฟล์ใหม่ที่มีขนาดไม่เกิน 800 KB ครับ");
+                                        if (fileInputRef.current) fileInputRef.current.value = "";
+                                        return;
+                                    }
+                                    setAttachments(files);
+                                }}
+                            />
+                            {attachments.length > 0 && (
+                                <ul className="mt-3 text-xs text-slate-700 space-y-1 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                                    {attachments.map((f, idx) => (
+                                        <li
+                                            key={`${f.name}-${f.size}`}
+                                            className="flex items-center justify-between px-2 py-1 rounded hover:bg-slate-100"
+                                        >
+                                            <span className="truncate">{f.name} ({(f.size / 1024).toFixed(1)} KB)</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setAttachments((prev) => {
+                                                        const next = prev.filter((_, i) => i !== idx);
+                                                        if (next.length === 0 && fileInputRef.current) {
+                                                            fileInputRef.current.value = "";
+                                                        }
+                                                        return next;
+                                                    });
+                                                }}
+                                                className="ml-3 text-red-500 hover:text-red-700 text-[11px] font-bold"
+                                            >
+                                                ลบ
+                                            </button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Reject Reason Alert */}
+                    {reason && (
+                        <div className="rounded-xl border border-red-200 bg-red-50/50 p-4 space-y-1.5">
+                            <div className="font-bold text-red-800 text-xs sm:text-sm">
+                                ⚠️ เหตุผลการตีกลับ (Reject Reason)
+                            </div>
+                            <div className="text-xs text-slate-700 whitespace-pre-wrap leading-relaxed">
+                                {reason}
+                            </div>
+                            <div className="text-[10px] text-slate-400 font-semibold">
+                                ดำเนินการโดย {rollbackBy} เมื่อวันที่ {rollbackDt ? new Date(rollbackDt).toLocaleString("th-TH") : "-"}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Button Bar */}
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-100 pt-6 mt-8">
+                        <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#c8102e] animate-pulse"></span>
+                            <span>ตรวจสอบความถูกต้องของข้อมูลและแนบรูปภาพก่อนกดส่งงาน</span>
+                        </div>
+
+                        <div className="flex items-center gap-3 w-full sm:w-auto">
+                            <button
+                                type="button"
+                                className="px-5 py-2.5 text-xs font-bold rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition duration-150 cursor-pointer text-center flex-1 sm:flex-initial"
+                                onClick={() => history.back()}
+                            >
+                                ย้อนกลับ
+                            </button>
+                            <button
+                                type="button"
+                                className="px-5 py-2.5 text-xs font-bold rounded-xl bg-slate-800 hover:bg-slate-700 text-white transition duration-150 cursor-pointer text-center flex-1 sm:flex-initial"
+                                onClick={() => {
+                                    if (alrtFlg) {
+                                        setShowDcConfirm(true);
+                                    } else {
+                                        onUpdateStatus(200);
+                                    }
+                                }}
+                            >
+                                จัดส่งให้ DC
+                            </button>
+                            <button
+                                type="button"
+                                className="px-5 py-2.5 text-xs font-bold rounded-xl bg-[#c8102e] hover:bg-[#b00d25] text-white transition duration-150 cursor-pointer text-center flex-1 sm:flex-initial"
+                                onClick={() => onUpdateStatus(300)}
+                            >
+                                จัดส่งให้ Vendor
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            {/* DC Confirmation Modal */}
+            {showDcConfirm && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 border border-slate-100 flex flex-col space-y-4">
+                        <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+                            <h2 className="text-base font-black text-slate-800">
+                                ⚠️ ยืนยันการจัดส่ง
+                            </h2>
+                        </div>
+                        <p className="text-xs text-slate-600 leading-relaxed">
+                            สินค้าดังกล่าวไม่ได้อยู่ในรายการจัดส่งผ่าน DC
+                            <br />
+                            ยืนยันการจัดส่งใช่หรือไม่ ?
+                        </p>
+                        <div className="flex justify-end gap-2.5 pt-2 border-t border-slate-100">
+                            <button
+                                type="button"
+                                className="px-4 py-2 text-xs font-bold rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 cursor-pointer"
+                                onClick={() => setShowDcConfirm(false)}
+                            >
+                                ยกเลิก
+                            </button>
+                            <button
+                                type="button"
+                                className="px-4 py-2 text-xs font-bold rounded-xl bg-[#c8102e] text-white hover:bg-[#b00d25] cursor-pointer shadow-sm"
+                                onClick={() => {
+                                    setShowDcConfirm(false);
+                                    onUpdateStatus(200);
+                                }}
+                            >
+                                ยืนยัน
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </section>
     );
 }
