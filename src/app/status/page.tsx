@@ -411,7 +411,7 @@ export default function StatusPage() {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {/* Card 1 */}
         <div className="bg-white border border-slate-200/80 p-4 rounded-2xl flex items-center gap-3.5 shadow-sm hover:shadow-md transition duration-200">
-          <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-red-50 text-[#c8102e] flex items-center justify-center shrink-0">
             <Layers className="w-5 h-5" />
           </div>
           <div className="flex flex-col min-w-0">
@@ -421,7 +421,7 @@ export default function StatusPage() {
         </div>
         {/* Card 2 */}
         <div className="bg-white border border-slate-200/80 p-4 rounded-2xl flex items-center gap-3.5 shadow-sm hover:shadow-md transition duration-200">
-          <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-red-50 text-[#c8102e] flex items-center justify-center shrink-0">
             <Clock className="w-5 h-5" />
           </div>
           <div className="flex flex-col min-w-0">
@@ -431,7 +431,7 @@ export default function StatusPage() {
         </div>
         {/* Card 3 */}
         <div className="bg-white border border-slate-200/80 p-4 rounded-2xl flex items-center gap-3.5 shadow-sm hover:shadow-md transition duration-200">
-          <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-red-50 text-[#c8102e] flex items-center justify-center shrink-0">
             <CheckCircle2 className="w-5 h-5" />
           </div>
           <div className="flex flex-col min-w-0">
@@ -472,7 +472,7 @@ export default function StatusPage() {
       </div>
 
       {/* Ticket List Section */}
-      <div className="bg-white border border-slate-200/80 rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-white border border-slate-200/80 border-t-4 border-t-[#c8102e] rounded-2xl shadow-sm overflow-hidden">
         {/* Header and Add Button */}
         <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between gap-4">
           <div className="flex flex-col">
@@ -618,18 +618,18 @@ export default function StatusPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[1200px]">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                  <th className="px-4 py-3 text-center w-28">JOB NO.</th>
-                  <th className="px-4 py-3">ลูกค้า</th>
-                  <th className="px-4 py-3">สินค้า</th>
-                  <th className="px-4 py-3">รุ่นสินค้า (Model)</th>
-                  <th className="px-4 py-3">เลขเครื่อง (S/N)</th>
-                  <th className="px-3 py-3 text-center">สาขา</th>
-                  <th className="px-3 py-3 text-center">สถานะ</th>
-                  <th className="px-3 py-3 text-center">ความเร่งด่วน</th>
-                  <th className="px-4 py-3">ผู้บันทึก</th>
-                  <th className="px-4 py-3 text-center">วันที่แจ้งซ่อม</th>
-                  <th className="px-4 py-3 text-center w-24">การดำเนินงาน</th>
+                <tr className="bg-[#c8102e] text-white text-[10px] font-bold uppercase tracking-wider">
+                  <th className="px-4 py-3 text-center w-28 text-white rounded-tl-xl">JOB NO.</th>
+                  <th className="px-4 py-3 text-white">ลูกค้า</th>
+                  <th className="px-4 py-3 text-white">สินค้า</th>
+                  <th className="px-4 py-3 text-white">รุ่นสินค้า (Model)</th>
+                  <th className="px-4 py-3 text-white">เลขเครื่อง (S/N)</th>
+                  <th className="px-3 py-3 text-center text-white">สาขา</th>
+                  <th className="px-3 py-3 text-center text-white">สถานะ</th>
+                  <th className="px-3 py-3 text-center text-white">ความเร่งด่วน</th>
+                  <th className="px-4 py-3 text-white">ผู้บันทึก</th>
+                  <th className="px-4 py-3 text-center text-white">วันที่แจ้งซ่อม</th>
+                  <th className="px-4 py-3 text-center w-24 text-white rounded-tr-xl">การดำเนินงาน</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs text-slate-600">
@@ -895,7 +895,7 @@ export default function StatusPage() {
               </button>
               <button
                 type="button"
-                className="px-4 py-2 text-xs font-bold rounded-xl bg-red-650 text-white hover:bg-red-700 disabled:opacity-50 flex items-center justify-center cursor-pointer shadow-sm"
+                className="px-4 py-2 text-xs font-bold rounded-xl bg-[#c8102e] text-white hover:bg-[#b00d25] disabled:opacity-50 flex items-center justify-center cursor-pointer shadow-sm"
                 onClick={executeCancellation}
                 disabled={isCancelling}
               >
