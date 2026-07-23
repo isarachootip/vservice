@@ -626,6 +626,7 @@ export default function StatusPage() {
                   <th className="px-4 py-3">เลขเครื่อง (S/N)</th>
                   <th className="px-3 py-3 text-center">สาขา</th>
                   <th className="px-3 py-3 text-center">สถานะ</th>
+                  <th className="px-3 py-3 text-center">ความเร่งด่วน</th>
                   <th className="px-4 py-3">ผู้บันทึก</th>
                   <th className="px-4 py-3 text-center">วันที่แจ้งซ่อม</th>
                   <th className="px-4 py-3 text-center w-24">การดำเนินงาน</th>
@@ -674,27 +675,65 @@ export default function StatusPage() {
                       
                       {/* Status Badge */}
                       <td className="px-3 py-3.5 text-center">
-                        {r.status === 0 ? (
-                          <span className="inline-block px-2.5 py-1 rounded-full bg-slate-100 text-slate-500 border border-slate-200 font-bold text-[10px]">
-                            ยกเลิก
+                        <div className="flex flex-col items-center gap-1">
+                          {r.status === 0 ? (
+                            <span className="inline-block px-2.5 py-1 rounded-full bg-slate-100 text-slate-500 border border-slate-200 font-bold text-[10px]">
+                              ยกเลิก
+                            </span>
+                          ) : r.status === 299 || r.status === 399 ? (
+                            <span className="inline-block px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold text-[10px]">
+                              ปิดงาน
+                            </span>
+                          ) : r.status === 100 || r.status === 110 ? (
+                            <span className="inline-block px-2.5 py-1 rounded-full bg-rose-100 text-rose-700 border border-rose-200 font-bold text-[10px]">
+                              เปิดใหม่
+                            </span>
+                          ) : [200, 210, 220, 230, 300].includes(r.status ?? 0) ? (
+                            <span className="inline-block px-2.5 py-1 rounded-full bg-purple-100 text-purple-700 border border-purple-200 font-bold text-[10px]">
+                              รอรับเรื่อง
+                            </span>
+                          ) : (
+                            <span className="inline-block px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200 font-bold text-[10px]">
+                              กำลังดำเนินการ
+                            </span>
+                          )}
+                          <span className="text-[10px] text-slate-500 font-semibold leading-tight">
+                            {r.status} - {statusText(repairRow)}
                           </span>
-                        ) : r.status === 299 || r.status === 399 ? (
-                          <span className="inline-block px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold text-[10px]">
-                            ปิดงาน
-                          </span>
-                        ) : r.status === 100 || r.status === 110 ? (
-                          <span className="inline-block px-2.5 py-1 rounded-full bg-rose-100 text-rose-700 border border-rose-200 font-bold text-[10px]">
-                            เปิดใหม่
-                          </span>
-                        ) : [200, 210, 220, 230, 300].includes(r.status ?? 0) ? (
-                          <span className="inline-block px-2.5 py-1 rounded-full bg-purple-100 text-purple-700 border border-purple-200 font-bold text-[10px]">
-                            รอรับเรื่อง
-                          </span>
-                        ) : (
-                          <span className="inline-block px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200 font-bold text-[10px]">
-                            กำลังดำเนินการ
-                          </span>
-                        )}
+                        </div>
+                      </td>
+
+                      {/* Priority (ความเร่งด่วน) */}
+                      <td className="px-3 py-3.5 text-center">
+                        {(() => {
+                          const p = getPriority(r);
+                          if (p === "CRITICAL") {
+                            return (
+                              <span className="inline-block px-2 py-0.5 rounded bg-red-100 text-red-700 border border-red-200 font-bold text-[10px]">
+                                CRITICAL
+                              </span>
+                            );
+                          }
+                          if (p === "HIGH") {
+                            return (
+                              <span className="inline-block px-2 py-0.5 rounded bg-orange-100 text-orange-700 border border-orange-200 font-bold text-[10px]">
+                                HIGH
+                              </span>
+                            );
+                          }
+                          if (p === "MEDIUM") {
+                            return (
+                              <span className="inline-block px-2 py-0.5 rounded bg-amber-100 text-amber-700 border border-amber-200 font-bold text-[10px]">
+                                MEDIUM
+                              </span>
+                            );
+                          }
+                          return (
+                            <span className="inline-block px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 font-semibold text-[10px]">
+                              LOW
+                            </span>
+                          );
+                        })()}
                       </td>
                       
                       {/* Creator */}
