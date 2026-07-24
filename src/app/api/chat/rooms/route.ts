@@ -28,6 +28,64 @@ export async function GET(req: Request) {
       orderBy: { name: "asc" }
     });
 
+    // Determine if user is VENDOR
+    const isVendorUser = profile.role === "VENDOR";
+    const userVendorNo = isVendorUser && profile.store_code ? Number(profile.store_code) : null;
+
+    if (isVendorUser && userVendorNo) {
+      // Ensure rooms exist in database for the active user's vendor & all locations
+      const roomUpserts = locations.map(async (loc) => {
+        const existing = await prisma.chat_room.findUnique({
+          where: {
+            location_id_vendor_no: {
+              location_id: loc.id,
+              vendor_no: userVendorNo
+            }
+          }
+        });
+        if (existing) return existing;
+        return await prisma.chat_room.create({
+          data: {
+            location_id: loc.id,
+            vendor_no: userVendorNo
+          }
+        });
+      });
+      await Promise.all(roomUpserts);
+
+      // Query all rooms for this vendor
+      const rooms = await prisma.chat_room.findMany({
+        where: { vendor_no: userVendorNo },
+        include: {
+          messages: {
+            orderBy: { created_at: "desc" },
+            take: 1
+          }
+        }
+      });
+
+      // Map to channel objects for vendor
+      const data = rooms.map(r => {
+        const loc = locations.find(l => l.id === r.location_id);
+        const lastMsg = r.messages[0];
+        return {
+          id: r.id,
+          // For vendor users, show the branch location name as the channel name
+          name: loc?.name || `สาขา #${r.location_id}`,
+          vendor_no: r.vendor_no,
+          location_id: r.location_id,
+          location_name: loc?.name || `สาขา #${r.location_id}`,
+          last_message: lastMsg ? {
+            message: lastMsg.message,
+            created_at: lastMsg.created_at,
+            sender_name: lastMsg.sender_name
+          } : null
+        };
+      });
+
+      return NextResponse.json({ ok: true, rooms: data, user: profile, locations, vendors });
+    }
+
     // Determine which location to use: if parameter is passed, use it. Otherwise use user's location, otherwise the first location.
     const userLocId = selectedLocId || profile.location_id || locations[0]?.id || "831";
 

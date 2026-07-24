@@ -78,6 +78,7 @@ export async function GET(req: Request) {
   let userStoreCode: string | null = null;
   let isStaffFiltered = false;
   let isVendorFiltered = false;
+  let userVendorName: string | null = null;
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get(COOKIE_NAME)?.value;
@@ -91,6 +92,14 @@ export async function GET(req: Request) {
           const isVendor = profile.role === "VENDOR";
           if (isVendor) {
             isVendorFiltered = true;
+            if (profile.store_code) {
+              const vInfo = await prisma.vendor_info.findUnique({
+                where: { vendor_no: Number(profile.store_code) }
+              });
+              if (vInfo) {
+                userVendorName = vInfo.vendor_name || null;
+              }
+            }
           } else if (!isAdmin) {
             userLocationId = profile.location_id || null;
             userStoreCode = profile.store_code ? String(profile.store_code) : null;
@@ -140,13 +149,24 @@ export async function GET(req: Request) {
   }
 
   if (isVendorFiltered) {
-    andConditions.push({
-      repair_request: {
-        is: {
-          status: { in: [300, 310, 320, 330, 340, 345, 350] }
+    if (userVendorName) {
+      andConditions.push({
+        repair_request: {
+          is: {
+            status: { in: [300, 310, 320, 330, 340, 345, 350] },
+            vendor_name: userVendorName,
+          }
         }
-      }
-    });
+      });
+    } else {
+      andConditions.push({
+        repair_request: {
+          is: {
+            vendor_name: "__NONE__",
+          }
+        }
+      });
+    }
   }
 
   let matchedLocationIds: string[] = [];
@@ -286,7 +306,9 @@ export async function GET(req: Request) {
             ? Prisma.sql`AND rr.location_id = ${filterLocationId}`
             : Prisma.empty}
         ${isVendorFiltered
-          ? Prisma.sql`AND rr.status IN (300, 310, 320, 330, 340, 345, 350)`
+          ? userVendorName
+            ? Prisma.sql`AND rr.status IN (300, 310, 320, 330, 340, 345, 350) AND rr.vendor_name = ${userVendorName}`
+            : Prisma.sql`AND rr.vendor_name = '__NONE__'`
           : Prisma.empty}
         ${q
           ? Prisma.sql`

@@ -75,6 +75,10 @@ export default function TeamChatPage() {
         if (data.rooms && data.rooms.length > 0 && !activeRoom) {
           setActiveRoom(data.rooms[0]);
         }
+
+        if (data.user?.role === "VENDOR") {
+          setChatRole("vendor");
+        }
       }
     } catch (err) {
       console.error("Fetch rooms error:", err);
@@ -97,6 +101,9 @@ export default function TeamChatPage() {
             setRooms(data.rooms || []);
             setCurrentUser(data.user);
             setLocations(data.locations || []);
+            if (data.user?.role === "VENDOR") {
+              setChatRole("vendor");
+            }
           }
         } catch (err) {
           console.error("Silent fetch rooms error:", err);
@@ -146,8 +153,10 @@ export default function TeamChatPage() {
     const body = {
       roomId: activeRoom.id,
       message: inputText.trim(),
-      senderName: chatRole === "vendor" ? activeRoom.name : (currentUser?.user_full_name || currentUser?.user_name),
-      senderRole: chatRole === "vendor" ? "VENDOR" : (currentUser?.role || "STORE")
+      senderName: currentUser?.role === "VENDOR"
+        ? (currentUser?.user_full_name || currentUser?.user_name)
+        : (chatRole === "vendor" ? activeRoom.name : (currentUser?.user_full_name || currentUser?.user_name)),
+      senderRole: currentUser?.role === "VENDOR" ? "VENDOR" : (chatRole === "vendor" ? "VENDOR" : (currentUser?.role || "STORE"))
     };
 
     setInputText("");
@@ -309,33 +318,35 @@ export default function TeamChatPage() {
                 </div>
 
                 {/* Role Switch Simulation Box - Premium tester utility */}
-                <div className="flex items-center gap-2 bg-[#1e293b]/70 border border-slate-800 px-3 py-1.5 rounded-xl shrink-0">
-                  <span className="text-[10px] font-extrabold text-slate-400">สวมบทบาทในการส่งข้อความ:</span>
-                  <div className="flex gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setChatRole("branch")}
-                      className={`px-2 py-0.5 rounded-lg text-[9px] font-black transition ${
-                        chatRole === "branch"
-                          ? "bg-[#c8102e] text-white shadow"
-                          : "text-slate-400 hover:text-slate-200 hover:bg-slate-800"
-                      }`}
-                    >
-                      สาขา ({activeRoom.location_name})
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setChatRole("vendor")}
-                      className={`px-2 py-0.5 rounded-lg text-[9px] font-black transition ${
-                        chatRole === "vendor"
-                          ? "bg-cyan-500 text-slate-950 shadow"
-                          : "text-slate-400 hover:text-slate-200 hover:bg-slate-800"
-                      }`}
-                    >
-                      ผู้รับเหมา ({activeRoom.name})
-                    </button>
+                {currentUser?.role !== "VENDOR" && (
+                  <div className="flex items-center gap-2 bg-[#1e293b]/70 border border-slate-800 px-3 py-1.5 rounded-xl shrink-0">
+                    <span className="text-[10px] font-extrabold text-slate-400">สวมบทบาทในการส่งข้อความ:</span>
+                    <div className="flex gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setChatRole("branch")}
+                        className={`px-2 py-0.5 rounded-lg text-[9px] font-black transition ${
+                          chatRole === "branch"
+                            ? "bg-[#c8102e] text-white shadow"
+                            : "text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+                        }`}
+                      >
+                        สาขา ({activeRoom.location_name})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setChatRole("vendor")}
+                        className={`px-2 py-0.5 rounded-lg text-[9px] font-black transition ${
+                          chatRole === "vendor"
+                            ? "bg-cyan-500 text-slate-950 shadow"
+                            : "text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+                        }`}
+                      >
+                        ผู้รับเหมา ({activeRoom.name})
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Chat Message List Area */}
@@ -414,7 +425,7 @@ export default function TeamChatPage() {
                 {/* Main text input field */}
                 <input
                   type="text"
-                  placeholder={`พิมพ์ข้อความสนทนาในฐานะ #${chatRole === "vendor" ? activeRoom.name : (currentUser?.user_full_name || "สาขา")}...`}
+                  placeholder={`พิมพ์ข้อความสนทนาในฐานะ #${currentUser?.role === "VENDOR" ? (currentUser?.user_full_name || currentUser?.user_name) : (chatRole === "vendor" ? activeRoom.name : (currentUser?.user_full_name || "สาขา"))}...`}
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   className="flex-grow bg-[#1e293b] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-100 outline-none placeholder-slate-500 focus:border-cyan-500 transition"
