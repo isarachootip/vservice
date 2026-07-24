@@ -274,6 +274,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
     if (role === "CS") return "Customer Service";
     if (role === "GR") return "Goods Receive";
     if (role === "DC") return "Distribution Center";
+    if (role === "VENDOR") return "Vendor / Partner";
     return "User";
   }, [user]);
 

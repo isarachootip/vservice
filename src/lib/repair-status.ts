@@ -1,4 +1,4 @@
-export type Role = "CS" | "GR" | "DC" | "ADMIN" | "ADMIN_GR" | "ADMIN_DC";
+export type Role = "CS" | "GR" | "DC" | "ADMIN" | "ADMIN_GR" | "ADMIN_DC" | "VENDOR";
 
 export type RepairRow = {
     id: number | string;
@@ -97,6 +97,7 @@ export const roleActionMap: Record<Role, number[]> = {
     CS:  [10, 100, 240, 250, 260, 285, 290, 310, 320, 330, 360, 390],
     GR:  [11, 110, 200, 210, 280, 300, 340, 345, 350],
     DC:  [220, 230, 270, 275],
+    VENDOR: [300, 310, 320, 330, 340, 345, 350],
     ADMIN_GR: [11, 110, 200, 210, 280, 300, 340, 345, 350],
     ADMIN_DC: [10, 100, 240, 250, 260, 285, 290, 310, 320, 330, 360, 390],
     ADMIN: [10, 11, 100, 110,

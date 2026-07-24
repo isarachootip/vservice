@@ -2009,6 +2009,7 @@ function MaintainContent() {
                                                                     row.role_name === "ADMIN" ? "bg-red-100 text-red-800" :
                                                                     row.role_name === "CS" ? "bg-blue-100 text-blue-800" :
                                                                     row.role_name === "GR" ? "bg-green-100 text-green-800" :
+                                                                    row.role_name === "VENDOR" ? "bg-amber-100 text-amber-800" :
                                                                     "bg-slate-100 text-slate-800"
                                                                 }`}>
                                                                     {row.role_name}
@@ -3357,6 +3358,7 @@ function MaintainContent() {
                                         <option value="2">GR</option>
                                         <option value="3">DC</option>
                                         <option value="4">ADMIN</option>
+                                        <option value="5">VENDOR</option>
                                     </select>
                                 </div>
                                 <div>

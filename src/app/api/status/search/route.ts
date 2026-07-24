@@ -77,6 +77,7 @@ export async function GET(req: Request) {
   let userLocationId: string | null = null;
   let userStoreCode: string | null = null;
   let isStaffFiltered = false;
+  let isVendorFiltered = false;
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get(COOKIE_NAME)?.value;
@@ -87,7 +88,10 @@ export async function GET(req: Request) {
         const profile = await UserService.getUserProfile(username);
         if (profile) {
           const isAdmin = profile.role === "ADMIN";
-          if (!isAdmin) {
+          const isVendor = profile.role === "VENDOR";
+          if (isVendor) {
+            isVendorFiltered = true;
+          } else if (!isAdmin) {
             userLocationId = profile.location_id || null;
             userStoreCode = profile.store_code ? String(profile.store_code) : null;
             isStaffFiltered = true;
@@ -132,6 +136,16 @@ export async function GET(req: Request) {
           location_id: filterLocationId,
         },
       },
+    });
+  }
+
+  if (isVendorFiltered) {
+    andConditions.push({
+      repair_request: {
+        is: {
+          status: { in: [300, 310, 320, 330, 340, 345, 350] }
+        }
+      }
     });
   }
 
@@ -271,6 +285,9 @@ export async function GET(req: Request) {
           : filterLocationId
             ? Prisma.sql`AND rr.location_id = ${filterLocationId}`
             : Prisma.empty}
+        ${isVendorFiltered
+          ? Prisma.sql`AND rr.status IN (300, 310, 320, 330, 340, 345, 350)`
+          : Prisma.empty}
         ${q
           ? Prisma.sql`
             AND (
