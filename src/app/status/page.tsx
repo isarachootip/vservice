@@ -22,6 +22,7 @@ import {
   optionRoute,
   labelFor,
   statusText,
+  roleActionMap,
   type Role,
   type RepairRow,
 } from "@/lib/repair-status";
@@ -91,6 +92,43 @@ export default function StatusPage() {
   const [priorityFilter, setPriorityFilter] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
   const [locationsList, setLocationsList] = useState<any[]>([]);
+
+  const statusOptions = useMemo(() => [
+    { value: "100", label: "ส่งซ่อม (100)" },
+    { value: "110", label: "GR รับสินค้า (110)" },
+    { value: "200", label: "GR เปิด log DC (200)" },
+    { value: "210", label: "รอ DC รับสินค้า (210)" },
+    { value: "220", label: "DC รับสินค้าแล้ว (220)" },
+    { value: "230", label: "DC รอ Vendor (230)" },
+    { value: "240", label: "DC รอตีราคา (240)" },
+    { value: "250", label: "ขออนุมัติราคา (250)" },
+    { value: "260", label: "แจ้งผลการอนุมัติ (260)" },
+    { value: "270", label: "รอ Vendor ส่งคืน (ไม่อนุมัติ - 270)" },
+    { value: "275", label: "รอ Vendor ส่งคืน (เสร็จ - 275)" },
+    { value: "280", label: "DC รับสินค้าคืนจาก Vendor (280)" },
+    { value: "285", label: "GR รับสินค้าคืนจาก DC (285)" },
+    { value: "290", label: "CS รอลูกค้ารับคืน (DC - 290)" },
+    { value: "299", label: "ลูกค้ารับของแล้ว (ปิดงาน - 299)" },
+    { value: "300", label: "รอ Vendor รับสินค้า (ตรง - 300)" },
+    { value: "310", label: "รอ Vendor ตีราคา (ตรง - 310)" },
+    { value: "320", label: "ขออนุมัติราคา (ตรง - 320)" },
+    { value: "330", label: "แจ้งผลการอนุมัติ (ตรง - 330)" },
+    { value: "340", label: "รอ Vendor ส่งคืน (ไม่อนุมัติ - 340)" },
+    { value: "345", label: "รอ Vendor ส่งคืน (เสร็จ - 345)" },
+    { value: "350", label: "Vendor คืนผ่าน DC แทนสาขา (350)" },
+    { value: "360", label: "GR รับสินค้าคืนจาก Vendor/DC (360)" },
+    { value: "390", label: "CS รอลูกค้ารับคืน (ตรง - 390)" },
+    { value: "399", label: "ลูกค้ารับของแล้ว (ปิดงาน - ตรง - 399)" },
+    { value: "0",   label: "ใบซ่อมถูกยกเลิก (0)" }
+  ], []);
+
+  const filteredStatusOptions = useMemo(() => {
+    if (!userInfo?.role || userInfo.role === "ADMIN") {
+      return statusOptions;
+    }
+    const allowed = roleActionMap[userInfo.role as Role] || [];
+    return statusOptions.filter(opt => allowed.includes(Number(opt.value)));
+  }, [userInfo?.role, statusOptions]);
 
   //* คล้ายๆ onInit
   useEffect(() => {
@@ -503,32 +541,11 @@ export default function StatusPage() {
                 className="select-custom bg-white border border-slate-200 text-slate-700 rounded-lg px-3 py-1.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#c8102e] focus:border-[#c8102e]"
               >
                 <option value="">ทั้งหมด</option>
-                <option value="100">ส่งซ่อม (100)</option>
-                <option value="110">GR รับสินค้า (110)</option>
-                <option value="200">GR เปิด log DC (200)</option>
-                <option value="210">รอ DC รับสินค้า (210)</option>
-                <option value="220">DC รับสินค้าแล้ว (220)</option>
-                <option value="230">DC รอ Vendor (230)</option>
-                <option value="240">DC รอตีราคา (240)</option>
-                <option value="250">ขออนุมัติราคา (250)</option>
-                <option value="260">แจ้งผลการอนุมัติ (260)</option>
-                <option value="270">รอ Vendor ส่งคืน (ไม่อนุมัติ - 270)</option>
-                <option value="275">รอ Vendor ส่งคืน (เสร็จ - 275)</option>
-                <option value="280">DC รับสินค้าคืนจาก Vendor (280)</option>
-                <option value="285">GR รับสินค้าคืนจาก DC (285)</option>
-                <option value="290">CS รอลูกค้ารับคืน (DC - 290)</option>
-                <option value="299">ลูกค้ารับของแล้ว (ปิดงาน - 299)</option>
-                <option value="300">รอ Vendor รับสินค้า (ตรง - 300)</option>
-                <option value="310">รอ Vendor ตีราคา (ตรง - 310)</option>
-                <option value="320">ขออนุมัติราคา (ตรง - 320)</option>
-                <option value="330">แจ้งผลการอนุมัติ (ตรง - 330)</option>
-                <option value="340">รอ Vendor ส่งคืน (ไม่อนุมัติ - 340)</option>
-                <option value="345">รอ Vendor ส่งคืน (เสร็จ - 345)</option>
-                <option value="350">Vendor คืนผ่าน DC แทนสาขา (350)</option>
-                <option value="360">GR รับสินค้าคืนจาก Vendor/DC (360)</option>
-                <option value="390">CS รอลูกค้ารับคืน (ตรง - 390)</option>
-                <option value="399">ลูกค้ารับของแล้ว (ปิดงาน - ตรง - 399)</option>
-                <option value="0">ใบซ่อมถูกยกเลิก (0)</option>
+                {filteredStatusOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
               </select>
             </div>
 

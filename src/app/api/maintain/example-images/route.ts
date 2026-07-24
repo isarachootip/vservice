@@ -10,7 +10,8 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const flow = (searchParams.get("flow") || "create_repair").trim();
 
-    if (!["create_repair", "cs_to_gr", "dc_to_vendor"].includes(flow)) {
+    const flowRegex = /^[a-zA-Z0-9_]+$/;
+    if (!flowRegex.test(flow)) {
       return NextResponse.json({ ok: false, message: "Invalid flow parameter" }, { status: 400 });
     }
 
@@ -81,7 +82,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, message: "Invalid slot parameter" }, { status: 400 });
     }
 
-    if (!flow || !["create_repair", "cs_to_gr", "dc_to_vendor"].includes(flow)) {
+    const flowRegex = /^[a-zA-Z0-9_]+$/;
+    if (!flow || !flowRegex.test(flow)) {
       return NextResponse.json({ ok: false, message: "Invalid flow parameter" }, { status: 400 });
     }
 

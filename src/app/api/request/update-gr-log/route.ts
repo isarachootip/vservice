@@ -33,7 +33,7 @@ export async function POST(req: Request) {
         const openLogDate = getString(formData.get("openLogDate"));
         const approvelogID = getString(formData.get("approvelogID"));
         const updatedUser = getString(formData.get("updatedUser"));
-        // const files = formData.getAll("files") as File[];
+        const files = formData.getAll("files") as File[];
         
         if (!requestId) {
             return NextResponse.json({ error: "Missing Request Id" }, { status: 400 });
@@ -74,45 +74,45 @@ export async function POST(req: Request) {
             },
         });
 
-        // const requestNo = res.request_no ?? ""
-        // const uploadDir = path.join(process.cwd(), "public", "uploads", "repair", requestNo);
-        // await fs.mkdir(uploadDir, { recursive: true });
+        const requestNo = res.request_no ?? ""
+        const uploadDir = path.join(process.cwd(), "public", "uploads", "repair", requestNo);
+        await fs.mkdir(uploadDir, { recursive: true });
 
         //* save file แนบ
-        // const attachmentRows: Array<{
-        //     request_id: number;
-        //     file_path: string;
-        //     file_name: string;
-        //     mime_type?: string | null;
-        //     file_size?: number | null;
-        //     step_no: string;
-        // }> = [];
+        const attachmentRows: Array<{
+            request_id: number;
+            file_path: string;
+            file_name: string;
+            mime_type?: string | null;
+            file_size?: number | null;
+            step_no: string;
+        }> = [];
 
-        // for (let i = 0; i < files.length; i++) {
-        //     const f = files[i];
-        //     if (!(f instanceof File)) continue;
+        for (let i = 0; i < files.length; i++) {
+            const f = files[i];
+            if (!(f instanceof File)) continue;
         
-        //     const fileName = buildAttachmentFileName(requestNo, "", f.name);
-        //     const absPath = path.join(uploadDir, fileName);
+            const fileName = buildAttachmentFileName(requestNo, "", f.name);
+            const absPath = path.join(uploadDir, fileName);
         
-        //     const bytes = Buffer.from(await f.arrayBuffer());
-        //     await fs.writeFile(absPath, bytes);
+            const bytes = Buffer.from(await f.arrayBuffer());
+            await fs.writeFile(absPath, bytes);
         
-        //     const publicPath = `/uploads/repair/${requestNo}/${fileName}`;
+            const publicPath = `/uploads/repair/${requestNo}/${fileName}`;
         
-        //     attachmentRows.push({
-        //         request_id: res.id,
-        //         file_path: publicPath,
-        //         file_name: fileName,
-        //         mime_type: f.type || null,
-        //         file_size: f.size ?? null,
-        //         step_no: String(StatusGrToCS)
-        //     });
-        // }
+            attachmentRows.push({
+                request_id: res.id,
+                file_path: publicPath,
+                file_name: fileName,
+                mime_type: f.type || null,
+                file_size: f.size ?? null,
+                step_no: String(StatusGrLogForDc)
+            });
+        }
 
-        // if (attachmentRows.length > 0) {
-        //     await prisma.repair_attachment.createMany({ data: attachmentRows });
-        // }
+        if (attachmentRows.length > 0) {
+            await prisma.repair_attachment.createMany({ data: attachmentRows });
+        }
 
         const trans_log_text = "เพิ่มข้อมูล GR เปิด Log DC ใบแจ้งซ่อม : " + res.request_no; 
         await prisma.transaction_log.create({

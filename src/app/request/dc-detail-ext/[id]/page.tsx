@@ -1,7 +1,7 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
-import { ShieldCheck, ShieldX, Undo2 } from "lucide-react";
+import { use, useEffect, useState, useRef } from "react";
+import { ShieldCheck, ShieldX, ArrowRight, Eye, Undo2 } from "lucide-react";
 import { DatePicker } from "react-datepicker";
 import { useRouter } from "next/navigation";
 
@@ -9,15 +9,16 @@ type Warranty = "in" | "out" | null;
 
 type Errors = Partial<{
     dcArriveDate: string;
+    attachments: string;
 }>;
 
 type UserInfo = {
-    user_name: string;
-    role?: string;
-    permissions?: string[];
+  user_name: string;
+  role?: string;
+  permissions?: string[];
 };
 
-export default function RequestDCDetailExtPage({ params }: { params: Promise<{ id: string }> }) {
+export default function DcDetailExtPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
     const { id } = use(params);
     const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
@@ -26,7 +27,45 @@ export default function RequestDCDetailExtPage({ params }: { params: Promise<{ i
     const [lastName,  setLastName]  = useState("");
     const [address,   setAddress]   = useState("");
     const [phone,     setPhone]     = useState("");
+    const [receiveFromUserDt, setReceiveFromUserDt] = useState<Date | null>(null);
 
+    const [loading, setLoading] = useState(true);
+    const [errors, setErrors] = useState<Errors>({});
+
+    const [showRollbackModal, setShowRollbackModal] = useState(false);
+    const [rollbackReason, setRollbackReason] = useState("");
+    const [updatedUser, setUpdatedUser] = useState("");
+    const [status,      setStatus]      = useState<number | "">("");
+    const statusNum = typeof status === "number" ? status : Number(status || 0);
+    
+    const Req = () => <span className="text-red-600 ml-0.5">*</span>;
+    const inputClass = (hasError?: boolean) =>
+        `w-full px-3.5 py-2 border rounded-xl text-xs font-semibold outline-none transition focus:ring-2 focus:ring-[#c8102e]/20 ${
+            hasError ? "border-red-500 focus:border-red-500" : "border-slate-200 focus:border-[#c8102e]"
+        }`;
+
+    const [dcArriveDate, setDcArriveDate] = useState<Date | null>(null);
+
+    // 4 Photo Upload Slots states
+    const [fileSlot1, setFileSlot1] = useState<File | null>(null);
+    const [fileSlot2, setFileSlot2] = useState<File | null>(null);
+    const [fileSlot3, setFileSlot3] = useState<File | null>(null);
+    const [fileSlot4, setFileSlot4] = useState<File | null>(null);
+
+    const [previewSlot1, setPreviewSlot1] = useState<string>("");
+    const [previewSlot2, setPreviewSlot2] = useState<string>("");
+    const [previewSlot3, setPreviewSlot3] = useState<string>("");
+    const [previewSlot4, setPreviewSlot4] = useState<string>("");
+
+    const slot1Ref = useRef<HTMLInputElement | null>(null);
+    const slot2Ref = useRef<HTMLInputElement | null>(null);
+    const slot3Ref = useRef<HTMLInputElement | null>(null);
+    const slot4Ref = useRef<HTMLInputElement | null>(null);
+
+    const [exampleImages, setExampleImages] = useState<any>(null);
+    const [exampleModal, setExampleModal] = useState<{ isOpen: boolean; title: string; imageUrl: string; desc: string } | null>(null);
+
+    // Product info fields
     const [productType, setProductType] = useState("");
     const [brand,       setBrand]       = useState("");
     const [model,       setModel]       = useState("");
@@ -37,115 +76,100 @@ export default function RequestDCDetailExtPage({ params }: { params: Promise<{ i
     const [issue,       setIssue]       = useState("");
     const [warranty,   setWarranty]   = useState<Warranty>(null);
     const [warrantyNo, setWarrantyNo] = useState("");
-    const [receiveFromUserDt, setReceiveFromUserDt] = useState<Date | null>(null);
 
-    const [loading, setLoading] = useState(true);
-    const [errors, setErrors] = useState<Errors>({});
+    // Preview URL generation
+    useEffect(() => {
+        if (!fileSlot1) { setPreviewSlot1(""); return; }
+        const url = URL.createObjectURL(fileSlot1);
+        setPreviewSlot1(url);
+        return () => URL.revokeObjectURL(url);
+    }, [fileSlot1]);
 
-    const [showRollbackModal, setShowRollbackModal] = useState(false);
-    const [rollbackReason, setRollbackReason] = useState("");
-    const [updatedUser, setUpdatedUser] = useState("");
-    const [status,      setStatus]      = useState<number | "">("");
-    const statusNum =
-        typeof status === "number"
-            ? status
-            : Number(status || 0);
+    useEffect(() => {
+        if (!fileSlot2) { setPreviewSlot2(""); return; }
+        const url = URL.createObjectURL(fileSlot2);
+        setPreviewSlot2(url);
+        return () => URL.revokeObjectURL(url);
+    }, [fileSlot2]);
 
-    const Req = () => <span className="text-red-600 ml-0.5">*</span>;
-    const inputClass = (hasError?: boolean) =>
-        `input-base ${hasError ? "border-red-500 focus:ring-red-500 focus:border-red-500" : ""}`;
+    useEffect(() => {
+        if (!fileSlot3) { setPreviewSlot3(""); return; }
+        const url = URL.createObjectURL(fileSlot3);
+        setPreviewSlot3(url);
+        return () => URL.revokeObjectURL(url);
+    }, [fileSlot3]);
 
-    //* สำหรับ DC
-    const [sentToDCName, setSentToDCName] = useState("");
-    const [dcReceiveDate, setDcReceiveDate] = useState<string>("");
-    const [approvelogID, setApprovelogID] = useState("");
-    const [dcArriveDate, setDcArriveDate] = useState<Date | null>(null);
-    const [receiverTel, setReceiverTel] = useState("");
-    //* กรณี GR ตีกลับสินค้าคืนสาขา
-    const [dcSentReturnName, setDcSentReturnName] = useState("");
-    const [receiveReturnName, setReceiveReturnName] = useState("");
-    const [dcSentReturnDate, setDcSentReturnDate] = useState<string>("");
-    const [dcSentReturnTel, setDcSentReturnTel] = useState("");
+    useEffect(() => {
+        if (!fileSlot4) { setPreviewSlot4(""); return; }
+        const url = URL.createObjectURL(fileSlot4);
+        setPreviewSlot4(url);
+        return () => URL.revokeObjectURL(url);
+    }, [fileSlot4]);
+
+    useEffect(() => {
+        fetch("/api/maintain/example-images?flow=dc_detail_ext")
+            .then(res => res.json())
+            .then(data => {
+                if (data.ok) setExampleImages(data.data);
+            })
+            .catch(console.error);
+    }, []);
 
     useEffect(() => {
         let alive = true;
         (async () => {
-        try {
-            setLoading(true);
-            const res = await fetch(`/api/request/find?id=${encodeURIComponent(id!)}`, { cache: "no-store" });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data?.message || "โหลดข้อมูลไม่สำเร็จ");
+            try {
+                setLoading(true);
+                const res = await fetch(`/api/request/find?id=${encodeURIComponent(id!)}`, { cache: "no-store" });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data?.message || "โหลดข้อมูลไม่สำเร็จ");
 
-            //* get current user
-            const raw = localStorage.getItem("userInfo");
-            if (raw) {
-                const u = JSON.parse(raw);
-                if (alive) setUpdatedUser(u.user_name);
-                setUserInfo({
-                    user_name: u.user_name,
-                    role: u.role,
-                    permissions: Array.isArray(u.permissions) ? u.permissions : [],
+                const raw = localStorage.getItem("userInfo");
+                if (raw) {
+                    const u = JSON.parse(raw);
+                    if (alive) setUpdatedUser(u.user_name);
+                    setUserInfo({
+                        user_name: u.user_name,
+                        role: u.role,
+                        permissions: Array.isArray(u.permissions) ? u.permissions : [],
+                    });
+                }
 
-                });
+                const r = data.request;
+                const [fn = "", ln = ""] = String(r.customer_name || "").split(" ", 2);
+                if (!alive) return;
+
+                setFirstName(fn);
+                setLastName(ln);
+                setAddress(r.address ?? "");
+                setPhone(r.phone ?? "");
+                setReceiveFromUserDt(r.receive_from_user_date ?? "");
+                setStatus(r.status); 
+
+                const it = r.item || {};
+                setProductType(it.product_type ?? "");
+                setBrand(it.brand ?? "");
+                setModel(it.model ?? "");
+                setSerial(it.serial_no ?? "");
+                setQty(typeof it.qty === "number" ? it.qty : "");
+                setIssue(it.issue ?? "");
+                setSku(typeof it.sku_code === "number" ? it.sku_code : "");
+                setBarcode(it.bar_code ?? "");
+                setWarranty(it.in_warranty === "Y" ? "in" : it.in_warranty === "N" ? "out" : null);
+                setWarrantyNo(it.warranty_no ?? "");
+            } catch (e) {
+                alert((e as Error).message);
+            } finally {
+                if (alive) setLoading(false);
             }
-
-            const r = data.request;
-            const [fn = "", ln = ""] = String(r.customer_name || "").split(" ", 2);
-            if (!alive) return;
-
-            setFirstName(fn);
-            setLastName(ln);
-            setAddress(r.address ?? "");
-            setPhone(r.phone ?? "");
-            setStatus(r.status);
-            setReceiveFromUserDt(r.receive_from_user_date ?? "");
-
-            const it = r.item || {};
-            setProductType(it.product_type ?? "");
-            setBrand(it.brand ?? "");
-            setModel(it.model ?? "");
-            setSerial(it.serial_no ?? "");
-            setQty(typeof it.qty === "number" ? it.qty : "");
-            setIssue(it.issue ?? "");
-            setSku(typeof it.sku_code === "number" ? it.sku_code : "");
-            setBarcode(it.bar_code ?? "");
-            setWarranty(it.in_warranty === "Y" ? "in" : it.in_warranty === "N" ? "out" : null);
-            setWarrantyNo(it.warranty_no ?? "");
-
-            //* dc
-            setSentToDCName(r.dc_receiver_name);
-            setApprovelogID(r.approvelog_id);
-            setDcReceiveDate(r.dc_receive_date);
-            setReceiverTel(r.dc_receiver_tel);
-
-            //* GR reject (DC คืนสินค้าให้สาขา)
-            setDcSentReturnName(r.dc_rej_return_send_by ?? "");
-            setReceiveReturnName(r.dc_rej_return_receive_by ?? "");
-            setDcSentReturnDate(r.dc_rej_return_date ?? "");
-            setDcSentReturnTel(r.dc_rej_return_tel ?? "");
-
-        } catch (e) {
-            alert((e as Error).message);
-        } finally {
-            if (alive) setLoading(false);
-        }
         })();
         return () => { alive = false; };
     }, [id]);
-
-    const validate = (): Errors => {
-        const next: Errors = {};
-        if (!dcArriveDate || isNaN(new Date(dcArriveDate).getTime())) {
-            next.dcArriveDate = "กรุณากรอกวันที่";
-        }
-        return next;
-    };
 
     const toYMD = (v: unknown): string | null => {
         if (!v) return null;
         const d = v instanceof Date ? v : new Date(String(v));
         if (Number.isNaN(d.getTime())) return null;
-
         const y = d.getFullYear();
         const m = String(d.getMonth() + 1).padStart(2, "0");
         const day = String(d.getDate()).padStart(2, "0");
@@ -153,9 +177,16 @@ export default function RequestDCDetailExtPage({ params }: { params: Promise<{ i
     };
 
     const onSave = async () => {
-
         const nextErrors: Errors = {};
         if (!dcArriveDate)  nextErrors.dcArriveDate = "กรุณาเลือกวันที่ DC รับสินค้าเข้าที่ DC";
+        
+        // Validation for mandatory photo slots (Slot 1 and Slot 4)
+        if (!fileSlot1) {
+            nextErrors.attachments = "กรุณาแนบรูปภาพภาพด้านบน (Slot 1)";
+        }
+        if (!fileSlot4) {
+            nextErrors.attachments = (nextErrors.attachments ? nextErrors.attachments + "\n" : "") + "กรุณาแนบรูปภาพป้าย Serial Number (Slot 4)";
+        }
 
         setErrors(nextErrors);
         const missing = Object.values(nextErrors);
@@ -171,6 +202,11 @@ export default function RequestDCDetailExtPage({ params }: { params: Promise<{ i
         formData.append("updatedUser", updatedUser);
         formData.append("status", String(status ?? ""));
 
+        const selectedFiles = [fileSlot1, fileSlot2, fileSlot3, fileSlot4].filter(Boolean) as File[];
+        selectedFiles.forEach((file) => {
+            formData.append("files", file);
+        });
+
         try {
             const res = await fetch("/api/request/update-dc-info", {
                 method: "POST",
@@ -180,11 +216,11 @@ export default function RequestDCDetailExtPage({ params }: { params: Promise<{ i
             const data = await res.json();
             if (!res.ok) throw new Error(data?.message || "บันทึกไม่สำเร็จ");
             alert("บันทึกข้อมูลสำเร็จ");
-            router.push('/status')
+            router.push('/status');
         } catch (e) {
             alert((e as Error).message);
         }
-    }
+    };
 
     const handleRollback = async () => {
         if (!rollbackReason.trim()) {
@@ -217,285 +253,398 @@ export default function RequestDCDetailExtPage({ params }: { params: Promise<{ i
         }
     };
 
-    const formatDate = (v: unknown) => {
-        if (!v) return "-";
-        const d = new Date(v as string);
-        return isNaN(d.getTime()) ? "-" : d.toLocaleDateString("th-TH");
+    const renderUploadSlot = (
+        slotId: 'slot1' | 'slot2' | 'slot3' | 'slot4',
+        title: string,
+        isRequired: boolean,
+        file: File | null,
+        previewUrl: string,
+        setFile: (f: File | null) => void,
+        ref: React.RefObject<HTMLInputElement | null>
+    ) => {
+        const slotConfig = exampleImages?.[slotId];
+        const hasExample = slotConfig?.url;
+
+        return (
+            <div className="flex flex-col bg-white border border-slate-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition duration-200 space-y-3">
+                <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-700">{title}</span>
+                    {isRequired ? (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-red-50 text-red-600 border border-red-200">
+                            * จำเป็น
+                        </span>
+                    ) : (
+                        <span className="text-[10px] font-medium text-slate-400">ถ้ามี</span>
+                    )}
+                </div>
+                
+                <input
+                    type="file"
+                    ref={ref as any}
+                    accept=".jpg,.jpeg,.png,.pdf"
+                    className="hidden"
+                    onChange={(e) => {
+                        const selectedFile = e.target.files?.[0];
+                        if (selectedFile) {
+                            if (selectedFile.size > 800 * 1024) {
+                                alert("ขนาดไฟล์รูปภาพต้องไม่เกิน 800 KB ครับ");
+                                return;
+                            }
+                            setFile(selectedFile);
+                        }
+                    }}
+                />
+
+                <div className="space-y-2">
+                    {previewUrl ? (
+                        <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-slate-200 bg-slate-50 group">
+                            {file && file.type === "application/pdf" ? (
+                                <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 font-bold text-xs p-3">
+                                    <ShieldCheck className="w-10 h-10 text-red-500 mb-1" />
+                                    <span className="truncate max-w-full text-xs">{file.name}</span>
+                                </div>
+                            ) : (
+                                <img src={previewUrl} alt={title} className="w-full h-full object-cover" />
+                            )}
+                            <div className="absolute inset-0 bg-slate-900/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-200 gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => ref.current?.click()}
+                                    className="px-3 py-1.5 bg-white text-slate-800 rounded-lg hover:bg-slate-100 shadow text-xs font-bold transition cursor-pointer"
+                                >
+                                    เปลี่ยนรูป
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setFile(null);
+                                        if (ref.current) ref.current.value = "";
+                                    }}
+                                    className="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 shadow text-xs font-bold transition cursor-pointer"
+                                >
+                                    ลบ
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div
+                            onClick={() => ref.current?.click()}
+                            className="aspect-[4/3] rounded-xl border-2 border-dashed border-slate-300 hover:border-red-400 bg-slate-50/50 hover:bg-red-50/20 flex flex-col items-center justify-center cursor-pointer transition p-3 text-center group"
+                        >
+                            <div className="w-10 h-10 rounded-full bg-white shadow-sm border border-slate-200 flex items-center justify-center mb-2 group-hover:scale-110 transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-slate-500 group-hover:text-[#c8102e]">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
+                                </svg>
+                            </div>
+                            <span className="text-xs font-bold text-slate-700 group-hover:text-[#c8102e]">คลิกเพื่ออัปโหลด</span>
+                            <span className="text-[10px] text-slate-400 mt-0.5">JPG, PNG, PDF (ไม่เกิน 800KB)</span>
+                        </div>
+                    )}
+
+                    {hasExample && (
+                        <button
+                            type="button"
+                            onClick={() => setExampleModal({
+                                isOpen: true,
+                                title: title,
+                                imageUrl: slotConfig.url,
+                                desc: slotConfig.desc || "ไม่มีคำอธิบายเพิ่มเติม"
+                            })}
+                            className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition cursor-pointer"
+                        >
+                            <Eye className="w-3.5 h-3.5 text-blue-600" />
+                            <span>ดูรูปตัวอย่าง</span>
+                        </button>
+                    )}
+                </div>
+            </div>
+        );
     };
-    
+
     if (loading) {
         return <section className="max-w-4xl mx-auto p-6">กำลังโหลดข้อมูล...</section>;
     }
 
-    //* CSS
-    const labelCell = "w-56 pr-4 text-right align-top whitespace-nowrap";
-
     return (
-        <section className="max-w-4xl mx-auto">
-        <br />
-        <h1 className="text-2xl md:text-3xl font-bold text-center text-slate-800">
-            เพิ่มรายละเอียดใบแจ้งซ่อม (DC)
-        </h1>
+        <section className="max-w-4xl mx-auto space-y-6">
+            {/* Breadcrumbs */}
+            <div className="flex items-center gap-1.5 text-xs text-slate-400 font-semibold">
+                <span>VService System</span>
+                <span>/</span>
+                <span>คลัง DC</span>
+                <span>/</span>
+                <span className="text-[#c8102e]">รับสินค้าเข้าคลัง DC</span>
+            </div>
 
-        <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-6 md:p-8 shadow-sm">
-            <form className="space-y-8">
+            {/* Page Title */}
+            <div className="flex flex-col gap-1">
+                <h1 className="text-xl md:text-2xl font-black text-slate-800 flex items-center gap-2">
+                    <span className="w-1.5 h-6 bg-[#c8102e] rounded-full inline-block"></span>
+                    บันทึกตรวจรับสินค้าเข้าคลัง DC (DC Receipt)
+                </h1>
+                <p className="text-xs text-slate-400 font-medium pl-3.5">
+                    ลงบันทึกข้อมูลและแนบรูปหลักฐานภาพสินค้าเมื่อของจัดส่งมาถึงยังศูนย์ DC กลางเรียบร้อยแล้ว
+                </p>
+            </div>
 
-            <fieldset className="space-y-4">
-                <legend className="text-lg font-semibold text-slate-900">ข้อมูลลูกค้า</legend>
-                <div className="flex justify-center">
-                    <table className="min-w-[560px]">
-                        <tbody>
-                            <tr>
-                                <td className={labelCell}>ชื่อ :</td>
-                                <td>{firstName}</td>
-                            </tr>
-                            <tr>
-                                <td className={labelCell}>นามสกุล :</td>
-                                <td>{lastName}</td>
-                            </tr>
-                            <tr>
-                                <td className={labelCell}>ที่อยู่ :</td>
-                                <td>{address}</td>
-                            </tr>
-                            <tr>
-                                <td className={labelCell}>โทรศัพท์ :</td>
-                                <td>{phone}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </fieldset>
-
-            <fieldset className="space-y-4">
-                <legend className="text-lg font-semibold text-slate-900">รายละเอียดสินค้า</legend>
-                <div className="flex justify-center">
-                    <table className="min-w-[560px] table-fixed">
-                        <tbody>
-                        <tr>
-                            <td className={labelCell}>ประเภทสินค้า :</td>
-                            <td>{productType}</td>
-                        </tr>
-                        <tr>
-                            <td className={labelCell}>ยี่ห้อ :</td>
-                            <td>{brand}</td>
-                        </tr>
-                        <tr>
-                            <td className={labelCell}>SKU :</td>
-                            <td>{sku === 0 || sku == null ? "-" : sku}</td>
-                        </tr>
-                        <tr>
-                            <td className={labelCell}>Barcode :</td>
-                            <td>{barcode}</td>
-                        </tr>
-                        <tr>
-                            <td className="pr-4 text-right align-top whitespace-nowrap"
-                                style={{ width: "220px" }}>
-                                รุ่น :
-                            </td>
-                            <td style={{
-                                maxWidth: "300px",
-                                wordBreak: "break-word",
-                                whiteSpace: "normal",
-                            }}>
-                                {model}
-                            </td>
-                        </tr>
-                        <tr>
-                            <td className={labelCell}>เลขเครื่อง (Serial) :</td>
-                            <td>{serial}</td>
-                        </tr>
-                        <tr>
-                            <td className={labelCell}>อาการที่พบ :</td>
-                            <td>{issue}</td>
-                        </tr>
-                        <tr>
-                            <td className={labelCell}>จำนวน :</td>
-                            <td>{qty}  ชิ้น</td>
-                        </tr>
-                        <tr>
-                            <td className={labelCell}>สถานะรับประกัน :</td>
-                            <td>
-                                {warranty === "in" ? (
-                                    <>
-                                        <ShieldCheck className="inline-block text-green-600" />
-                                    </>
-                                ) : (
-                                    <>
-                                        <ShieldX className="inline-block text-red-600" />
-                                    </>
-                                )}
-                            </td>
-                        </tr>
-                        {warranty === "in" ? (
-                            <>
-                                <tr>
-                                    <td className={labelCell}>เลขที่ใบประกัน :</td>
-                                    <td>{warrantyNo}</td>
-                                </tr>
-                            </>
-                        ) : (
-                            <>
-                            </>
-                        )}
-                        <tr>
-                            <td className={labelCell}>วันที่รับสินค้าจากลูกค้า :</td>
-                            <td>
-                                {formatDate(receiveFromUserDt)}
-                            </td>
-                        </tr>
-                    </tbody>
-                    </table>
-                </div>
-            </fieldset>
-            {dcSentReturnName && (
-                <fieldset className="space-y-4">
-                    <legend className="text-lg font-semibold text-slate-900">รายละเอียด DC ตีกลับสินค้าคืนสาขา</legend>
-                        <div className="flex justify-center">
-                            <table className="min-w-[560px]">
-                                <tbody>
-                                    <tr>
-                                        <td className={labelCell}>ผู้ส่งมอบ :</td>
-                                        <td>{dcSentReturnName || "-"}</td>
-                                    </tr>
-                                    <tr>
-                                        <td className={labelCell}>ผู้รับ :</td>
-                                        <td>{receiveReturnName || "-"}</td>
-                                    </tr>
-                                    <tr>
-                                        <td className={labelCell}>เบอร์ติดต่อผู้ส่งมอบ :</td>
-                                        <td>{dcSentReturnTel || "-"}</td>
-                                    </tr>
-                                    <tr>
-                                        <td className={labelCell}>วันที่รับสินค้าคืน :</td>
-                                        <td>
-                                            {dcSentReturnDate ?
-                                            new Date(dcSentReturnDate).toLocaleDateString('th-TH') : '-'}
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+            <div className="bg-white border border-slate-200/80 border-t-4 border-t-[#c8102e] rounded-2xl p-6 md:p-8 shadow-sm">
+                <form className="space-y-8">
+                    {/* Section 1: Customer Details */}
+                    <div>
+                        <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100 mb-6">
+                            <span className="w-1 h-4 bg-[#c8102e] rounded-full inline-block"></span>
+                            <h3 className="text-sm font-bold text-slate-800">
+                                👤 รายละเอียดลูกค้าและเบอร์ติดต่อ (Customer Details)
+                            </h3>
                         </div>
-                </fieldset>
-            )}
-            <fieldset className="space-y-4">
-                <legend className="text-lg font-semibold text-slate-900">รายละเอียด DC รับสินค้าจากสาขา</legend>
-                <div className="flex justify-center">
-                    <table className="min-w-[560px]">
-                        <tbody>
-                            <tr>
-                                <td className={labelCell}>ผู้มารับสินค้า :</td>
-                                <td>{sentToDCName}</td>
-                            </tr>
-                            <tr>
-                                <td className={labelCell}>เบอร์ติดต่อ :</td>
-                                <td>{receiverTel}</td>
-                            </tr>
-                            <tr>
-                                <td className={labelCell}>วันที่รับสินค้าจากสาขา :</td>
-                                <td>
-                                    {dcReceiveDate ?
-                                    new Date(dcReceiveDate).toLocaleDateString('th-TH') : '-'}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className={labelCell}>เลขที่ขออนุมัติ :</td>
-                                <td>{approvelogID}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </fieldset>
-            <fieldset className="space-y-4">
-                <legend className="text-lg font-semibold text-slate-900">รายละเอียด DC รับสินค้าเข้าที่ DC</legend>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="col-span-2" >
-                        <label htmlFor="dcArriveDate" className="form-label block mb-1">วันที่ DC รับสินค้าเข้าที่ DC<Req /></label>
-                            <DatePicker
-                                id="dcArriveDate"
-                                selected={dcArriveDate}
-                                onChange={(date) => setDcArriveDate(date)}
-                                dateFormat="dd/MM/yyyy"
-                                placeholderText="วว/ดด/ปป"
-                                className={inputClass(!!errors.dcArriveDate)}
-                            />
-                            {errors.dcArriveDate && <p className="text-red-600 text-sm mt-1">{errors.dcArriveDate}</p>}
-                    </div>
-                </div>
-            </fieldset>
-            {showRollbackModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-                    <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
-                    <h2 className="text-lg font-semibold text-slate-800 mb-4">
-                        ยืนยันการย้อนขั้นตอน
-                    </h2>
-
-                    <div className="space-y-2">
-                        <label className="form-label">
-                            กรุณาระบุเหตุผล :
-                        </label>
-
-                        <textarea
-                            className="input-base min-h-[120px] w-full mt-4"
-                            value={rollbackReason}
-                            onChange={(e) => setRollbackReason(e.target.value)}
-                            placeholder="ระบุเหตุผล..."
-                        />
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div>
+                                <label className="block text-[11px] font-bold text-slate-400 mb-1">ชื่อจริง</label>
+                                <div className="px-3.5 py-2 rounded-xl border border-slate-100 bg-slate-50/50 text-slate-700 text-xs font-semibold">{firstName || "-"}</div>
+                            </div>
+                            <div>
+                                <label className="block text-[11px] font-bold text-slate-400 mb-1">นามสกุล</label>
+                                <div className="px-3.5 py-2 rounded-xl border border-slate-100 bg-slate-50/50 text-slate-700 text-xs font-semibold">{lastName || "-"}</div>
+                            </div>
+                            <div>
+                                <label className="block text-[11px] font-bold text-slate-400 mb-1">เบอร์โทรศัพท์</label>
+                                <div className="px-3.5 py-2 rounded-xl border border-slate-100 bg-slate-50/50 text-slate-700 text-xs font-semibold">{phone || "-"}</div>
+                            </div>
+                            <div className="sm:col-span-3">
+                                <label className="block text-[11px] font-bold text-slate-400 mb-1">ที่อยู่ออกใบกำกับภาษี / จัดส่ง</label>
+                                <div className="px-3.5 py-2.5 rounded-xl border border-slate-100 bg-slate-50/50 text-slate-700 text-xs font-semibold leading-relaxed">{address || "-"}</div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="flex justify-end gap-3 mt-6">
+                    {/* Section 2: Product Details */}
+                    <div>
+                        <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100 mb-6">
+                            <span className="w-1 h-4 bg-[#c8102e] rounded-full inline-block"></span>
+                            <h3 className="text-sm font-bold text-slate-800">
+                                📦 รายละเอียดสินค้า (Product Details)
+                            </h3>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                            <div>
+                                <label className="block text-[11px] font-bold text-slate-400 mb-1">ประเภทสินค้า</label>
+                                <div className="px-3.5 py-2 rounded-xl border border-slate-100 bg-slate-50/50 text-slate-700 text-xs font-semibold truncate" title={productType}>{productType || "-"}</div>
+                            </div>
+                            <div>
+                                <label className="block text-[11px] font-bold text-slate-400 mb-1">ยี่ห้อ</label>
+                                <div className="px-3.5 py-2 rounded-xl border border-slate-100 bg-slate-50/50 text-slate-700 text-xs font-semibold truncate" title={brand}>{brand || "-"}</div>
+                            </div>
+                            <div>
+                                <label className="block text-[11px] font-bold text-slate-400 mb-1">SKU</label>
+                                <div className="px-3.5 py-2 rounded-xl border border-slate-100 bg-slate-50/50 text-slate-700 text-xs font-semibold truncate">{sku === 0 || sku == null ? "-" : sku}</div>
+                            </div>
+                            <div>
+                                <label className="block text-[11px] font-bold text-slate-400 mb-1">Barcode</label>
+                                <div className="px-3.5 py-2 rounded-xl border border-slate-100 bg-slate-50/50 text-slate-700 text-xs font-semibold truncate" title={barcode}>{barcode || "-"}</div>
+                            </div>
+                            <div className="col-span-2">
+                                <label className="block text-[11px] font-bold text-slate-400 mb-1">รุ่นสินค้า (Model)</label>
+                                <div className="px-3.5 py-2 rounded-xl border border-slate-100 bg-slate-50/50 text-slate-700 text-xs font-semibold break-words">{model || "-"}</div>
+                            </div>
+                            <div>
+                                <label className="block text-[11px] font-bold text-slate-400 mb-1">เลขเครื่อง (Serial)</label>
+                                <div className="px-3.5 py-2 rounded-xl border border-slate-100 bg-slate-50/50 text-slate-700 text-xs font-semibold truncate">{serial || "-"}</div>
+                            </div>
+                            <div>
+                                <label className="block text-[11px] font-bold text-slate-400 mb-1">จำนวน</label>
+                                <div className="px-3.5 py-2 rounded-xl border border-slate-100 bg-slate-50/50 text-slate-700 text-xs font-semibold">{qty} ชิ้น</div>
+                            </div>
+                            <div className="col-span-2 sm:col-span-3">
+                                <label className="block text-[11px] font-bold text-slate-400 mb-1">อาการที่พบ</label>
+                                <div className="px-3.5 py-2 rounded-xl border border-slate-100 bg-slate-50/50 text-slate-700 text-xs font-semibold break-words">{issue || "-"}</div>
+                            </div>
+                            <div>
+                                <label className="block text-[11px] font-bold text-slate-400 mb-1">สถานะรับประกัน</label>
+                                <div className="px-3.5 py-1.5 rounded-xl border border-slate-100 bg-slate-50/50 text-slate-700 text-xs font-semibold flex items-center gap-1.5">
+                                    {warranty === "in" ? (
+                                        <>
+                                            <ShieldCheck className="w-4 h-4 text-green-600 shrink-0" />
+                                            <span className="text-green-700 font-bold">ในประกัน</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <ShieldX className="w-4 h-4 text-red-600 shrink-0" />
+                                            <span className="text-red-700 font-bold">นอกประกัน</span>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                            {warranty === "in" && (
+                                <div>
+                                    <label className="block text-[11px] font-bold text-slate-400 mb-1">เลขที่ใบประกัน</label>
+                                    <div className="px-3.5 py-2 rounded-xl border border-slate-100 bg-slate-50/50 text-slate-700 text-xs font-semibold truncate">{warrantyNo || "-"}</div>
+                                </div>
+                            )}
+                            <div>
+                                <label className="block text-[11px] font-bold text-slate-400 mb-1">วันที่รับสินค้าจากลูกค้า</label>
+                                <div className="px-3.5 py-2 rounded-xl border border-slate-100 bg-slate-50/50 text-slate-700 text-xs font-semibold truncate">
+                                    {receiveFromUserDt ? new Date(receiveFromUserDt).toLocaleDateString('th-TH') : '-'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Section 3: DC Arrive info */}
+                    <div>
+                        <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100 mb-6">
+                            <span className="w-1 h-4 bg-[#c8102e] rounded-full inline-block"></span>
+                            <h3 className="text-sm font-bold text-slate-800">
+                                🚚 บันทึกวันเวลาที่จัดส่งมาถึง DC
+                            </h3>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label htmlFor="dcArriveDate" className="block text-xs font-bold text-slate-700 mb-1.5">วันที่จัดส่งมาถึงคลัง DC<Req /></label>
+                                <DatePicker
+                                    id="dcArriveDate"
+                                    selected={dcArriveDate}
+                                    onChange={(date) => setDcArriveDate(date)}
+                                    dateFormat="dd/MM/yyyy"
+                                    placeholderText="วว/ดด/ปป"
+                                    className={inputClass(!!errors.dcArriveDate)}
+                                />
+                                {errors.dcArriveDate && <p className="text-red-600 text-[10px] font-bold mt-1">{errors.dcArriveDate}</p>}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Section 4: Attachments */}
+                    <div>
+                        <div className="flex items-center justify-between pb-2.5 border-b border-slate-100 mb-6">
+                            <div className="flex items-center gap-2">
+                                <span className="w-1 h-4 bg-[#c8102e] rounded-full inline-block"></span>
+                                <h3 className="text-sm font-bold text-slate-800">
+                                    📷 ถ่ายภาพตรวจรับสินค้าเข้าคลัง DC (Attachments)*
+                                </h3>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                            {renderUploadSlot('slot1', 'ภาพถ่ายสินค้าประกอบ (ด้านบน)*', true, fileSlot1, previewSlot1, setFileSlot1, slot1Ref)}
+                            {renderUploadSlot('slot2', 'ภาพถ่ายสินค้าประกอบ (ด้านข้าง)', false, fileSlot2, previewSlot2, setFileSlot2, slot2Ref)}
+                            {renderUploadSlot('slot3', 'ภาพถ่ายป้าย Serial ยืนยัน', false, fileSlot3, previewSlot3, setFileSlot3, slot3Ref)}
+                            {renderUploadSlot('slot4', 'เอกสารรับเข้าคลัง DC*', true, fileSlot4, previewSlot4, setFileSlot4, slot4Ref)}
+                        </div>
+                        {errors.attachments && (
+                            <p className="text-red-600 text-xs font-bold mt-3">{errors.attachments}</p>
+                        )}
+                    </div>
+                </form>
+            </div>
+
+            {/* Bottom floating button bar */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-xl">
+                <div className="flex gap-2">
+                    <button
+                        type="button"
+                        onClick={() => history.back()}
+                        className="flex items-center gap-1.5 px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition font-bold text-xs shadow-inner"
+                    >
+                        ย้อนกลับ
+                    </button>
+                    {((userInfo?.role === "ADMIN" || userInfo?.role === "ADMIN GR" || userInfo?.role === "GR" || userInfo?.role === "DC") 
+                        && (statusNum === 220) ) && (
                         <button
                             type="button"
-                            className="btn-back"
-                            onClick={() => {
-                                setShowRollbackModal(false);
-                                setRollbackReason("");
-                            }}
-                        >
-                            ยกเลิก
-                        </button>
-
-                        <button
-                            type="button"
-                            className="btn-danger"
-                            onClick={handleRollback}
-                            >
-                            ยืนยัน
-                        </button>
-                    </div>
-                    </div>
-                </div>
-            )}
-            <div className="flex items-center justify-end gap-3">
-                <button
-                    type="button"
-                    className="btn-back"
-                    onClick={() => history.back()}
-                >
-                    ย้อนกลับ
-                </button>
-                <>
-                    {((userInfo?.role === "ADMIN" || userInfo?.role === "ADMIN DC" || userInfo?.role === "DC") 
-                        && (statusNum === 21) ) && (
-                        <button
-                            type="button"
-                            className="btn-danger"
                             onClick={() => setShowRollbackModal(true)}
+                            className="flex items-center gap-1.5 px-4 py-2 bg-rose-950/40 hover:bg-rose-900/60 border border-rose-900/50 text-rose-300 rounded-xl transition font-bold text-xs"
                         >
-                            Reject
-                            <Undo2 className="h-4 w-4 ml-2" />
+                            Reject ย้อนขั้นตอน <Undo2 className="w-3.5 h-3.5" />
                         </button>
                     )}
-                </>
-                <button
-                    type="button"
-                    className="btn-submit"
-                    onClick={onSave}
-                >
-                    บันทึก
-                </button>
+                </div>
+                <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider hidden md:inline-block">ขั้นตอนปัจจุบัน: DC Receipt</span>
+                    <button
+                        type="button"
+                        onClick={onSave}
+                        className="flex items-center gap-1.5 px-6 py-2.5 bg-[#c8102e] hover:bg-[#b00d25] text-white rounded-xl transition font-bold text-xs shadow-md shadow-red-900/30"
+                    >
+                        บันทึกรับเข้าคลังสำเร็จ <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                </div>
             </div>
-            </form>
-        </div>
+
+            {/* Examples Guideline Popup Modal */}
+            {exampleModal && exampleModal.isOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fadeIn">
+                    <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden animate-zoomIn flex flex-col border border-slate-200">
+                        <div className="bg-slate-950 text-white px-5 py-4 flex items-center justify-between border-b border-slate-900">
+                            <span className="font-bold text-xs flex items-center gap-1.5 uppercase tracking-wider">
+                                💡 ภาพตัวอย่าง: {exampleModal.title}
+                            </span>
+                            <button onClick={() => setExampleModal(null)} className="text-slate-400 hover:text-white transition cursor-pointer">
+                                <ShieldX className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="p-6 bg-slate-50 flex flex-col items-center justify-center space-y-4">
+                            <div className="w-full aspect-[4/3] rounded-xl overflow-hidden border border-slate-200 bg-white flex items-center justify-center shadow-inner">
+                                <img src={exampleModal.imageUrl} alt={exampleModal.title} className="w-full h-full object-contain" />
+                            </div>
+                            <div className="w-full bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                                <p className="text-xs text-slate-600 font-medium leading-relaxed">
+                                    {exampleModal.desc}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="bg-white border-t border-slate-100 px-5 py-3 flex justify-end">
+                            <button
+                                onClick={() => setExampleModal(null)}
+                                className="px-4 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer transition"
+                            >
+                                ปิดคำแนะนำ
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Rollback confirmation modal */}
+            {showRollbackModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 border border-slate-200">
+                        <h2 className="text-base font-bold text-slate-800 mb-3 flex items-center gap-2 text-rose-600">
+                            ⚠ ยืนยันการย้อนขั้นตอน (Reject)
+                        </h2>
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-500 block mb-1">
+                                กรุณาระบุเหตุผลการตีกลับงาน :
+                            </label>
+                            <textarea
+                                className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-[#c8102e] min-h-[100px]"
+                                value={rollbackReason}
+                                onChange={(e) => setRollbackReason(e.target.value)}
+                                placeholder="ระบุเหตุผลการปฏิเสธงานของ DC..."
+                            />
+                        </div>
+                        <div className="flex justify-end gap-3 mt-6">
+                            <button
+                                type="button"
+                                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer"
+                                onClick={() => {
+                                    setShowRollbackModal(false);
+                                    setRollbackReason("");
+                                }}
+                            >
+                                ยกเลิก
+                            </button>
+                            <button
+                                type="button"
+                                className="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs transition cursor-pointer shadow-md shadow-red-950/20"
+                                onClick={handleRollback}
+                            >
+                                ยืนยันตีกลับงาน
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </section>
     );
 }

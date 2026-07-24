@@ -596,63 +596,36 @@ export default function DashBoardPage() {
             </div>
 
             {/* Right: Alert & Performance Center */}
-            <div className="lg:col-span-6 bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between">
+            <div className="lg:col-span-6 bg-white p-5 md:p-6 rounded-3xl border border-slate-200/60 shadow-sm flex flex-col justify-between">
               <div>
-                <h3 className="text-xs font-extrabold text-slate-700 tracking-wider uppercase">ALERT & PERFORMANCE CENTER</h3>
-                <p className="text-[11px] text-slate-400 font-semibold mt-0.5">ศูนย์เตือนภัยและการตรวจสอบการดำเนินงาน</p>
+                <h3 className="text-sm font-black text-slate-800 tracking-wider uppercase">ALERT & PERFORMANCE CENTER</h3>
+                <p className="text-[11px] text-slate-400 font-bold mt-0.5">ศูนย์เตือนภัยและการตรวจสอบการดำเนินงาน</p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-4">
+              <div className="mt-5">
                 
                 {/* SLA Violation List */}
-                <div className="space-y-2.5">
+                <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-extrabold text-red-600 tracking-wider">SLA VIOLATION LIST (งานเกิน SLA)</span>
-                    <span className="text-[9px] font-bold text-slate-400 hover:text-slate-600 cursor-pointer">ดูทั้งหมด</span>
+                    <span className="text-[10px] font-black text-red-600 tracking-wider uppercase">SLA VIOLATION LIST (งานเกิน SLA)</span>
+                    <span className="text-[10px] font-bold text-slate-400 hover:text-slate-600 cursor-pointer">ดูทั้งหมด</span>
                   </div>
 
-                  <div className="space-y-1.5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {slaViolations.map((v, idx) => (
-                      <div key={idx} className="flex items-start gap-2 p-2 bg-slate-50 border border-slate-100 rounded-xl hover:bg-slate-100/50 transition">
-                        <AlertTriangle className="w-3.5 h-3.5 text-red-650 mt-0.5 shrink-0" />
-                        <div className="flex flex-col min-w-0 text-[10px] flex-1">
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="font-extrabold text-slate-700 truncate">{v.jobId}</span>
-                            <span className="font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded border border-red-100 shrink-0">{v.overdue}</span>
+                      <div key={idx} className="flex flex-col p-3.5 bg-slate-50 border border-slate-100/70 rounded-2xl hover:bg-slate-100/50 transition">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <AlertTriangle className="w-4 h-4 text-slate-850" />
+                            <span className="font-extrabold text-sm text-slate-800 tracking-tight">{v.jobId}</span>
                           </div>
-                          <div className="flex items-center justify-between text-slate-450 font-bold mt-0.5">
-                            <span className="truncate text-slate-500">{v.customer}</span>
-                            <span className="shrink-0 text-slate-400">{v.branch}</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Stock Alert list */}
-                <div className="space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-extrabold text-slate-700 tracking-wider">STOCK ALERT (อะไหล่ขาดสต๊อก)</span>
-                    <span className="text-[9px] font-bold text-slate-400 hover:text-slate-600 cursor-pointer">ดูทั้งหมด</span>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    {stockAlerts.map((s, idx) => (
-                      <div key={idx} className="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-100 rounded-xl hover:bg-slate-100/50 transition text-[10px] font-bold">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${s.color === "red" ? "bg-red-650 animate-pulse" : "bg-orange-500"}`}></span>
-                          <span className="text-slate-700 truncate">{s.part}</span>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <span className="text-slate-500">{s.remaining} ชิ้น</span>
-                          <span className={`px-1.5 py-0.5 rounded text-[9px] border font-black ${
-                            s.color === "red" 
-                              ? "bg-red-50 text-red-605 border-red-100" 
-                              : "bg-orange-50 text-orange-655 border-orange-100"
-                          }`}>
-                            {s.status}
+                          <span className="text-[10px] font-extrabold text-red-600 bg-red-50 px-2.5 py-0.5 rounded-lg border border-red-200/50 shrink-0">
+                            {v.overdue}
                           </span>
+                        </div>
+                        <div className="flex justify-between items-center mt-2.5 pl-6 text-[10px] font-bold text-slate-400">
+                          <span className="text-slate-500 font-semibold">{v.customer}</span>
+                          <span className="font-medium">{v.branch}</span>
                         </div>
                       </div>
                     ))}
